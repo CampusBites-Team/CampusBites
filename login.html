@@ -5,56 +5,99 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CampusBites - Login</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+<body class="min-h-screen bg-gray-100">
 
-  <main class="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-    <header>
-      <h1 class="text-2xl font-bold mb-6 text-center">Login</h1>
-    </header>
-
-    <section aria-labelledby="login-title">
-      <h2 id="login-title" class="sr-only">Login form</h2>
-
-      <form id="loginForm" class="space-y-4">
-        <label for="loginEmail" class="block font-medium">Email</label>
-        <input
-          type="email"
-          id="loginEmail"
-          name="email"
-          class="w-full border rounded-lg px-3 py-2"
-          placeholder="Enter your email"
-          required
-        />
-
-        <label for="loginPassword" class="block font-medium">Password</label>
-        <input
-          type="password"
-          id="loginPassword"
-          name="password"
-          class="w-full border rounded-lg px-3 py-2"
-          placeholder="Enter your password"
-          required
-        />
-
-        <button
-          type="submit"
-          class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition"
-        >
-          Sign In
-        </button>
-      </form>
+  <section class="relative min-h-screen">
+    <section class="absolute inset-0">
+      <img src="assets/Matrix.jpg" alt="Campus food court background" class="w-full h-full object-cover" />
     </section>
 
-    <footer>
-      <p class="mt-4 text-center text-sm text-gray-600">
-        No account?
-        <a href="register.html" class="text-indigo-600 font-semibold hover:underline">
-          Register
-        </a>
-      </p>
-    </footer>
-  </main>
+    <section class="absolute inset-0 bg-black/65"></section>
 
+    <section class="relative z-10 min-h-screen">
+      <nav class="bg-white/95 border-b border-gray-200 shadow-sm">
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+          <header class="flex items-center gap-2">
+            <i data-lucide="utensils" class="w-7 h-7 text-indigo-600"></i>
+            <span class="text-xl font-bold text-gray-900">CampusBites</span>
+          </header>
+
+          <section class="flex items-center gap-6">
+            <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
+            <a href="register.html" class="text-gray-700 hover:text-indigo-600">Register</a>
+          </section>
+        </section>
+      </nav>
+
+      <section class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-10">
+        <main class="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
+          <header>
+            <h1 class="text-2xl font-bold mb-6 text-center">Login</h1>
+          </header>
+
+          <section aria-labelledby="login-title">
+            <h2 id="login-title" class="sr-only">Login form</h2>
+
+            <form id="loginForm" class="space-y-4">
+              <label for="loginEmail" class="block font-medium">Email</label>
+              <input
+                type="email"
+                id="loginEmail"
+                name="email"
+                class="w-full border rounded-lg px-3 py-2"
+                placeholder="Enter your email"
+                required
+              />
+
+              <label for="loginPassword" class="block font-medium">Password</label>
+              <input
+                type="password"
+                id="loginPassword"
+                name="password"
+                class="w-full border rounded-lg px-3 py-2"
+                placeholder="Enter your password"
+                required
+              />
+
+              <button
+                type="submit"
+                class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition"
+              >
+                Sign In
+              </button>
+
+              <section class="flex items-center my-4" aria-label="Alternative sign in options">
+                <hr class="flex-grow border-gray-300" />
+                <span class="mx-3 text-sm text-gray-500">or continue with</span>
+                <hr class="flex-grow border-gray-300" />
+              </section>
+
+              <button
+                type="button"
+                class="w-full border border-gray-300 py-2 rounded-lg hover:bg-gray-50 transition font-medium"
+              >
+                Sign in with Google
+              </button>
+            </form>
+          </section>
+
+          <footer>
+            <p class="mt-4 text-center text-sm text-gray-600">
+              No account?
+              <a href="register.html" class="text-indigo-600 font-semibold hover:underline">
+                Register
+              </a>
+            </p>
+          </footer>
+        </main>
+      </section>
+    </section>
+  </section>
+
+  <script>
+    lucide.createIcons();
+  </script>
 </body>
 </html>
