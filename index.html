@@ -5,6 +5,19 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+<style>
+    .glass-effect{
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(10px);
+    }
+    .slide-in{
+        animation:slideIn 10s ease-out;
+    }
+    @keyframes slideIn{
+        from{transform: translateY(20px); opacity:0;}
+        to{transform: translateY(0); opacity:1;}
+    }
+</style>
 <body class="bg-gray-50 text-gray-800">
     <nav class="fixed bg-white w-full z-50 glass-effect border-b border-gray-200">
         <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
@@ -13,7 +26,7 @@
                 <span class="text-xl font-bold text-gray-900">CampusBites</span>
             </header>
             <section class="md:flex space-x-8">
-                <a href="#" class="text-gray-700 hover:text-indigo-600">Home</a>
+                <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
                 <a href="#" class="text-gray-700 hover:text-indigo-600">Browse</a>
             </section>
             <section class="flex items-center gap-4">
@@ -32,7 +45,7 @@
                 <section class="absolute inset-0 bg-black/60"></section>
             <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
 
-                <section class="text-center">
+                <section class="text-center slide-in">
                     <h1 class="text-white text-4xl md:text-6xl font-bold mb-6 drop-shadow-lg">Skip the Queue, <br>Enjoy Your Meal</h1>
                     <p class="text-xl mb-8 text-gray-200">Order from multiple campus vendors and pick up when ready. No more missing classes for lunch!</p>
                     <section class="flex justify-center gap-4">
@@ -46,6 +59,66 @@
                 </section>
             </section>
     </section>
+<section id="features" class="py-20 bg-white">
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section class="grid md:grid-cols-3 gap-8">
+
+            <article class="text-center p-6 rounded-xl bg-gray-50 hover:shadow-lg transition">
+                <figure class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="clock" class="w-8 h-8 text-indigo-600"></i>
+                </figure>
+                <h3 class="text-xl font-semibold mb-2">Save Time</h3>
+                <p class="text-gray-600">
+                    Order ahead and skip the long queues during peak hours. Get notified when your food is ready.
+                </p>
+            </article>
+
+            <article class="text-center p-6 rounded-xl bg-gray-50 hover:shadow-lg transition">
+                <figure class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="heart-pulse" class="w-8 h-8 text-green-600"></i>
+                </figure>
+                <h3 class="text-xl font-semibold mb-2">Dietary Safety</h3>
+                <p class="text-gray-600">
+                    Full allergen and dietary information for every item. SA R.146 compliant food safety standards.
+                </p>
+            </article>
+
+            <article class="text-center p-6 rounded-xl bg-gray-50 hover:shadow-lg transition">
+                <figure class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="store" class="w-8 h-8 text-orange-600"></i>
+                </figure>
+                <h3 class="text-xl font-semibold mb-2">Multi-Vendor</h3>
+                <p class="text-gray-600">
+                    Order from multiple shops in one transaction. One payment, multiple pickups.
+                </p>
+            </article>
+
+        </section>
+    </section>
+</section>
+<section class="py-20 bg-gray-50">
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl font-bold text-center mb-12">Featured Vendors</h2>
+        <section class="grid md:grid-cols-3 gap-6">
+            <article class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition curser-pointer">
+                <img src="assets/jim.jpg" class="w-full h-48 object-cover">
+                <figure class="p-6">
+                    <h3 class="text-xl font-semibold mb-2">Jimmy's</h3>
+                    <p class="text-gray-600 text-sm mb-2">Fast Food • Matrix Ground floor</p>
+                    <p class="text-gray-500 text-sm">burgers, fries and grilled items</p>
+                </figure>
+            </article>
+            <article class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition curser-pointer">
+                <img src="assets/Xpresso.png" class="w-full h-48 object-contain">
+                <figure class="p-6">
+                    <h3 class="text-xl font-semibold mb-2">Xpresso</h3>
+                    <p class="text-gray-600 text-sm mb-2">Café • Matrix Ground floor</p>
+                    <p class="text-gray-500 text-sm">Fresh coffee and light meals</p>
+                </figure>
+            </article>
+        </section>
+    </section>
+</section>
     <script>
         lucide.createIcons();
     </script>
