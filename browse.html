@@ -15,9 +15,11 @@
             <section class="md:flex space-x-8">
                 <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
                 <a href="browse.html" class="text-gray-700 hover:text-indigo-600">Browse</a>
+                <a id="CustomerdashboardLink" href="customer-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
+                <a id="VendordashboardLink" href="vendor-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
             </section>
             <section class="flex items-center gap-4">
-                <a href="login.html" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
+                <a href="login.html" id="loginLink"class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
                     Sign in
                 </a>
             </section>
@@ -158,8 +160,14 @@
              </section>
         </section>
     </main>
-</body>
-<script>
-  lucide.createIcons();
+
+<script type="module">
+  import { initAuthUI, logout } from "./scripts/auth.js";
+
+  initAuthUI();
+lucide.createIcons();
+  // Attach logout button
+  document.getElementById("logoutBtn")?.addEventListener("click", logout);
 </script>
+</body>
 </html>
