@@ -1,0 +1,24 @@
+{
+  "name": "campusbites",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MpiloMario/CampusBites.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/MpiloMario/CampusBites/issues"
+  },
+  "homepage": "https://github.com/MpiloMario/CampusBites#readme",
+  "devDependencies": {
+    "jest": "^30.3.0"
+  }
+}
