@@ -1,14 +1,4 @@
-import {
-  auth,
-  db,
-  doc,
-  getDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-  addDoc
-} from "./database.js"; 
+
 
 
 // bringeing the update menu section
@@ -37,18 +27,58 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-//identify vendor
-let currentVendorId = null;
+  const allergenBtn = document.getElementById("allergenBtn");
+  const allergenmenu = document.getElementById("allergenMenu");
+  const allergentext = document.getElementById("allergenText");
+  const allergencheckboxes = allergenmenu.querySelectorAll(".allergen-option");
 
-auth.onAuthStateChanged(async (user) => {
-  if (!user) {
-    window.location.href = "login.html";
-    return;
-  }
+  // toggle dropdown
+  allergenBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    allergenmenu.classList.toggle("hidden");
+  });
 
-  currentVendorId = user.uid;
+ 
 
- // loadMenuItems();
- // loadOrders();
-})
+  // update selected text
+  allergencheckboxes.forEach(cb => {
+    cb.addEventListener("change", () => {
+      const selected = Array.from(allergencheckboxes)
+        .filter(c => c.checked)
+        .map(c => c.value);
+
+      allergentext.textContent = selected.length
+        ? selected.join(", ")
+        : "Select allergens";
+    });
+  });
+
+    const dietbtn = document.getElementById("specialdietBtn");
+  const dietmenu = document.getElementById("specialdiet");
+  const diettext = document.getElementById("specialdietText");
+  const dietcheckboxes = dietmenu.querySelectorAll(".specialdiet-option");
+
+  // toggle dropdown
+  dietbtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    dietmenu.classList.toggle("hidden");
+  });
+
+ 
+
+  // update selected text
+  dietcheckboxes.forEach(cb => {
+    cb.addEventListener("change", () => {
+      const selected = Array.from(dietcheckboxes)
+        .filter(c => c.checked)
+        .map(c => c.value);
+
+      diettext.textContent = selected.length
+        ? selected.join(", ")
+        : "Select dietary preferences";
+    });
+  });
+
+
+
  ;
