@@ -269,12 +269,13 @@
 </section>
   </main>
 
-  <script>
-    lucide.createIcons();
-  </script>
+<script type="module">
+  import { initAuthUI, logout } from "./scripts/auth.js";
 
-   <script  src="scripts/vendor-dashboard.js">
-   </script>
-
+  initAuthUI();
+  lucide.createIcons();
+  // Attach logout button
+  document.getElementById("logoutBtn")?.addEventListener("click", logout);
+</script>
 </body>
 </html>
