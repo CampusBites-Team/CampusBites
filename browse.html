@@ -95,66 +95,8 @@
                     <h2 class="text-2xl font-bold">Browse Menu</h2>
                     <p class="text-sm text-gray-500">3 items found</p>
                 </header>
-                <section class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"> 
-                    <!--Items-->
-                    <article class="bg-white p-4 rounded-xl shadow-sm">
-                        <img src="assets/jim.jpg" alt="Burger" class="w-full h-48 object-cover rounded-lg mb-4">
-                        <section class="flex justify-between items-start mb-2">
-                            <section>
-                                <h3 class="text-lg font-semibold mb-2">Classic Burger</h3>
-                                <p class="text-sm text-gray-500">Jimmy's</p>
-                            </section>
-                        <span class="font-bold text-indigo-600">R50</span>
-                        </section>
-                        <p class="text-sm text-gray-600 mb-3 line-clamp-2">A delicious classic burger with all the fixings.</p>
-                        <section class="flex gap-2">
-                                <button class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium">
-                                    Details
-                                </button>
-                                <button  class="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition text-sm font-medium flex items-center justify-center gap-2">
-                                    <i data-lucide="plus" class="w-4 h-4"></i> Add
-                                </button>
-                        </section>
-                    </article>
-                    <article class="bg-white p-4 rounded-xl shadow-sm">
-                        <img src="assets/Xpresso.png" alt="Burger" class="w-full h-48 object-cover rounded-lg mb-4">
-                        <section class="flex justify-between items-start mb-2">
-                            <section>
-                                <h3 class="text-lg font-semibold mb-2">Cappuccino</h3>
-                                <p class="text-sm text-gray-500">Expresso</p>
-                            </section>
-                        <span class="font-bold text-indigo-600">R14</span>
-                        </section>
-                        <p class="text-sm text-gray-600 mb-3 line-clamp-2">A delicious cappuccino with all the fixings.</p>
-                        <section class="flex gap-2">
-                                <button class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium">
-                                    Details
-                                </button>
-                                <button  class="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition text-sm font-medium flex items-center justify-center gap-2">
-                                    <i data-lucide="plus" class="w-4 h-4"></i> Add
-                                </button>
-                        </section>
-                    </article>
-                    <article class="bg-white p-4 rounded-xl shadow-sm">
-                        <img src="assets/Xpresso.png" alt="Burger" class="w-full h-48 object-cover rounded-lg mb-4">
-                        <section class="flex justify-between items-start mb-2">
-                            <section>
-                                <h3 class="text-lg font-semibold mb-2">Raspberry Mocha</h3>
-                                <p class="text-sm text-gray-500">Expresso</p>
-                            </section>
-                        <span class="font-bold text-indigo-600">R14</span>
-                        </section>
-                        <p class="text-sm text-gray-600 mb-3 line-clamp-2">A delicious raspberry mocha with all the fixings.</p>
-                        <section class="flex gap-2">
-                                <button class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium">
-                                    Details
-                                </button>
-                                <button  class="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition text-sm font-medium flex items-center justify-center gap-2">
-                                    <i data-lucide="plus" class="w-4 h-4"></i> Add
-                                </button>
-                        </section>
-                    </article>
-                    
+                <section id="menu-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"> 
+
                 </section>
 
              </section>
@@ -169,5 +111,6 @@ lucide.createIcons();
   // Attach logout button
   document.getElementById("logoutBtn")?.addEventListener("click", logout);
 </script>
+<script type="module" src="./scripts/browse.js"></script>
 </body>
 </html>
