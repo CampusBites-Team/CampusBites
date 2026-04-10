@@ -29,45 +29,46 @@
             <!--Sidebar Filters-->
             <aside class="w-full md:w-64 space-y-6">
                 <section class="bg-white p-4 rounded-xl shadow-sm">
-                    <h3 class="font-semibold mb-4 flex items-center gap-2">
+                    <h3 id = "test" class="font-semibold mb-4 flex items-center gap-2">
                         <i data-lucide="filter" class="w-4 h-4"></i> Filters
                     </h3>
                     <section class="mb-4">
                         <label class="text-sm font-medium text-gray-700 mb-2 block">Vendor</label>
-                        <select class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                            <option>All Vendors</option>
-                            <option>Expresso</option>
-                            <option>Jimmy's</option>
-                            <option>Vendor C</option>
+                        <select id = "Vendors" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <option value = "AllVendors" selected="selected">All Vendors</option>
+                            <option value = "Expresso">Expresso</option>
+                            <option value = "Jimmy">Jimmy's</option>
+                            <option value = "VendorC">Vendor C</option>
                         </select>
+                        
                     </section>
+                    
                     <!--Category Filter-->
                     <section class="mb-4">
                         <label class="text-sm font-medium text-gray-700 mb-2 block">Category</label>
-                        <select class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                            <option>All Categories</option>
-                            <option>Burgers</option>
-                            <option>Salads</option>
-                            <option>Sides</option>
-                            <option>Healthy</option>
+                        <select id = "Categories" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <option value = "AllCategories" selected="selected">All Categories</option>
+                            <option value = "Burger">Burgers</option>
+                            <option value = "Salad">Salads</option>
+                            <option value = "Side">Sides</option>
+                            <option value = "Healthy">Healthy</option>
                         </select>
                     </section>
-
                     <!--Dietary Filter-->
                     <section class="mb-4">
                         <label class="text-sm font-medium text-gray-700 mb-2 block">Dietary</label>
                         <section class="space-y-2">
                             <label class="flex items-center gap-2 text-sm">
-                                <input type="checkbox" class="rounded text-green-600">Vegan
+                                <input id = "Vegan" type="checkbox" class="rounded text-green-600">Vegan
                             </label>                            
                             <label class="flex items-center gap-2 text-sm">
-                                <input type="checkbox" class="rounded text-green-600">Vegetarian
+                                <input id = "Vegetarian" type="checkbox" class="rounded text-green-600">Vegetarian
                             </label>
                             <label class="flex items-center gap-2 text-sm">
-                                <input type="checkbox" class="rounded text-green-600">Gluten-Free
+                                <input id = "Gluten-Free" type="checkbox" class="rounded text-green-600">Gluten-Free
                             </label>                            
                             <label class="flex items-center gap-2 text-sm">
-                                <input type="checkbox" class="rounded text-green-600">Halal
+                                <input id = "Halal" type="checkbox" class="rounded text-green-600">Halal
                             </label>
                         </section>
                     </section>
@@ -93,9 +94,9 @@
                     <h2 class="text-2xl font-bold">Browse Menu</h2>
                     <p class="text-sm text-gray-500">3 items found</p>
                 </header>
-                <section class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"> 
+                <section id = "menu" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"> 
                     <!--Items-->
-                    <article class="bg-white p-4 rounded-xl shadow-sm">
+                    <!--<article class="bg-white p-4 rounded-xl shadow-sm">
                         <img src="assets/jim.jpg" alt="Burger" class="w-full h-48 object-cover rounded-lg mb-4">
                         <section class="flex justify-between items-start mb-2">
                             <section>
@@ -151,7 +152,7 @@
                                     <i data-lucide="plus" class="w-4 h-4"></i> Add
                                 </button>
                         </section>
-                    </article>
+                    </article> -->
                     
                 </section>
 
@@ -159,7 +160,150 @@
         </section>
     </main>
 </body>
-<script>
-  lucide.createIcons();
+<script type="module">
+import { Menu, MenuItem } from "./scripts/database.js";
+lucide.createIcons();
+
+const vegan = document.getElementById("Vegan");
+const vegetarian = document.getElementById("Vegetarian");
+const halal = document.getElementById("Halal");
+const gluten = document.getElementById("Gluten-Free");
+const menuList = document.getElementById("menu");
+let menus = [];
+const menu = new Menu("Jimmy");
+const menu2 = new Menu("Expresso");
+
+let restrictions = [false, false, false, false];
+let vendor = "AllVendors";
+let category = "AllCategories";
+
+function update(){
+    let html = ``;
+    for(let k = 0; k < menus.length; k++){
+    for(let i = 0; i < menus[k].itemList.length; i++){
+        let flag = true;
+        for(let j = 0; j < restrictions.length; j++){
+            if(restrictions[j] && !menus[k].itemList[i].restrictions[j]){
+                flag = false;
+            }
+        }
+        if(flag && vendor != "AllVendors" && vendor != menus[k].owner){
+            flag = false;
+        }
+        if(flag && category != "AllCategories" && category != menus[k].itemList[i].category){
+            flag = false;
+        }
+        if(flag){
+            html += `<article class="bg-white p-4 rounded-xl shadow-sm">
+                        <img src="${menus[k].itemList[i].image}" alt = "${menus[k].itemList[i].category}" class="w-full h-48 object-cover rounded-lg mb-4">
+                        <section class="flex justify-between items-start mb-2">
+                            <section>
+                                <h3 class="text-lg font-semibold mb-2">${menus[k].itemList[i].name}</h3>
+                                <p class="text-sm text-gray-500">${menus[k].owner}</p>
+                            </section>
+                        <span class="font-bold text-indigo-600">R${menus[k].itemList[i].price}</span>
+                        </section>
+                        <p class="text-sm text-gray-600 mb-3 line-clamp-2">${menus[k].itemList[i].description}</p>
+                        <section class="flex gap-2">
+                                <button class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium">
+                                    Details
+                                </button>
+                                <button  class="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition text-sm font-medium flex items-center justify-center gap-2">
+                                    <i data-lucide="plus" class="w-4 h-4"></i> Add
+                                </button>
+                        </section>
+                    </article>`;
+        }
+    }
+    }
+    
+    menuList.innerHTML = html;
+}
+
+
+document.addEventListener("DOMContentLoaded", () =>{
+
+menu.addItem(new MenuItem("Test", "Test", "Test", "assets/jim.jpg", "Salad", [false, false, false, false]));
+menu.addItem(new MenuItem("Vegan", "Test2", "Test2", "assets/jim.jpg", "Side", [true, false, false, false]));
+menu.addItem(new MenuItem("Halal", "Test2", "Test2", "assets/jim.jpg", "Healthy", [false, false, false, true]));
+menu.addItem(new MenuItem("VegetarianGluten", "Test2", "Test2", "assets/jim.jpg", "Test2", [false, true, true, false]));
+menu2.addItem(new MenuItem("Expresso", "Test2", "Test2", "assets/jim.jpg", "Burger", [false, true, true, true]))
+menus.push(menu);
+menus.push(menu2);
+let html = ``;
+for(let k = 0; k < menus.length; k++){
+for(let i = 0; i < menus[k].itemList.length; i++){
+    html += `<article class="bg-white p-4 rounded-xl shadow-sm">
+                        <img src="${menus[k].itemList[i].image}" alt = "${menus[k].itemList[i].category}" class="w-full h-48 object-cover rounded-lg mb-4">
+                        <section class="flex justify-between items-start mb-2">
+                            <section>
+                                <h3 class="text-lg font-semibold mb-2">${menus[k].itemList[i].name}</h3>
+                                <p class="text-sm text-gray-500">${menus[k].owner}</p>
+                            </section>
+                        <span class="font-bold text-indigo-600">R${menus[k].itemList[i].price}</span>
+                        </section>
+                        <p class="text-sm text-gray-600 mb-3 line-clamp-2">${menus[k].itemList[i].description}</p>
+                        <section class="flex gap-2">
+                                <button class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium">
+                                    Details
+                                </button>
+                                <button  class="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition text-sm font-medium flex items-center justify-center gap-2">
+                                    <i data-lucide="plus" class="w-4 h-4"></i> Add
+                                </button>
+                        </section>
+                    </article>`;
+}
+}
+
+
+
+menuList.innerHTML = html;
+
+});
+
+vegan.addEventListener("click", () =>{
+    if(vegan.checked == true){
+        restrictions[0] = true;
+    } else {
+        restrictions[0] = false;
+    }
+    update();
+});
+halal.addEventListener("click", () =>{
+    if(halal.checked == true){
+        restrictions[3] = true;
+    } else {
+        restrictions[3] = false;
+    }
+    update();
+});
+gluten.addEventListener("click", () =>{
+    if(gluten.checked == true){
+        restrictions[2] = true;
+    } else {
+        restrictions[2] = false;
+    }
+    update();
+});
+vegetarian.addEventListener("click", () =>{
+    if(vegetarian.checked == true){
+        restrictions[1] = true;
+    } else {
+        restrictions[1] = false;
+    }
+    update();
+});
+document.getElementById("Vendors").addEventListener("click", () =>{
+    vendor = document.getElementById("Vendors").value;
+    update();
+});
+document.getElementById("Categories").addEventListener("click", () =>{
+    category = document.getElementById("Categories").value;
+    console.log(category);
+    update();
+});
+
+
+
 </script>
 </html>

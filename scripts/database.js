@@ -47,3 +47,36 @@ export {
   setDoc,
   getDoc
 };
+
+export class MenuItem{
+  name
+  price
+  description
+  image
+  category
+  restrictions
+
+  constructor(name, price, description, image, category, restrictions) {
+    this.name = name;
+    this.price = price;
+    this.description = description;
+    this.image = image;
+    this.category = category;
+    this.restrictions = restrictions;
+  }
+}
+
+export class Menu{
+  itemList
+  owner
+  constructor(owner){
+    this.itemList = [];
+    this.owner = owner;
+  }
+  addItem(menuItem){
+    this.itemList.push(menuItem);
+  }
+}
+
+//export class MenuItem {};
+//export class Menu {};
