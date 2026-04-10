@@ -42,9 +42,10 @@
         <p class="text-gray-600 mb-4">
           Review new orders and update preparation progress.
         </p>
-        <a href="#" class="inline-block text-indigo-600 font-semibold hover:underline">
+        <button data-tab="orders" class="tab-btn text-indigo-600 font-semibold hover:underline">
           Manage Orders
-        </a>
+        </button>
+
       </article>
 
       <article class="bg-white rounded-2xl shadow-md p-6">
@@ -57,7 +58,10 @@
         </p>
         <a href="menu.html" class="inline-block text-indigo-600 font-semibold hover:underline">
           Update Menu
-        </a>
+        </button>
+
+  
+
       </article>
 
       <article class="bg-white rounded-2xl shadow-md p-6">
@@ -68,11 +72,159 @@
         <p class="text-gray-600 mb-4">
           Track sales and see how you are performing.
         </p>
-        <a href="#" class="inline-block text-indigo-600 font-semibold hover:underline">
-          View Analytics
-        </a>
+        <button data-tab="sales" class="tab-btn text-indigo-600 font-semibold hover:underline">
+            View Analytics
+        </button>
+
       </article>
+
     </section>
+
+
+      <!--  TAB CONTENT AREA -->
+<section id="tabContent" class="hidden mb-10">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-white rounded-b-2xl shadow-md border-t-0 p-6 -mt-2">
+
+
+      <!-- MENU TAB -->
+      <div id="menuTab" class="tab-panel hidden">
+        <h2 class="text-2xl font-bold mb-6">Menu Management</h2>
+
+        <div class="mb-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <input class="border p-2 rounded" placeholder="Item name" />
+            <input class="border p-2 rounded" placeholder="Price" />
+            <input class="border p-2 rounded" placeholder="Description" />
+            <button class="mt-3 px-4 py-2 bg-indigo-600 text-white rounded">
+              Upload Item Image
+          </button>
+<div class="relative inline-block w-full max-w-md">
+
+  <!-- Dropdown Button -->
+  <button id="allergenBtn"
+    class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-left shadow-sm flex justify-between items-center">
+    <span id="allergenText">Select allergens</span>
+    <span>▼</span>
+  </button>
+
+  <!-- Dropdown Panel -->
+  <div id="allergenMenu"
+    class="hidden absolute mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-3">
+
+    <label class="flex items-center gap-2 py-1">
+      <input type="checkbox" value="Egg" class="allergen-option" />
+      Egg
+    </label>
+
+    <label class="flex items-center gap-2 py-1">
+      <input type="checkbox" value="Cow's milk" class="allergen-option" />
+      Cow's milk
+    </label>
+
+    <label class="flex items-center gap-2 py-1">
+      <input type="checkbox" value="Crustaceans & molluscs" class="allergen-option" />
+      Crustaceans & molluscs
+    </label>
+
+    <label class="flex items-center gap-2 py-1">
+      <input type="checkbox" value="Fish" class="allergen-option" />
+      Fish
+    </label>
+
+    <label class="flex items-center gap-2 py-1">
+      <input type="checkbox" value="Peanuts" class="allergen-option" />
+      Peanuts
+    </label>
+
+    <label class="flex items-center gap-2 py-1">
+      <input type="checkbox" value="Soybeans" class="allergen-option" />
+      Soybeans
+    </label>
+
+    <label class="flex items-center gap-2 py-1">
+      <input type="checkbox" value="Tree nuts" class="allergen-option" />
+      Tree nuts
+    </label>
+
+    <label class="flex items-center gap-2 py-1">
+      <input type="checkbox" value="Cereals (gluten etc.)" class="allergen-option" />
+      Cereals (gluten etc.)
+    </label>
+
+  </div>
+
+</div>
+
+
+
+<div class="relative inline-block w-full max-w-md">
+
+  <!-- Dropdown Button -->
+  <button id="specialdietBtn"
+    class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-left shadow-sm flex justify-between items-center">
+    <span id="specialdietText">Select dietary preferences</span>
+    <span>▼</span>
+  </button>
+
+<div id="specialdiet"
+    class="hidden absolute mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-3">
+
+    <label class="flex items-center gap-2 py-1">
+      <input type="checkbox" value="Halal" class="specialdiet-option" />
+      Halal
+    </label>
+
+    <label class="flex items-center gap-2 py-1">
+      <input type="checkbox" value="Vegetarian" class="specialdiet-option" />
+      Vegetarian
+    </label>
+
+    <label class="flex items-center gap-2 py-1">
+      <input type="checkbox" value="Vegan" class="specialdiet-option" />
+      Vegan
+    </label>
+    </div>
+</div>
+
+          </div>
+
+          <button id="additembtn" class="mt-3 px-4 py-2 bg-indigo-600 text-white rounded">
+            Add Item
+          </button>
+        </div>
+
+        <table class="w-full border">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="p-2">Item</th>
+              <th class="p-2">Description</th>
+              <th class="p-2">Price</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+
+        
+      </div>
+
+      <!-- ORDERS TAB -->
+      <div id="ordersTab" class="tab-panel hidden">
+        <h2 class="text-2xl font-bold mb-6">Incoming Orders</h2>
+        <p>Orders will appear here...</p>
+      </div>
+
+      <!-- SALES TAB -->
+      <div id="salesTab" class="tab-panel hidden">
+        <h2 class="text-2xl font-bold mb-6">Sales Overview</h2>
+        <p>Analytics coming soon...</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 
     <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
       <section class="bg-white rounded-2xl shadow-md p-6">
