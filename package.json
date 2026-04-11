@@ -1,0 +1,35 @@
+{
+  "name": "campusbites",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+"scripts": {
+  "test": "jest",
+  "test:coverage": "jest --coverage"
+},
+"jest": {
+  "testEnvironment": "node",
+  "collectCoverageFrom": [
+    "scripts/**/*.js"
+  ],
+  "coverageReporters": ["text", "lcov"]
+},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MpiloMario/CampusBites.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/MpiloMario/CampusBites/issues"
+  },
+  "homepage": "https://github.com/MpiloMario/CampusBites#readme",
+  "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.2",
+    "babel-jest": "^30.3.0",
+    "jest": "^30.3.0"
+  }
+}

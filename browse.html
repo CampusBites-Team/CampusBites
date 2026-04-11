@@ -15,9 +15,11 @@
             <section class="md:flex space-x-8">
                 <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
                 <a href="browse.html" class="text-gray-700 hover:text-indigo-600">Browse</a>
+                <a id="CustomerdashboardLink" href="customer-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
+                <a id="VendordashboardLink" href="vendor-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
             </section>
             <section class="flex items-center gap-4">
-                <a href="login.html" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
+                <a href="login.html" id="loginLink"class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
                     Sign in
                 </a>
             </section>
@@ -86,13 +88,20 @@
                              All menu items comply with SA Regulation R.146 of 2010 regarding allergen declaration.
                         </p>
                     </section>
+                    
                 </section>
+                <section class = "my-0">
+                    <div class="flex flex-row">
+                        <i data-lucide="ShoppingCart" class="w-8 h-8 mx-0 text-indigo-600"></i> 
+                        <a id = "cart" href="cart.html" class="bg-indigo-600 text-white mx-5 px-4 py-2 rounded-lg hover:bg-indigo-700 transition"> View Cart</a>
+                    </div>
+                    </section>
             </aside>
             <!-- Menu Items -->
              <section class="flex-1">
                 <header class="mb-6 flex justify-between items-center">
                     <h2 class="text-2xl font-bold">Browse Menu</h2>
-                    <p class="text-sm text-gray-500">3 items found</p>
+                    <p id = "numItems" class="text-sm text-gray-500">3 items found</p>
                 </header>
                 <section id = "menu" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"> 
                     <!--Items-->
@@ -161,7 +170,7 @@
     </main>
 </body>
 <script type="module">
-import { Menu, MenuItem } from "./scripts/database.js";
+import { Menu, MenuItem, auth, db, doc, setDoc, getDoc} from "./scripts/database.js";
 lucide.createIcons();
 
 const vegan = document.getElementById("Vegan");
@@ -172,13 +181,24 @@ const menuList = document.getElementById("menu");
 let menus = [];
 const menu = new Menu("Jimmy");
 const menu2 = new Menu("Expresso");
-
+let cart = [];
+let buttons = [];
 let restrictions = [false, false, false, false];
 let vendor = "AllVendors";
 let category = "AllCategories";
 
+function addToCart(menuItem){
+    cart.push(menuItem);
+    console.clear();
+    for(let i = 0; i < cart.length; i++){
+        console.log(cart[i].name);
+    }
+}
+
 function update(){
+    
     let html = ``;
+    let num = 0;
     for(let k = 0; k < menus.length; k++){
     for(let i = 0; i < menus[k].itemList.length; i++){
         let flag = true;
@@ -194,6 +214,7 @@ function update(){
             flag = false;
         }
         if(flag){
+            num++;
             html += `<article class="bg-white p-4 rounded-xl shadow-sm">
                         <img src="${menus[k].itemList[i].image}" alt = "${menus[k].itemList[i].category}" class="w-full h-48 object-cover rounded-lg mb-4">
                         <section class="flex justify-between items-start mb-2">
@@ -208,26 +229,36 @@ function update(){
                                 <button class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium">
                                     Details
                                 </button>
-                                <button  class="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition text-sm font-medium flex items-center justify-center gap-2">
+                                <button id = "${menus[k].itemList[i].name + menus[k].owner}" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition text-sm font-medium flex items-center justify-center gap-2">
                                     <i data-lucide="plus" class="w-4 h-4"></i> Add
                                 </button>
                         </section>
                     </article>`;
+
+                    //document.getElementById(`${menus[k].itemList[i].name + menus[k].owner}`).addEventListener("click", addToCart(menus[k].itemList[i]));
+                    //buttons.push(document.getElementById(`${menus[k].itemList[i].name + menus[k].owner}`));
         }
+        
     }
     }
     
     menuList.innerHTML = html;
+    if(num == 1){
+        document.getElementById("numItems").textContent = `${num} item found`;
+    } else {
+        document.getElementById("numItems").textContent = `${num} items found`;
+    }
+    
 }
 
 
 document.addEventListener("DOMContentLoaded", () =>{
 
-menu.addItem(new MenuItem("Test", "Test", "Test", "assets/jim.jpg", "Salad", [false, false, false, false]));
-menu.addItem(new MenuItem("Vegan", "Test2", "Test2", "assets/jim.jpg", "Side", [true, false, false, false]));
-menu.addItem(new MenuItem("Halal", "Test2", "Test2", "assets/jim.jpg", "Healthy", [false, false, false, true]));
-menu.addItem(new MenuItem("VegetarianGluten", "Test2", "Test2", "assets/jim.jpg", "Test2", [false, true, true, false]));
-menu2.addItem(new MenuItem("Expresso", "Test2", "Test2", "assets/jim.jpg", "Burger", [false, true, true, true]))
+menu.addItem(new MenuItem(1, "Test", "Test", "Test", "assets/jim.jpg", "Salad", [false, false, false, false]));
+menu.addItem(new MenuItem(2, "Vegan", "Test2", "Test2", "assets/jim.jpg", "Side", [true, false, false, false]));
+menu.addItem(new MenuItem(3, "Halal", "Test2", "Test2", "assets/jim.jpg", "Healthy", [false, false, false, true]));
+menu.addItem(new MenuItem(4, "VegetarianGluten", "Test2", "Test2", "assets/jim.jpg", "Test2", [false, true, true, false]));
+menu2.addItem(new MenuItem(5, "Expresso", "Test2", "Test2", "assets/jim.jpg", "Burger", [false, true, true, true]))
 menus.push(menu);
 menus.push(menu2);
 let html = ``;
@@ -247,7 +278,7 @@ for(let i = 0; i < menus[k].itemList.length; i++){
                                 <button class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium">
                                     Details
                                 </button>
-                                <button  class="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition text-sm font-medium flex items-center justify-center gap-2">
+                                <button id = "${menus[k].itemList[i].name + menus[k].owner}" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition text-sm font-medium flex items-center justify-center gap-2">
                                     <i data-lucide="plus" class="w-4 h-4"></i> Add
                                 </button>
                         </section>
@@ -258,7 +289,20 @@ for(let i = 0; i < menus[k].itemList.length; i++){
 
 
 menuList.innerHTML = html;
+menuList.addEventListener("click", (e) => {
+    if (e.target.closest("button")) {
+        const btn = e.target.closest("button");
+        const id = btn.id;
 
+        for (let k = 0; k < menus.length; k++) {
+            for (let i = 0; i < menus[k].itemList.length; i++) {
+                if (id === menus[k].itemList[i].name + menus[k].owner) {
+                    addToCart(menus[k].itemList[i]);
+                }
+            }
+        }
+    }
+});
 });
 
 vegan.addEventListener("click", () =>{
@@ -306,4 +350,13 @@ document.getElementById("Categories").addEventListener("click", () =>{
 
 
 </script>
+<script type="module">
+  import { initAuthUI, logout } from "./scripts/auth.js";
+
+  initAuthUI();
+lucide.createIcons();
+  // Attach logout button
+  document.getElementById("logoutBtn")?.addEventListener("click", logout);
+</script>
+</body>
 </html>

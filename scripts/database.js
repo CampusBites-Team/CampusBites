@@ -8,7 +8,8 @@ import {
   TwitterAuthProvider,
   OAuthProvider,
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword
+  createUserWithEmailAndPassword,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
 import {
@@ -31,7 +32,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-auth.useDeviceLanguage();
 
 export {
   auth,
@@ -55,8 +55,10 @@ export class MenuItem{
   image
   category
   restrictions
+  id
 
-  constructor(name, price, description, image, category, restrictions) {
+  constructor(id, name, price, description, image, category, restrictions) {
+    this.id = id;
     this.name = name;
     this.price = price;
     this.description = description;
