@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Jest coverage reports
+coverage/
+
+# Environment variables (good to add while you're at it)
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
