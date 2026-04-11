@@ -8,6 +8,8 @@ import {
   collection,
   deleteDoc,
   doc,
+  where,
+  query,
   serverTimestamp,
   storage,
   ref,
@@ -16,18 +18,22 @@ import {
 } from "./database.js";
 
 lucide.createIcons();
+let currentUser = null;
+let userData = null; 
 
 auth.onAuthStateChanged(async (user) => {
   if (user) {
+    currentUser = user;
     // Move the logic inside the listener
     const userSnap = await getDoc(doc(db, "users", user.uid));
-    const userData = userSnap.data();
-    
-    // Initialize your views or UI here
+    userData = userSnap.data();
+
     console.log("User data loaded:");
+    views.initMenuManagement(); // load menu management after user data is available
   } else {
     // Optional: Redirect to login if no user is found
     console.log("No user is signed in.");
+    window.location.href = "login.html"; // redirect to login page
   }
 });
 
@@ -35,7 +41,7 @@ auth.onAuthStateChanged(async (user) => {
 const views = {
 
 initMenuManagement: async () => {
-    const snapshot = await getDocs(collection(db, "menu_items"));
+    const snapshot = await getDocs(query(collection(db, "menu_items"), where("vendorId", "==", currentUser.uid)));
 
     const items = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -76,7 +82,7 @@ initMenuManagement: async () => {
     `).join('');
 },  
 openEditItem: async (id) => {
-    const snap = await getDocs(collection(db, "menu_items"));
+    const snap = await getDocs(query(collection(db, "menu_items"), where("vendorId", "==", currentUser.uid)));
 
     const itemDoc = snap.docs.find(d => d.id === id);
     const item = itemDoc.data();
@@ -120,7 +126,10 @@ const vendorActions = {
 
 saveItem: async (event) => {
     event.preventDefault();
-
+    if (!currentUser) {
+      console.error("No user logged in");
+      return;
+    }
     const id = document.getElementById('edit-item-id').value;
     const file = document.getElementById('item-image').files[0];
 
@@ -145,7 +154,7 @@ saveItem: async (event) => {
     }
 
     const itemData = {
-        vendorId: user.uid,
+        vendorId: currentUser.uid,
         vendorName: userData.shopName,
         name,
         description,
@@ -188,8 +197,3 @@ document.getElementById("add-item-btn")
 window.views = views;
 window.vendorActions = vendorActions;
 
-
-// load menu on page start
-document.addEventListener("DOMContentLoaded", () => {
-    views.initMenuManagement();
-});
