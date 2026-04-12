@@ -6,6 +6,20 @@
 
 ---
 
+**Attendees:**
+
+Yusra
+
+Phelelani
+
+Keanu
+
+Mika
+
+Shazmeen
+
+---
+
 ## 1. Documentation & Workflow
  
 - The team agreed to compile meeting minutes after each meeting and maintain them in a single document per sprint.
