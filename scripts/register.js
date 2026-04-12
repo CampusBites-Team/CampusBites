@@ -230,3 +230,4 @@ export const buildUserObject = ({
     status: role === "vendor" ? "pending" : "approved"
   };
 };
+lucide.createIcons();
