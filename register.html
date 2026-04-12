@@ -57,71 +57,42 @@
               <label for="registerEmail" class="block mb-1 font-medium">Email</label>
               <section class="relative">
                 <i data-lucide="mail" class="absolute left-3 top-3 h-5 w-5 text-gray-400"></i>
-              <input
-                type="email"
-                id="registerEmail"
-                name="registerEmail"
-                class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="Enter your email"
-                required
-              />
+                <input
+                  type="email"
+                  id="registerEmail"
+                  name="registerEmail"
+                  class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  placeholder="Enter your email"
+                  required
+                />
+              </section>
 
               <label for="registerPassword" class="block mb-1 font-medium">Password</label>
               <section class="relative">
                 <i data-lucide="lock" class="absolute left-3 top-3 h-5 w-5 text-gray-400"></i>
-              <input
-                type="password"
-                id="registerPassword"
-                name="registerPassword"
-                class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="Enter your password"
-                required
-              />
+                <input
+                  type="password"
+                  id="registerPassword"
+                  name="registerPassword"
+                  class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  placeholder="Enter your password"
+                  required
+                />
+              </section>
 
               <label for="registerRole" class="block mb-1 font-medium">Role</label>
               <section class="relative">
                 <i data-lucide="users" class="absolute left-3 top-3 h-5 w-5 text-gray-400"></i>
-              <select
-                id="registerRole"
-                name="registerRole"
-                class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                required
-              >
-                <option value="">Select your role</option>
-                <option value="customer">Customer</option>
-                <option value="vendor">Vendor</option>
-              </select>
-              </section>
-              
-              <section id="shop-name-container" class="hidden">
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                  Shop Name
-                </label>
-                <input 
-                  type="text" 
-                  id="shop-name"
+                <select
+                  id="registerRole"
+                  name="registerRole"
                   class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  placeholder="Enter your shop name"
                   required
-                />
-              </section>
-              <section id="shop-location-container" class="hidden">
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                  Shop Location
-                </label>
-                <input 
-                  type="text" 
-                  id="shop-location"
-                  class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  placeholder="Enter your shop location"
-                  required
-                />
-              </section>              
-              <section id="shop-logo-container" class="hidden">
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                  Shop Logo
-                </label>
-                <input type="file" id="logoInput" accept="image/*" />
+                >
+                  <option value="">Select your role</option>
+                  <option value="customer">Customer</option>
+                  <option value="vendor">Vendor</option>
+                </select>
               </section>
               <button
                 type="submit"
