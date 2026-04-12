@@ -5,7 +5,17 @@
 **Time:** 13:00
  
 ---
- 
+**Attendees:**
+
+Yusra
+
+Keanu
+
+Mika
+
+Shazmeen
+
+---
 ## Discussion Points
  
 ### 1. Login Page & Roles
