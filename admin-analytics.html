@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>CampusBites - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <nav class="fixed bg-white w-full z-50 glass-effect border-b border-gray-200">
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
+            <header class="flex items-center gap-2 cursor-pointer">
+                <i data-lucide="utensils" class="w-8 h-8 text-indigo-600"></i>
+                <span class="text-xl font-bold text-gray-900">CampusBites</span>
+            </header>
+            <section class="md:flex space-x-8">
+                <a id="AdmindashboardLink" href="admin-dashboard.html" class="text-gray-700 hover:text-indigo-600">Dashboard</a>
+                <a href="vendor-management.html" class="text-gray-700 hover:text-indigo-600">Vendors</a>
+                <a href="admin-analytics.html" class="text-gray-700 hover:text-indigo-600">Analytics</a>
+            </section>
+            <section class="flex items-center gap-4">
+                <a href="login.html" id="loginLink"class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
+                    Sign in
+                </a>
+                <button id="logoutBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition hidden">
+                        Logout
+                </button>
+            </section>
+
+        </section>
+    </nav>
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">    
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-8">
+        <h2 class="text-2xl font-bold">Analytics Dashboard</h2>
+
+        <section class="flex gap-2">
+            <button onclick="analytics.exportCSV()" 
+                class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2 text-sm">
+                <i data-lucide="download" class="w-4 h-4"></i> Export CSV
+            </button>
+
+            <button onclick="analytics.exportPDF()" 
+                class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2 text-sm">
+                <i data-lucide="file-text" class="w-4 h-4"></i> Export PDF
+            </button>
+        </section>
+    </header>
+
+    <!-- Charts -->
+    <section class="grid md:grid-cols-3 gap-6 mb-8">
+
+        <article class="bg-white p-6 rounded-xl shadow-sm">
+            <h3 class="text-gray-500 text-sm mb-2">Sales per Vendor (Last 7 Days)</h3>
+            <canvas id="salesChart" height="200"></canvas>
+        </article>
+
+        <article class="bg-white p-6 rounded-xl shadow-sm">
+            <h3 class="text-gray-500 text-sm mb-2">Peak Ordering Hours</h3>
+            <canvas id="peakChart" height="200"></canvas>
+        </article>
+
+        <article class="bg-white p-6 rounded-xl shadow-sm">
+            <h3 class="text-gray-500 text-sm mb-2">Popular Items</h3>
+            <canvas id="itemsChart" height="200"></canvas>
+        </article>
+
+    </section>
+
+    <!-- Custom Report -->
+    <section class="bg-white rounded-xl shadow-sm p-6">
+
+        <h3 class="font-semibold mb-4">Custom Report</h3>
+
+        <section class="grid md:grid-cols-4 gap-4 mb-6">
+
+            <section>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+                <select id="report-range" class="w-full border rounded-lg px-3 py-2" onchange="analytics.updateCustomView()">
+                    <option value="7">Last 7 Days</option>
+                    <option value="30">Last 30 Days</option>
+                    <option value="90">Last 90 Days</option>
+                </select>
+            </section>
+
+            <section>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Vendor</label>
+                <select id="report-vendor" class="w-full border rounded-lg px-3 py-2" onchange="analytics.updateCustomView()">
+                    <option value="">All Vendors</option>
+                    ${DB.get('vendors').map(v => `<option value="${v.id}">${v.name}</option>`).join('')}
+                </select>
+            </section>
+
+            <section>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Metric</label>
+                <select id="report-metric" class="w-full border rounded-lg px-3 py-2" onchange="analytics.updateCustomView()">
+                    <option value="revenue">Revenue</option>
+                    <option value="orders">Order Count</option>
+                    <option value="items">Items Sold</option>
+                </select>
+            </section>
+
+            <section class="flex items-end">
+                <button onclick="analytics.updateCustomView()" 
+                    class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+                    Generate Report
+                </button>
+            </section>
+
+        </section>
+
+        <section id="custom-report-view" class="overflow-x-auto">
+            <table class="w-full text-sm">
+                
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-2 text-left">Date</th>
+                        <th class="px-4 py-2 text-left">Vendor</th>
+                        <th class="px-4 py-2 text-right">Orders</th>
+                        <th class="px-4 py-2 text-right">Revenue</th>
+                        <th class="px-4 py-2 text-right">Avg Order Value</th>
+                    </tr>
+                </thead>
+
+                <tbody id="custom-report-body" class="divide-y divide-gray-200">
+                </tbody>
+
+            </table>
+        </section>
+
+    </section>
+
+</section>
+<script type="module" src="./scripts/admin.js"></script>
+<script type="module">
+  import { initAuthUI, logout } from "./scripts/auth.js";
+
+  initAuthUI();
+  lucide.createIcons();
+  // Attach logout button
+  document.getElementById("logoutBtn")?.addEventListener("click", logout);
+</script>
+</body>
+</html>

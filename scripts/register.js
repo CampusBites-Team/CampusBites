@@ -1,6 +1,7 @@
 import {
   auth,
   db,
+  storage,
   createUserWithEmailAndPassword,
   doc,
   setDoc,
@@ -9,47 +10,59 @@ import {
   GoogleAuthProvider,
   FacebookAuthProvider,
   TwitterAuthProvider,
-  OAuthProvider
+  OAuthProvider,
+  serverTimestamp,    
+  ref,
+  uploadBytes,
+  getDownloadURL
 } from "./database.js";
 
 // get the form
 const form = document.getElementById("registerForm");
+const logoInput = document.getElementById("logoInput");
+const locationCOntainer = document.getElementById("shop-location-container");
+const logoContainer = document.getElementById("shop-logo-container");
 
 form.addEventListener("submit", async (e) => {
-  e.preventDefault(); // stop page reload
+  e.preventDefault();
 
-  // get values from inputs
   const fullName = document.getElementById("registerName").value;
   const email = document.getElementById("registerEmail").value;
   const password = document.getElementById("registerPassword").value;
   const role = document.getElementById("registerRole").value;
   const shopName = document.getElementById("shop-name").value;
+  const location = document.getElementById("shop-location").value;
 
   try {
-    // 1. create user in Firebase Auth
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-
     const user = userCredential.user;
 
-    // 2. store user data in Firestore
+    // 🔥 upload logo FIRST
+    let logoURL = null;
+
+    if (role === "vendor" && selectedLogoFile) {
+      logoURL = await uploadLogo(selectedLogoFile, user.uid);
+    }
+
     await setDoc(doc(db, "users", user.uid), {
-      fullName: fullName,
-      email: email,
-      role: role,
-      shopName: role === "vendor" ? shopName : null
+      fullName,
+      email,
+      role,
+      shopName: role === "vendor" ? shopName : null,
+      location: role === "vendor" ? location : null,
+      image: logoURL, // ✅ FIXED
+      status: role === "vendor" ? "pending" : "approved",
+      createdAt: serverTimestamp()
     });
 
-    console.log("User registered and saved:", user.uid);
-
-    // 3. redirect based on role (basic for now)
     if (role === "customer") {
       window.location.href = "customer-dashboard.html";
-    } else if (role === "vendor") {
-      window.location.href = "vendor-dashboard.html"; // change later to vendor dashboard
+    } else {
+      window.location.href = "pending-approval.html";
     }
 
   } catch (error) {
-    console.error("Error registering user:", error.message);
+    console.error(error);
     alert(error.message);
   }
 });
@@ -126,15 +139,28 @@ async function handleSocialLogin(user) {
     return;
   }
 
-  const role = userSnap.data().role;
-  redirectUser(role);
+  const userData = userSnap.data();
+
+if (userData.role === "vendor") {
+  if (userData.status === "pending") {
+    window.location.href = "pending-approval.html";
+    return;
+  }
+
+  if (userData.status === "suspended") {
+    alert("Your account is suspended");
+    return;
+  }
+}
+
+redirectUser(userData.role);
 }
 
 function redirectUser(role) {
   if (role === "customer") {
     window.location.href = "customer-dashboard.html";
   } else if (role === "vendor") {
-    window.location.href = "vendor-dashboard.html";
+    window.location.href = "pending-approval.html"; // default to pending page, actual redirect will be handled after approval check
   } else if (role === "admin") {
     window.location.href = "admin-dashboard.html";
   }
@@ -145,7 +171,62 @@ const shopContainer = document.getElementById("shop-name-container");
 roleSelect.addEventListener("change", () => {
   if (roleSelect.value === "vendor") {
     shopContainer.classList.remove("hidden");
+    locationCOntainer.classList.remove("hidden");
+    logoContainer.classList.remove("hidden");
   } else {
     shopContainer.classList.add("hidden");
+    locationCOntainer.classList.add("hidden");
+    logoContainer.classList.add("hidden");
   }
 });
+let selectedLogoFile = null;
+
+logoInput?.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  selectedLogoFile = file;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    let preview = document.getElementById("logoPreview");
+
+    if (!preview) {
+      preview = document.createElement("img");
+      preview.id = "logoPreview";
+      preview.className = "w-16 h-16 mt-2 rounded object-cover";
+      logoContainer.appendChild(preview);
+    }
+
+    preview.src = reader.result;
+  };
+
+  reader.readAsDataURL(file);
+});
+const uploadLogo = async (file, uid) => {
+  if (!file) return null;
+
+  const storageRef = ref(storage, `vendor-logos/${uid}`);
+
+  await uploadBytes(storageRef, file);
+
+  return await getDownloadURL(storageRef);
+};
+export const buildUserObject = ({
+  fullName,
+  email,
+  role,
+  shopName,
+  location,
+  image
+}) => {
+  return {
+    fullName,
+    email,
+    role,
+    shopName: role === "vendor" ? shopName : null,
+    location: role === "vendor" ? location : null,
+    image: image || null,
+    status: role === "vendor" ? "pending" : "approved"
+  };
+};

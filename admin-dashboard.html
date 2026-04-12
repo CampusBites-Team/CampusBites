@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>CampusBites - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <nav class="fixed bg-white w-full z-50 glass-effect border-b border-gray-200">
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
+            <header class="flex items-center gap-2 cursor-pointer">
+                <i data-lucide="utensils" class="w-8 h-8 text-indigo-600"></i>
+                <span class="text-xl font-bold text-gray-900">CampusBites</span>
+            </header>
+            <section class="md:flex space-x-8">
+                <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
+                <a id="AdmindashboardLink" href="admin-dashboard.html" class="text-gray-700 hover:text-indigo-600">Dashboard</a>
+                <a href="vendor-management.html" class="text-gray-700 hover:text-indigo-600">Vendors</a>
+                <a href="admin-analytics.html" class="text-gray-700 hover:text-indigo-600">Analytics</a>
+            </section>
+            <section class="flex items-center gap-4">
+                <a href="login.html" id="loginLink"class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
+                    Sign in
+                </a>
+                <button id="logoutBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition hidden">
+                        Logout
+                </button>
+            </section>
+
+        </section>
+    </nav>
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+    <h2 class="text-2xl font-bold mb-6">Admin Dashboard</h2>
+    
+    <section class="grid md:grid-cols-4 gap-6 mb-8">
+
+        <article class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-indigo-500">
+            <p class="text-gray-500 text-sm">Total Vendors</p>
+            <p class="text-2xl font-bold" id="admin-total-vendors">0</p>
+        </article>
+
+        <article class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+            <p class="text-gray-500 text-sm">Active Today</p>
+            <p class="text-2xl font-bold" id="admin-active-today">0</p>
+        </article>
+
+        <article class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500">
+            <p class="text-gray-500 text-sm">Pending Approval</p>
+            <p class="text-2xl font-bold" id="admin-pending">0</p>
+        </article>
+
+        <article class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500">
+            <p class="text-gray-500 text-sm">Total Revenue</p>
+            <p class="text-2xl font-bold" id="admin-total-revenue">R0.00</p>
+        </article>
+
+    </section>
+
+    <section class="grid md:grid-cols-2 gap-6">
+
+        <!-- System Health -->
+        <section class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="font-semibold mb-4">System Health</h3>
+
+            <section class="space-y-3">
+
+                <article class="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                    <span class="text-green-800">Payment Gateway</span>
+                    <span class="text-green-600 text-sm font-medium">Operational</span>
+                </article>
+
+                <article class="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                    <span class="text-green-800">Notification Service</span>
+                    <span class="text-green-600 text-sm font-medium">Operational</span>
+                </article>
+
+                <article class="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
+                    <span class="text-yellow-800">IDP Integration</span>
+                    <span class="text-yellow-600 text-sm font-medium">High Latency</span>
+                </article>
+
+            </section>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="font-semibold mb-4">Quick Actions</h3>
+
+            <section class="grid grid-cols-2 gap-3">
+
+                <button id="manageVendorsBtn"
+                    class="p-3 border rounded-lg hover:bg-gray-50 text-left">
+                    <i data-lucide="store" class="w-5 h-5 mb-2 text-indigo-600"></i>
+                    <span class="text-sm font-medium">Manage Vendors</span>
+                </button>
+
+                <button id="viewAnalyticsBtn"
+                    class="p-3 border rounded-lg hover:bg-gray-50 text-left">
+                    <i data-lucide="bar-chart-2" class="w-5 h-5 mb-2 text-green-600"></i>
+                    <span class="text-sm font-medium">View Analytics</span>
+                </button>
+
+            </section>
+        </section>
+
+    </section>
+
+</section>
+<script type="module" src="scripts/admin.js"></script>
+<script type="module">
+  import { initAuthUI, logout } from "./scripts/auth.js";
+
+  initAuthUI();
+  lucide.createIcons();
+  // Attach logout button
+  document.getElementById("logoutBtn")?.addEventListener("click", logout);
+</script>
+</body>
+</html>
