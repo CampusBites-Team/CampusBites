@@ -209,3 +209,21 @@ document.addEventListener("DOMContentLoaded", () => {
     loadAdminStats();
     loadVendors();
 });
+export const calculateVendorStats = (users) => {
+  let total = 0;
+  let active = 0;
+  let pending = 0;
+
+  users.forEach(u => {
+    if (u.role === "vendor") {
+      total++;
+
+      const status = u.status || "pending";
+
+      if (status === "approved") active++;
+      if (status === "pending") pending++;
+    }
+  });
+
+  return { total, active, pending };
+};

@@ -19,3 +19,7 @@ test('logout calls signOut', async () => {
   await logout();
   expect(signOut).toHaveBeenCalled();
 });
+test("logout resolves without error", async () => {
+  await logout();
+  expect(true).toBe(true);
+});

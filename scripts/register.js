@@ -212,3 +212,21 @@ const uploadLogo = async (file, uid) => {
 
   return await getDownloadURL(storageRef);
 };
+export const buildUserObject = ({
+  fullName,
+  email,
+  role,
+  shopName,
+  location,
+  image
+}) => {
+  return {
+    fullName,
+    email,
+    role,
+    shopName: role === "vendor" ? shopName : null,
+    location: role === "vendor" ? location : null,
+    image: image || null,
+    status: role === "vendor" ? "pending" : "approved"
+  };
+};

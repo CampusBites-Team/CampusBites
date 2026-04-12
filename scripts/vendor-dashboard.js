@@ -48,3 +48,7 @@ onAuthStateChanged(auth, async (user) => {
   console.log("Access granted to vendor dashboard");
 
 });
+
+export const calculateRevenue = (orders) => {
+  return orders.reduce((sum, o) => sum + (o.total || 0), 0);
+};
