@@ -60,6 +60,11 @@ The team agreed on the following PR guidelines going forward:
 - Outstanding items were identified and noted for completion before the deadline
  
 ---
+### 6. Proof of meeting
+
+<img width="1282" height="823" alt="image" src="https://github.com/user-attachments/assets/7b65fe38-f0b8-4404-83ff-5ab32be3703b" />
+
+
  
 ## Decisions Made
  
