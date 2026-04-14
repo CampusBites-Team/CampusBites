@@ -34,6 +34,22 @@ form.addEventListener("submit", async (e) => {
   const location = document.getElementById("shop-location").value;
 
   try {
+    if (role === "vendor") {
+      if (!shopName.trim()) {
+        alert("Shop name is required for vendors.");
+        return;
+      }
+
+      if (!location.trim()) {
+        alert("Shop location is required for vendors.");
+        return;
+      }
+
+      if (!selectedLogoFile) {
+        alert("Shop logo is required for vendors.");
+        return;
+      }
+    }
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
@@ -167,16 +183,31 @@ function redirectUser(role) {
 }
 const roleSelect = document.getElementById("registerRole");
 const shopContainer = document.getElementById("shop-name-container");
+const shopNameInput = document.getElementById("shop-name");
+const locationInput = document.getElementById("shop-location");
 
 roleSelect.addEventListener("change", () => {
   if (roleSelect.value === "vendor") {
     shopContainer.classList.remove("hidden");
     locationCOntainer.classList.remove("hidden");
     logoContainer.classList.remove("hidden");
+
+    shopNameInput.required = true;
+    locationInput.required = true;
+    logoInput.required = true; // remove this line if logo should stay optional
   } else {
     shopContainer.classList.add("hidden");
     locationCOntainer.classList.add("hidden");
     logoContainer.classList.add("hidden");
+
+    shopNameInput.required = false;
+    locationInput.required = false;
+    logoInput.required = false;
+
+    shopNameInput.value = "";
+    locationInput.value = "";
+    logoInput.value = "";
+    selectedLogoFile = null;
   }
 });
 let selectedLogoFile = null;
