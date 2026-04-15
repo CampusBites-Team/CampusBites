@@ -6,6 +6,15 @@ jest.mock("../scripts/database.js", () => ({
   getDoc: jest.fn()
 }));
 
+// Suppress jsdom navigation warnings
+const originalError = console.error;
+beforeAll(() => {
+  console.error = (...args) => {
+    if (args[0]?.message?.includes('Not implemented: navigation')) return;
+    originalError(...args);
+  };
+});
+
 jest.mock(
   "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js",
   () => ({

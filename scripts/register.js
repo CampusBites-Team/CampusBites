@@ -72,7 +72,7 @@ form.addEventListener("submit", async (e) => {
     });
 
     if (role === "customer") {
-      window.location.href = "customer-dashboard.html";
+      window.location.assign('customer-dashboard.html');;
     } else {
       window.location.href = "pending-approval.html";
     }
@@ -174,11 +174,11 @@ redirectUser(userData.role);
 
 function redirectUser(role) {
   if (role === "customer") {
-    window.location.href = "customer-dashboard.html";
+    window.location.assign('customer-dashboard.html');;
   } else if (role === "vendor") {
     window.location.href = "pending-approval.html"; // default to pending page, actual redirect will be handled after approval check
   } else if (role === "admin") {
-    window.location.href = "admin-dashboard.html";
+    window.location.assign('admin-dashboard.html');;
   }
 }
 const roleSelect = document.getElementById("registerRole");
