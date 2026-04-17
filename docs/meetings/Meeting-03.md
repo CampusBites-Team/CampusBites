@@ -29,7 +29,7 @@ Mika
 |--------|------|--------|
 | **Shazmeen** | Create vendor GitHub issues containing user stories about vendor features | Assigned |
 | **Yusra** | Research Azure and how it works; complete remaining login & register issue | In Progress |
-| **Mpilo** | Jest and CI integration setup (target: Friday); finalise `menu.html` and `menu.js`, then merge into `main` | In Progress |
+| **Mpilo** | Jest and CI integration setup (target: Friday); finalise `menu-management.html` and `menu.js`, then merge into `main` | In Progress |
 | **Keanu** | Pitch in and complete open issues | Assigned |
 | **Mika** | Pitch in and complete open issues | Assigned |
  
@@ -81,7 +81,7 @@ The team agreed on the following PR guidelines going forward:
  
 - [ ] Shazmeen — create vendor user story issues on GitHub
 - [ ] Yusra — research Azure; finish login & register issue
-- [ ] Mpilo — complete Jest & CI setup by Friday; merge `menu.html` and `menu.js` into `main`
+- [ ] Mpilo — complete Jest & CI setup by Friday; merge `menu-management.html` and `menu.js` into `main`
 - [ ] Keanu & Mika — pick up and complete open issues
 - [ ] All — migrate repository to `CampusBites-Team` organization
 - [ ] All — follow updated PR title, description, and review standards

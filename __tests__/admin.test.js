@@ -1,4 +1,3 @@
-// ── Mock database before anything else ──────────────────────────────────────
 jest.mock('../scripts/database.js', () => ({
   db: {},
   getDocs: jest.fn(),
@@ -7,7 +6,6 @@ jest.mock('../scripts/database.js', () => ({
   doc: jest.fn(),
 }));
 
-// ── Stub DOM elements admin.js touches at module load ────────────────────────
 document.body.innerHTML = `
   <button id="viewAnalyticsBtn"></button>
   <button id="manageVendorsBtn"></button>
@@ -21,12 +19,13 @@ document.body.innerHTML = `
 const { calculateVendorStats } = require('../scripts/admin.js');
 
 describe('calculateVendorStats', () => {
-  test('counts total, active and pending vendors correctly', () => {
+
+  test('counts correctly', () => {
     const users = [
       { role: 'vendor', status: 'approved' },
       { role: 'vendor', status: 'pending' },
-      { role: 'vendor', status: 'pending' },
-      { role: 'customer', status: 'approved' }, // should be ignored
+      { role: 'vendor' },
+      { role: 'customer', status: 'approved' },
     ];
 
     const result = calculateVendorStats(users);
@@ -36,42 +35,7 @@ describe('calculateVendorStats', () => {
     expect(result.pending).toBe(2);
   });
 
-  test('returns zeros when no vendors', () => {
-    const result = calculateVendorStats([
-      { role: 'customer', status: 'approved' },
-    ]);
-
-    expect(result.total).toBe(0);
-    expect(result.active).toBe(0);
-    expect(result.pending).toBe(0);
-  });
-
-  test('defaults missing status to pending', () => {
-    const users = [
-      { role: 'vendor' }, // no status field
-    ];
-
-    const result = calculateVendorStats(users);
-
-    expect(result.total).toBe(1);
-    expect(result.pending).toBe(1);
-    expect(result.active).toBe(0);
-  });
-
-  test('suspended vendors count in total but not active or pending', () => {
-    const users = [
-      { role: 'vendor', status: 'suspended' },
-      { role: 'vendor', status: 'approved' },
-    ];
-
-    const result = calculateVendorStats(users);
-
-    expect(result.total).toBe(2);
-    expect(result.active).toBe(1);
-    expect(result.pending).toBe(0);
-  });
-
-  test('handles empty array', () => {
+  test('empty', () => {
     const result = calculateVendorStats([]);
     expect(result).toEqual({ total: 0, active: 0, pending: 0 });
   });

@@ -4,7 +4,7 @@ import {
   collection
 } from "./database.js";
 
-
+lucide.createIcons();
 
 const vegan = document.getElementById("Vegan");
 const vegetarian = document.getElementById("Vegetarian");
@@ -18,45 +18,29 @@ let vendor = "AllVendors";
 let category = "AllCategories";
 let done = false;
 
-export function addToCart(cartArr, item){
-    // If called with two args (from tests), return new array
-    if(item !== undefined){
-        return [...cartArr, item];
-    }
-    // If called with one arg (internal usage), push to module cart
-    cart.push(cartArr);
+function addToCart(item){
+    cart.push(item);
 }
-export function applyFilter(item, restrictionsArg, categoryArg, vendorArg){
-  // Use passed arguments if provided, otherwise fall back to module-level variables
-  const activeRestrictions = restrictionsArg !== undefined ? restrictionsArg : restrictions;
-  const activeCategory = categoryArg !== undefined ? categoryArg : category;
-  const activeVendor = vendorArg !== undefined ? vendorArg : vendor;
 
+function applyFilter(item){
   if(!item.available){
     return false;
   }
-  if(activeRestrictions[0] && !item.dietary.includes("Vegan")){
+  if (restrictions[0] && !(item.dietary || []).includes("Vegan")) return false;
+  if (restrictions[1] && !(item.dietary || []).includes("Vegetarian")) return false;
+  if (restrictions[3] && !(item.dietary || []).includes("Halal")) return false;
+  if (restrictions[2] && (item.allergens || []).includes("Gluten")) return false;
+ 
+  if(category != "AllCategories" && item.category != category){
     return false;
   }
-  if(activeRestrictions[1] && !item.dietary.includes("Vegetarian")){
-    return false;
-  }
-  if(activeRestrictions[2] && item.allergens.includes("Gluten")){
-    return false;
-  }
-  if(activeRestrictions[3] && !item.dietary.includes("Halal")){
-    return false;
-  }
-  if(activeCategory != "AllCategories" && item.category != activeCategory){
-    return false;
-  }
-  if(activeVendor != "AllVendors" && item.vendorName != activeVendor){
+  if(vendor != "AllVendors" && item.vendorName != vendor){
     return false;
   }
   return true;
 }
 
-export function updateCart(){
+function updateCart(){
   const container = document.getElementById("cartList");
   let html = ``;
   for(let i = 0; i < cart.length; i++){
@@ -105,6 +89,7 @@ export function updateCart(){
     </article>`;
   }
   container.innerHTML = html;
+  lucide.createIcons();
 }
 
 const loadMenuItems = async () => {
@@ -204,11 +189,7 @@ document.getElementById("cartList").addEventListener("click", (e) => {
         const btn = e.target.closest("button");
         const id = btn.id;
         for (let i = 0; i < cart.length; i++) {
-                if (id == i) {
-                    
-                    cart.splice(i, 1);
-                    break;
-                }
+            cart.splice(cart.findIndex(i => i.id === id), 1);
             }
       
     }
@@ -224,36 +205,34 @@ document.addEventListener("DOMContentLoaded", () =>{
   
   });
 
-vegan.addEventListener("click", () =>{
+vegan?.addEventListener("click", () =>{
     restrictions[0] = vegan.checked;
     loadMenuItems();
 });
-halal.addEventListener("click", () =>{
+halal?.addEventListener("click", () =>{
     restrictions[3] = halal.checked;
     loadMenuItems();
 });
-gluten.addEventListener("click", () =>{
+gluten?.addEventListener("click", () =>{
     restrictions[2] = gluten.checked;
     loadMenuItems();
 });
-vegetarian.addEventListener("click", () =>{
+vegetarian?.addEventListener("click", () =>{
     restrictions[1] = vegetarian.checked;
     loadMenuItems();
 });
-document.getElementById("Vendors").addEventListener("click", () =>{
+document.getElementById("Vendors")?.addEventListener("change", () =>{
     vendor = document.getElementById("Vendors").value;
     loadMenuItems();
 });
-document.getElementById("Categories").addEventListener("click", () =>{
+document.getElementById("Categories")?.addEventListener("change", () =>{
     category = document.getElementById("Categories").value;
     loadMenuItems();
 });
-document.getElementById("cart").addEventListener("click", () => {
+document.getElementById("cart")?.addEventListener("click", () => {
     document.getElementById('modal-title').textContent = 'Items in Cart';
     document.getElementById('item-edit-modal').classList.remove('hidden');
     updateCart();
 }); 
-
-if (typeof lucide !== "undefined") {
-  lucide.createIcons();
-}
+export const loadBrowseItems = loadMenuItems;
+export { loadMenuItems };

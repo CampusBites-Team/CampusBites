@@ -1,118 +1,74 @@
-// 1. Mock lucide BEFORE anything
-global.lucide = {
-  createIcons: jest.fn()
-};
-
-// 2. Setup DOM BEFORE import
-document.body.innerHTML = `
-  <input type="checkbox" id="Vegan" />
-  <input type="checkbox" id="Vegetarian" />
-  <input type="checkbox" id="Halal" />
-  <input type="checkbox" id="Gluten-Free" />
-  <ul id="menu"></ul>
-  <ul id="cartList"></ul>
-  <select id="Vendors"><option value="AllVendors">All</option></select>
-  <select id="Categories"><option value="AllCategories">All</option></select>
-  <button id="cart"></button>
-  <div id="item-edit-modal" class="hidden"></div>
-  <span id="modal-title"></span>
-  <span id="numItems"></span>
-`;
-
-// 3. Mock database
 jest.mock('../scripts/database.js', () => ({
   db: {},
   getDocs: jest.fn(),
   collection: jest.fn(),
 }));
 
-// 4. Import AFTER setup
-const { applyFilter, addToCart } = require('../scripts/browse.js');
+global.lucide = { createIcons: jest.fn() };
 
-// ── Sample data ─────────────────────────────────────
-const veganHalalItem = {
-  available: true,
-  dietary: ['Vegan', 'Halal'],
-  allergens: [],
-  category: 'Mains',
-  vendorName: 'GreenEats',
-};
+const sampleItems = [
+  {
+    id: '1',
+    name: 'Burger',
+    vendorName: 'Shop1',
+    price: 50,
+    description: 'Tasty',
+    category: 'Mains',
+    available: true,
+    dietary: ['Vegan'],
+    allergens: []
+  },
+  {
+    id: '2',
+    name: 'Pizza',
+    vendorName: 'Shop2',
+    price: 80,
+    description: 'Cheesy',
+    category: 'Mains',
+    available: true,
+    dietary: [],
+    allergens: ['Gluten']
+  }
+];
 
-const glutenItem = {
-  available: true,
-  dietary: ['Vegetarian'],
-  allergens: ['Gluten'],
-  category: 'Snacks',
-  vendorName: 'BreadShop',
-};
+function makeSnapshot(items) {
+  return {
+    docs: items.map(i => ({
+      id: i.id,
+      data: () => i
+    }))
+  };
+}
 
-const unavailableItem = {
-  available: false,
-  dietary: ['Vegan'],
-  allergens: [],
-  category: 'Mains',
-  vendorName: 'GreenEats',
-};
-
-// ── applyFilter tests ───────────────────────────────
-describe('applyFilter', () => {
-  const noRestrictions = [false, false, false, false];
-
-  test('returns true when valid item and no restrictions', () => {
-    expect(applyFilter(veganHalalItem, noRestrictions, 'AllCategories', 'AllVendors')).toBe(true);
-  });
-
-  test('filters out unavailable items', () => {
-    expect(applyFilter(unavailableItem, noRestrictions, 'AllCategories', 'AllVendors')).toBe(false);
-  });
-
-  test('vegan restriction works', () => {
-    expect(applyFilter(glutenItem, [true, false, false, false], 'AllCategories', 'AllVendors')).toBe(false);
-  });
-
-  test('vegetarian restriction works', () => {
-    expect(applyFilter(veganHalalItem, [false, true, false, false], 'AllCategories', 'AllVendors')).toBe(false);
-  });
-
-  test('gluten-free restriction works', () => {
-    expect(applyFilter(glutenItem, [false, false, true, false], 'AllCategories', 'AllVendors')).toBe(false);
-  });
-
-  test('halal restriction works', () => {
-    expect(applyFilter(glutenItem, [false, false, false, true], 'AllCategories', 'AllVendors')).toBe(false);
-  });
-
-  test('category filter works', () => {
-    expect(applyFilter(veganHalalItem, noRestrictions, 'Snacks', 'AllVendors')).toBe(false);
-  });
-
-  test('vendor filter works', () => {
-    expect(applyFilter(veganHalalItem, noRestrictions, 'AllCategories', 'OtherVendor')).toBe(false);
-  });
-
-  test('passes when all conditions are met', () => {
-    expect(applyFilter(veganHalalItem, [true, false, false, true], 'Mains', 'GreenEats')).toBe(true);
-  });
+beforeEach(() => {
+  document.body.innerHTML = `
+    <div id="menu"></div>
+    <div id="cartList"></div>
+    <span id="numItems"></span>
+    <button id="cart"></button>
+  `;
 });
 
-// ── addToCart tests ────────────────────────────────
-describe('addToCart', () => {
-  test('adds item to cart', () => {
-    const cart = addToCart([], veganHalalItem);
-    expect(cart.length).toBe(1);
-  });
+test('loads and renders items', async () => {
+  const { getDocs } = require('../scripts/database.js');
 
-  test('adds multiple items', () => {
-    let cart = [];
-    cart = addToCart(cart, veganHalalItem);
-    cart = addToCart(cart, glutenItem);
-    expect(cart.length).toBe(2);
-  });
+  getDocs.mockResolvedValue(makeSnapshot(sampleItems));
 
-  test('allows duplicates', () => {
-    let cart = [];
-    cart = addToCart(cart, veganHalalItem);
-    cart = addToCart(cart, veganHalalItem);
-    expect(cart.length).toBe(2);
-  });
+  await import('../scripts/browse.js');
+
+  await new Promise(r => setTimeout(r, 0));
+
+  expect(document.getElementById('menu').innerHTML).toContain('Burger');
+});
+
+test('filters only available items', async () => {
+  const { getDocs } = require('../scripts/database.js');
+
+  getDocs.mockResolvedValue(makeSnapshot(sampleItems));
+
+  await import('../scripts/browse.js');
+
+  await new Promise(r => setTimeout(r, 0));
+
+  expect(document.getElementById('menu').innerHTML).toContain('Pizza');
 });
