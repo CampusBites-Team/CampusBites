@@ -9,6 +9,10 @@
   },
   "jest": {
     "testEnvironment": "jsdom",
+    "setupFiles": ["<rootDir>/jest.setup.js"],
+    "moduleNameMapper": {
+      "\\./database\\.js$": "<rootDir>/__mocks__/database.js"
+    },
     "collectCoverageFrom": [
       "scripts/**/*.js"
     ],
