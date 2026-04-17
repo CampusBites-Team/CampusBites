@@ -22,7 +22,7 @@ onAuthStateChanged(auth, async (user) => {
   listenToVendorOrders(data.shopName, renderOrders);
 });
 
-// ── Pure helper: build HTML for a single order ──────────────
+//build HTML for a single order
 export function buildOrderHTML(order) {
   const items = (order.items || [])
     .map(i => `<p>- ${i.name} x${i.quantity ?? 1}</p>`)
@@ -38,18 +38,18 @@ export function buildOrderHTML(order) {
   `;
 }
 
-// ── Pure helper: map Firestore snapshot docs to plain objects ─
+//map Firestore snapshot docs to plain objects 
 export function mapSnapshotToOrders(snapshot) {
   return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-// ── DOM function ─────────────────────────────────────────────
+// DOM function
 export function renderOrders(orders) {
   const container = document.getElementById("newOrders");
   container.innerHTML = orders.map(buildOrderHTML).join("");
 }
 
-// ── Firebase listener ────────────────────────────────────────
+//Firebase listener
 export function listenToVendorOrders(shopName, callback) {
   const q = query(
     collection(db, "orders"),
