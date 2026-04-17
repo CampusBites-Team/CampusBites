@@ -1,149 +1,106 @@
 import {
-  auth,
-  db,
-  signInWithEmailAndPassword,
-  doc,
-  getDoc,
-  signInWithPopup,
-  GoogleAuthProvider,
-  FacebookAuthProvider,
-  TwitterAuthProvider,
-  OAuthProvider
+  auth, db, signInWithEmailAndPassword, doc, getDoc,
+  signInWithPopup, GoogleAuthProvider, FacebookAuthProvider,
+  TwitterAuthProvider, OAuthProvider
 } from "./database.js";
 
-console.log("login.js loaded");
+// ---------------- NAVIGATION ----------------
+export function navigateTo(page, locationObj = window.location) {
+  if (!locationObj || typeof locationObj.assign !== "function") {
+    throw new Error("Invalid location object");
+  }
 
-const form = document.getElementById("loginForm");
+  locationObj.assign(page);
+}
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  console.log("login form submitted");
+export function redirectUser(role, locationObj = window.location) {
+  if (!locationObj || typeof locationObj.assign !== "function") {
+    throw new Error("Invalid location object");
+  }
 
-  const email = document.getElementById("loginEmail").value;
-  const password = document.getElementById("loginPassword").value;
+  if (role === 'customer') {
+    locationObj.assign('customer-dashboard.html');
+  } else if (role === 'vendor') {
+    locationObj.assign('vendor-dashboard.html');
+  } else if (role === 'admin') {
+    locationObj.assign('admin-dashboard.html');
+  }
+}
 
-  try {
-    // 1. sign in with Firebase Auth
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+// ---------------- LOGIN FORM ----------------
+export function initLoginForm() {
+  const form = document.getElementById("loginForm");
 
-    console.log("User logged in:", user.uid);
+  if (!form) return; // ✅ prevents Jest crash
 
-    // 2. get user document from Firestore
-    const userDocRef = doc(db, "users", user.uid);
-    const userDocSnap = await getDoc(userDocRef);
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-    if (!userDocSnap.exists()) {
-      alert("User profile not found in Firestore.");
-      return;
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      const userDocRef = doc(db, "users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (!userDocSnap.exists()) {
+        alert("User profile not found.");
+        return;
+      }
+
+      redirectUser(userDocSnap.data().role);
+    } catch (error) {
+      alert(error.message);
     }
+  });
+}
 
-    const userData = userDocSnap.data();
-    const role = userData.role;
+// ---------------- SOCIAL LOGINS ----------------
+export function initSocialLogins() {
+  const setup = (id, provider) => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
 
-    console.log("User role:", role);
+    btn.addEventListener("click", async () => {
+      try {
+        const result = await signInWithPopup(auth, provider);
+        await handleSocialLogin(result.user);
+      } catch (error) {
+        alert(`${id} sign-in failed: ` + error.message);
+      }
+    });
+  };
 
-    // 3. redirect based on role
-    if (role === "customer") {
-      window.location.href = "index.html";
-    } else if (role === "vendor") {
-      window.location.href = "vendor-dashboard.html"; // change later to vendor dashboard
-    } else if (role === "admin") {
-      window.location.href = "index.html"; // change later to admin dashboard
-    } else {
-      alert("Invalid user role.");
-    }
+  setup("googleLogin", new GoogleAuthProvider());
+  setup("facebookLogin", new FacebookAuthProvider());
+  setup("twitterLogin", new TwitterAuthProvider());
+  setup("microsoftLogin", new OAuthProvider("microsoft.com"));
+  setup("appleLogin", new OAuthProvider("apple.com"));
+}
 
-  } catch (error) {
-    console.error("Login error:", error.message);
-    alert(error.message);
-  }
-});
-
-const googleBtn = document.getElementById("googleLogin");
-const facebookBtn = document.getElementById("facebookLogin");
-const twitterBtn = document.getElementById("twitterLogin");
-const microsoftBtn = document.getElementById("microsoftLogin");
-const appleBtn = document.getElementById("appleLogin");
-
-googleBtn.addEventListener("click",async () => {
-  const provider = new GoogleAuthProvider();
-  try{
-    const result = await signInWithPopup(auth, provider);
-    console.log("Google sign-in successful:", result.user);
-    await handleSocialLogin(result.user);
-  } catch (error) {
-    console.error("Google sign-in error:", error);
-    alert("Google sign-in failed: " + error.message);
-  }
-});
-facebookBtn.addEventListener("click", async () => {
-  const provider = new FacebookAuthProvider();
-  try{
-    const result = await signInWithPopup(auth, provider);
-    console.log("Facebook sign-in successful:", result.user);
-    await handleSocialLogin(result.user);
-  } catch (error) {
-    console.error("Facebook sign-in error:", error);
-    alert("Facebook sign-in failed: " + error.message);
-  }
-});
-twitterBtn.addEventListener("click", async () => {
-  const provider = new TwitterAuthProvider();
-  try{
-    const result = await signInWithPopup(auth, provider);
-    console.log("Twitter sign-in successful:", result.user);
-    await handleSocialLogin(result.user);
-  } catch (error) {
-    console.error("Twitter sign-in error:", error);
-    alert("Twitter sign-in failed: " + error.message);
-  }
-});
-microsoftBtn.addEventListener("click", async () => {
-  const provider = new OAuthProvider("microsoft.com");
-  try{
-    const result = await signInWithPopup(auth, provider);
-    console.log("Microsoft sign-in successful:", result.user);
-    await handleSocialLogin(result.user);
-  } catch (error) {
-    console.error("Microsoft sign-in error:", error);
-    alert("Microsoft sign-in failed: " + error.message);
-  }
-});
-appleBtn.addEventListener("click", async () => {
-  const provider = new OAuthProvider("apple.com");
-  try{
-    const result = await signInWithPopup(auth, provider);
-    console.log("Apple sign-in successful:", result.user);
-    await handleSocialLogin(result.user);
-  } catch (error) {
-    console.error("Apple sign-in error:", error);
-    alert("Apple sign-in failed: " + error.message);
-  }
-});
+// ---------------- SOCIAL HANDLER ----------------
 async function handleSocialLogin(user) {
   const userRef = doc(db, "users", user.uid);
   const userSnap = await getDoc(userRef);
 
-  // first time login
   if (!userSnap.exists()) {
-    // store temp uid in session
     sessionStorage.setItem("newUserUID", user.uid);
     window.location.href = "select-role.html";
     return;
   }
 
-  const role = userSnap.data().role;
-  redirectUser(role);
+  redirectUser(userSnap.data().role);
 }
 
-function redirectUser(role) {
-  if (role === "customer") {
-    window.location.href = "customer-dashboard.html";
-  } else if (role === "vendor") {
-    window.location.href = "vendor-dashboard.html";
-  } else if (role === "admin") {
-    window.location.href = "admin-dashboard.html";
+// ---------------- INIT (SAFE FOR BROWSER ONLY) ----------------
+export function initLoginPage() {
+  initLoginForm();
+  initSocialLogins();
+
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
   }
 }
-lucide.createIcons();

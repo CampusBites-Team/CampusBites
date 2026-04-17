@@ -11,145 +11,166 @@ import {
   FacebookAuthProvider,
   TwitterAuthProvider,
   OAuthProvider,
-  serverTimestamp,    
+  serverTimestamp,
   ref,
   uploadBytes,
   getDownloadURL
 } from "./database.js";
 
-// get the form
-const form = document.getElementById("registerForm");
-const logoInput = document.getElementById("logoInput");
-const locationCOntainer = document.getElementById("shop-location-container");
-const logoContainer = document.getElementById("shop-logo-container");
+let selectedLogoFile = null;
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
+export function initRegisterUI() {
+  const form = document.getElementById("registerForm");
 
-  const fullName = document.getElementById("registerName").value;
-  const email = document.getElementById("registerEmail").value;
-  const password = document.getElementById("registerPassword").value;
-  const role = document.getElementById("registerRole").value;
-  const shopName = document.getElementById("shop-name").value;
-  const location = document.getElementById("shop-location").value;
+  const roleSelect = document.getElementById("registerRole");
+  const shopContainer = document.getElementById("shop-name-container");
+  const locationContainer = document.getElementById("shop-location-container");
+  const logoContainer = document.getElementById("shop-logo-container");
 
-  try {
-    if (role === "vendor") {
-      if (!shopName.trim()) {
-        alert("Shop name is required for vendors.");
-        return;
+  const shopNameInput = document.getElementById("shop-name");
+  const locationInput = document.getElementById("shop-location");
+  const logoInput = document.getElementById("logoInput");
+
+  const googleBtn = document.getElementById("googleRegister");
+  const facebookBtn = document.getElementById("facebookRegister");
+  const twitterBtn = document.getElementById("twitterRegister");
+  const microsoftBtn = document.getElementById("microsoftRegister");
+  const appleBtn = document.getElementById("appleRegister");
+
+  // ---------------- FORM SUBMIT ----------------
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const fullName = document.getElementById("registerName")?.value || "";
+      const email = document.getElementById("registerEmail")?.value || "";
+      const password = document.getElementById("registerPassword")?.value || "";
+      const role = document.getElementById("registerRole")?.value || "";
+      const shopName = document.getElementById("shop-name")?.value || "";
+      const location = document.getElementById("shop-location")?.value || "";
+
+      try {
+        if (role === "vendor") {
+          if (!shopName.trim()) return alert("Shop name required");
+          if (!location.trim()) return alert("Shop location required");
+          if (!selectedLogoFile) return alert("Shop logo required");
+        }
+
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        let logoURL = null;
+
+        if (role === "vendor" && selectedLogoFile) {
+          logoURL = await uploadLogo(selectedLogoFile, user.uid);
+        }
+
+        await setDoc(doc(db, "users", user.uid), {
+          fullName,
+          email,
+          role,
+          shopName: role === "vendor" ? shopName : null,
+          location: role === "vendor" ? location : null,
+          image: logoURL,
+          status: role === "vendor" ? "pending" : "approved",
+          createdAt: serverTimestamp()
+        });
+
+        if (role === "customer") {
+          window.location.assign("customer-dashboard.html");
+        } else {
+          window.location.href = "pending-approval.html";
+        }
+
+      } catch (err) {
+        console.error(err);
+        alert(err.message);
       }
-
-      if (!location.trim()) {
-        alert("Shop location is required for vendors.");
-        return;
-      }
-
-      if (!selectedLogoFile) {
-        alert("Shop logo is required for vendors.");
-        return;
-      }
-    }
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    // 🔥 upload logo FIRST
-    let logoURL = null;
-
-    if (role === "vendor" && selectedLogoFile) {
-      logoURL = await uploadLogo(selectedLogoFile, user.uid);
-    }
-
-    await setDoc(doc(db, "users", user.uid), {
-      fullName,
-      email,
-      role,
-      shopName: role === "vendor" ? shopName : null,
-      location: role === "vendor" ? location : null,
-      image: logoURL, // ✅ FIXED
-      status: role === "vendor" ? "pending" : "approved",
-      createdAt: serverTimestamp()
     });
+  }
 
-    if (role === "customer") {
-      window.location.href = "customer-dashboard.html";
-    } else {
-      window.location.href = "pending-approval.html";
-    }
+  // ---------------- ROLE TOGGLE (THIS IS WHAT YOUR TESTS USE) ----------------
+  if (roleSelect) {
+    roleSelect.addEventListener("change", () => {
+      if (roleSelect.value === "vendor") {
+        shopContainer?.classList.remove("hidden");
+        locationContainer?.classList.remove("hidden");
+        logoContainer?.classList.remove("hidden");
 
-  } catch (error) {
-    console.error(error);
-    alert(error.message);
-  }
-});
-const googleBtn = document.getElementById("googleRegister");
-const facebookBtn = document.getElementById("facebookRegister");
-const twitterBtn = document.getElementById("twitterRegister");
-const microsoftBtn = document.getElementById("microsoftRegister");
-const appleBtn = document.getElementById("appleRegister");
+        shopNameInput.required = true;
+        locationInput.required = true;
+        logoInput.required = true;
+      } else {
+        shopContainer?.classList.add("hidden");
+        locationContainer?.classList.add("hidden");
+        logoContainer?.classList.add("hidden");
 
-googleBtn.addEventListener("click",async () => {
-  const provider = new GoogleAuthProvider();
-  try{
-    const result = await signInWithPopup(auth, provider);
-    console.log("Google sign-in successful:", result.user);
-    await handleSocialLogin(result.user);
-  } catch (error) {
-    console.error("Google sign-in error:", error);
-    alert("Google sign-in failed: " + error.message);
+        shopNameInput.required = false;
+        locationInput.required = false;
+        logoInput.required = false;
+
+        shopNameInput.value = "";
+        locationInput.value = "";
+        logoInput.value = "";
+        selectedLogoFile = null;
+      }
+    });
   }
-});
-facebookBtn.addEventListener("click", async () => {
-  const provider = new FacebookAuthProvider();
-  try{
-    const result = await signInWithPopup(auth, provider);
-    console.log("Facebook sign-in successful:", result.user);
-    await handleSocialLogin(result.user);
-  } catch (error) {
-    console.error("Facebook sign-in error:", error);
-    alert("Facebook sign-in failed: " + error.message);
+
+  // ---------------- LOGO PREVIEW ----------------
+  if (logoInput) {
+    logoInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      selectedLogoFile = file;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        let preview = document.getElementById("logoPreview");
+
+        if (!preview) {
+          preview = document.createElement("img");
+          preview.id = "logoPreview";
+          preview.className = "w-16 h-16 mt-2 rounded object-cover";
+          logoContainer?.appendChild(preview);
+        }
+
+        preview.src = reader.result;
+      };
+
+      reader.readAsDataURL(file);
+    });
   }
-});
-twitterBtn.addEventListener("click", async () => {
-  const provider = new TwitterAuthProvider();
-  try{
-    const result = await signInWithPopup(auth, provider);
-    console.log("Twitter sign-in successful:", result.user);
-    await handleSocialLogin(result.user);
-  } catch (error) {
-    console.error("Twitter sign-in error:", error);
-    alert("Twitter sign-in failed: " + error.message);
+
+  // ---------------- SOCIAL BUTTONS ----------------
+  function safeClick(btn, provider) {
+    if (!btn) return;
+
+    btn.addEventListener("click", async () => {
+      try {
+        const result = await signInWithPopup(auth, provider);
+        await handleSocialLogin(result.user);
+      } catch (err) {
+        console.error(err);
+        alert(err.message);
+      }
+    });
   }
-});
-microsoftBtn.addEventListener("click", async () => {
-  const provider = new OAuthProvider("microsoft.com");
-  try{
-    const result = await signInWithPopup(auth, provider);
-    console.log("Microsoft sign-in successful:", result.user);
-    await handleSocialLogin(result.user);
-  } catch (error) {
-    console.error("Microsoft sign-in error:", error);
-    alert("Microsoft sign-in failed: " + error.message);
-  }
-});
-appleBtn.addEventListener("click", async () => {
-  const provider = new OAuthProvider("apple.com");
-  try{
-    const result = await signInWithPopup(auth, provider);
-    console.log("Apple sign-in successful:", result.user);
-    await handleSocialLogin(result.user);
-  } catch (error) {
-    console.error("Apple sign-in error:", error);
-    alert("Apple sign-in failed: " + error.message);
-  }
-});
+
+  safeClick(googleBtn, new GoogleAuthProvider());
+  safeClick(facebookBtn, new FacebookAuthProvider());
+  safeClick(twitterBtn, new TwitterAuthProvider());
+  safeClick(microsoftBtn, new OAuthProvider("microsoft.com"));
+  safeClick(appleBtn, new OAuthProvider("apple.com"));
+}
+
+// ---------------- SOCIAL LOGIN ----------------
 async function handleSocialLogin(user) {
   const userRef = doc(db, "users", user.uid);
   const userSnap = await getDoc(userRef);
 
-  // first time login
   if (!userSnap.exists()) {
-    // store temp uid in session
     sessionStorage.setItem("newUserUID", user.uid);
     window.location.href = "select-role.html";
     return;
@@ -157,92 +178,40 @@ async function handleSocialLogin(user) {
 
   const userData = userSnap.data();
 
-if (userData.role === "vendor") {
-  if (userData.status === "pending") {
-    window.location.href = "pending-approval.html";
-    return;
+  if (userData.role === "vendor") {
+    if (userData.status === "pending") {
+      window.location.href = "pending-approval.html";
+      return;
+    }
+
+    if (userData.status === "suspended") {
+      alert("Your account is suspended");
+      return;
+    }
   }
 
-  if (userData.status === "suspended") {
-    alert("Your account is suspended");
-    return;
-  }
-}
-
-redirectUser(userData.role);
+  redirectUser(userData.role);
 }
 
 function redirectUser(role) {
   if (role === "customer") {
-    window.location.href = "customer-dashboard.html";
+    window.location.assign("customer-dashboard.html");
   } else if (role === "vendor") {
-    window.location.href = "pending-approval.html"; // default to pending page, actual redirect will be handled after approval check
+    window.location.href = "pending-approval.html";
   } else if (role === "admin") {
-    window.location.href = "admin-dashboard.html";
+    window.location.assign("admin-dashboard.html");
   }
 }
-const roleSelect = document.getElementById("registerRole");
-const shopContainer = document.getElementById("shop-name-container");
-const shopNameInput = document.getElementById("shop-name");
-const locationInput = document.getElementById("shop-location");
 
-roleSelect.addEventListener("change", () => {
-  if (roleSelect.value === "vendor") {
-    shopContainer.classList.remove("hidden");
-    locationCOntainer.classList.remove("hidden");
-    logoContainer.classList.remove("hidden");
-
-    shopNameInput.required = true;
-    locationInput.required = true;
-    logoInput.required = true; // remove this line if logo should stay optional
-  } else {
-    shopContainer.classList.add("hidden");
-    locationCOntainer.classList.add("hidden");
-    logoContainer.classList.add("hidden");
-
-    shopNameInput.required = false;
-    locationInput.required = false;
-    logoInput.required = false;
-
-    shopNameInput.value = "";
-    locationInput.value = "";
-    logoInput.value = "";
-    selectedLogoFile = null;
-  }
-});
-let selectedLogoFile = null;
-
-logoInput?.addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  selectedLogoFile = file;
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    let preview = document.getElementById("logoPreview");
-
-    if (!preview) {
-      preview = document.createElement("img");
-      preview.id = "logoPreview";
-      preview.className = "w-16 h-16 mt-2 rounded object-cover";
-      logoContainer.appendChild(preview);
-    }
-
-    preview.src = reader.result;
-  };
-
-  reader.readAsDataURL(file);
-});
+// ---------------- LOGO UPLOAD ----------------
 const uploadLogo = async (file, uid) => {
   if (!file) return null;
 
   const storageRef = ref(storage, `vendor-logos/${uid}`);
-
   await uploadBytes(storageRef, file);
-
   return await getDownloadURL(storageRef);
 };
+
 export const buildUserObject = ({
   fullName,
   email,
@@ -261,4 +230,12 @@ export const buildUserObject = ({
     status: role === "vendor" ? "pending" : "approved"
   };
 };
-lucide.createIcons();
+
+// auto-init ONLY in browser (safe for Jest)
+if (typeof window !== "undefined") {
+  if (document.readyState !== "loading") {
+    initRegisterUI();
+  } else {
+    document.addEventListener("DOMContentLoaded", initRegisterUI);
+  }
+}

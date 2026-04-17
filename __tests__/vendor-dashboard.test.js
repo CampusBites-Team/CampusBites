@@ -1,32 +1,183 @@
 jest.mock('../scripts/database.js', () => ({
   auth: {},
   db: {},
-  storage: {},
-  ref: jest.fn(),
-  uploadBytes: jest.fn(),
-  getDownloadURL: jest.fn(),
   doc: jest.fn(),
   getDoc: jest.fn(),
   onAuthStateChanged: jest.fn(),
   signOut: jest.fn(),
+  addDoc: jest.fn(),
+  getDocs: jest.fn(),
+  updateDoc: jest.fn(),
+  deleteDoc: jest.fn(),
+  collection: jest.fn(),
+  query: jest.fn(),
+  where: jest.fn(),
+  serverTimestamp: jest.fn(),
 }));
 
-const { calculateRevenue } = require('../scripts/vendor-dashboard.js');
+// Stub every DOM element vendor-dashboard.js references at load time
+document.body.innerHTML = `
+  <button id="logoutBtn"></button>
+  <div id="loading-state" class="hidden"></div>
+  <div id="empty-state" class="hidden"></div>
+  <div id="menu-table-wrapper" class="hidden"></div>
+  <tbody id="menu-table-body"></tbody>
+  <div id="item-edit-modal" class="hidden"></div>
+  <div id="delete-modal" class="hidden"></div>
+  <button id="confirm-delete-btn"></button>
+  <form id="item-form"></form>
+  <input id="edit-item-id" value="" />
+  <input id="item-name" value="" />
+  <textarea id="item-description"></textarea>
+  <input id="item-price" value="" />
+  <select id="item-category"><option value="Mains">Mains</option></select>
+  <input type="checkbox" id="item-available" />
+  <span id="modal-title"></span>
+  <span id="form-error" class="hidden"></span>
+  <span id="save-btn-text">Save Item</span>
+  <button id="save-btn"></button>
+  <div id="save-spinner" class="hidden"></div>
+`;
+const {
+  calculateRevenue,
+  initVendorDashboard
+} = require('../scripts/vendor-dashboard.js');
 
-test('calculates revenue correctly', () => {
-  const orders = [{ total: 100 }, { total: 50 }];
-  expect(calculateRevenue(orders)).toBe(150);
+describe('calculateRevenue', () => {
+  test('sums order totals correctly', () => {
+    const orders = [
+      { total: 100 },
+      { total: 50.5 },
+      { total: 25 },
+    ];
+    expect(calculateRevenue(orders)).toBeCloseTo(175.5);
+  });
+
+  test('returns 0 for empty array', () => {
+    expect(calculateRevenue([])).toBe(0);
+  });
+
+  test('defaults missing total to 0', () => {
+    const orders = [
+      { total: 100 },
+      {},            // no total field
+      { total: 50 },
+    ];
+    expect(calculateRevenue(orders)).toBe(150);
+  });
+
+  test('handles single order', () => {
+    expect(calculateRevenue([{ total: 42 }])).toBe(42);
+  });
+
+  test('handles all zero totals', () => {
+    expect(calculateRevenue([{ total: 0 }, { total: 0 }])).toBe(0);
+  });
 });
 
-test('returns 0 for empty orders', () => {
-  expect(calculateRevenue([])).toBe(0);
-});
+const dbModule = require('../scripts/database.js');
 
-test('handles missing total field gracefully', () => {
-  const orders = [{ total: 100 }, {}];
-  expect(calculateRevenue(orders)).toBe(100);
-});
+describe('initVendorDashboard', () => {
 
-test('handles single order', () => {
-  expect(calculateRevenue([{ total: 75 }])).toBe(75);
+  let mockLocation;
+  let mockAlert;
+
+  beforeEach(() => {
+    mockLocation = { href: '' };
+    mockAlert = jest.fn();
+  });
+
+  test('redirects to login if no user', async () => {
+    dbModule.onAuthStateChanged.mockImplementation((auth, callback) => {
+      callback(null); // no user
+    });
+
+    initVendorDashboard(mockLocation, mockAlert);
+
+    expect(mockLocation.href).toBe('login.html');
+  });
+
+  test('redirects if user doc does not exist', async () => {
+    dbModule.onAuthStateChanged.mockImplementation((auth, callback) => {
+      callback({ uid: '123' });
+    });
+
+    dbModule.getDoc.mockResolvedValue({
+      exists: () => false
+    });
+
+    initVendorDashboard(mockLocation, mockAlert);
+
+    // wait for async
+    await Promise.resolve();
+
+    expect(mockLocation.href).toBe('login.html');
+  });
+
+  test('redirects if not vendor', async () => {
+    dbModule.onAuthStateChanged.mockImplementation((auth, callback) => {
+      callback({ uid: '123' });
+    });
+
+    dbModule.getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({ role: 'customer' })
+    });
+
+    initVendorDashboard(mockLocation, mockAlert);
+    await Promise.resolve();
+
+    expect(mockLocation.href).toBe('index.html');
+  });
+
+  test('redirects pending vendor', async () => {
+    dbModule.onAuthStateChanged.mockImplementation((auth, callback) => {
+      callback({ uid: '123' });
+    });
+
+    dbModule.getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({ role: 'vendor', status: 'pending' })
+    });
+
+    initVendorDashboard(mockLocation, mockAlert);
+    await Promise.resolve();
+
+    expect(mockLocation.href).toBe('pending-approval.html');
+  });
+
+  test('handles suspended vendor', async () => {
+    dbModule.onAuthStateChanged.mockImplementation((auth, callback) => {
+      callback({ uid: '123' });
+    });
+
+    dbModule.getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({ role: 'vendor', status: 'suspended' })
+    });
+
+    initVendorDashboard(mockLocation, mockAlert);
+    await Promise.resolve();
+
+    expect(mockAlert).toHaveBeenCalledWith("Your account is suspended");
+    expect(mockLocation.href).toBe('login.html');
+  });
+
+  test('allows approved vendor', async () => {
+    console.log = jest.fn(); // silence log
+
+    dbModule.onAuthStateChanged.mockImplementation((auth, callback) => {
+      callback({ uid: '123' });
+    });
+
+    dbModule.getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({ role: 'vendor', status: 'approved' })
+    });
+
+    initVendorDashboard(mockLocation, mockAlert);
+    await Promise.resolve();
+
+    expect(console.log).toHaveBeenCalledWith("Access granted to vendor dashboard");
+  });
 });

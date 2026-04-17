@@ -19,7 +19,7 @@
       <section class="flex items-center gap-6 mx-auto">
         <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
         <a href="browse.html" class="text-gray-700 hover:text-indigo-600">Browse</a>
-        <a href="menu.html" class="text-gray-700 hover:text-indigo-600">Menu</a>
+        <a href="menu-management.html" class="text-gray-700 hover:text-indigo-600">Menu</a>
       </section>
       <a href="login.html" class="text-gray-700 hover:text-indigo-600">Log Out</a>
 
@@ -57,7 +57,7 @@
         <p class="text-gray-600 mb-4">
           Add items, edit prices, and update availability.
         </p>
-        <a href="menu.html" class="inline-block text-indigo-600 font-semibold hover:underline">
+        <a href="menu-management.html" class="inline-block text-indigo-600 font-semibold hover:underline">
           Update Menu
         </button>
 
@@ -109,7 +109,6 @@
     </section>
   </main>
 
-<script type="module" src="./scripts/vendor-dashboard.js"></script>
 <script type="module">
   import { initAuthUI, logout } from "./scripts/auth.js";
 
@@ -117,6 +116,10 @@
   lucide.createIcons();
   // Attach logout button
   document.getElementById("logoutBtn")?.addEventListener("click", logout);
+</script>
+<script type="module">
+  import { initVendorDashboard } from "./scripts/vendor-dashboard.js";
+  initVendorDashboard();
 </script>
 </body>
 </html>
