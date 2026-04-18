@@ -1,11 +1,15 @@
 import {
+  auth,
   db,
   getDocs,
-  collection
+  addDoc,
+  collection,
+  onAuthStateChanged
 } from "./database.js";
 
 lucide.createIcons();
-
+let loggedIn = false;
+let currentUser = null;
 const vegan = document.getElementById("Vegan");
 const vegetarian = document.getElementById("Vegetarian");
 const halal = document.getElementById("Halal");
@@ -21,7 +25,7 @@ let done = false;
 function addToCart(item){
     cart.push(item);
 }
-
+//filter function to check if an item fits all applied filters
 function applyFilter(item){
   if(!item.available){
     return false;
@@ -40,7 +44,10 @@ function applyFilter(item){
   return true;
 }
 
+
+//function to update the cart display with all items currently in the cart
 function updateCart(){
+  
   const container = document.getElementById("cartList");
   let html = ``;
   for(let i = 0; i < cart.length; i++){
@@ -89,22 +96,20 @@ function updateCart(){
     </article>`;
   }
   container.innerHTML = html;
+  if(cart.length == 1){
+    document.getElementById("numItemsCart").textContent = `${cart.length} item in cart`;
+  } else {
+    document.getElementById("numItemsCart").textContent = `${cart.length} items in cart`;
+  }
   globalThis.lucide?.createIcons?.();
 }
 
 const loadMenuItems = async () => {
   const snapshot = await getDocs(collection(db, "menu_items"));
-  const snapshot2 = await getDocs(collection(db, "users"));
-  /*const vendors = snapshot2.doc.map(doc =>({
-    id: doc.id,
-    ...doc.data()
-  }));*/
   const items = snapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
   }));
-  //console.log(items[2].vendorName)
-  /*document.getElementById("Vendors").innerHTML = vendors.map(item =>`<option value = "${item.shopName}" selected="selected">${item.shopName}</option>`);*/
   const container = document.getElementById("menu");
   const availableItems = items.filter(applyFilter);
   container.innerHTML = availableItems.map(item => `
@@ -156,7 +161,7 @@ const loadMenuItems = async () => {
     </article>
   `).join('');
 
-  lucide.createIcons();
+  
   if(availableItems.length == 1){
     document.getElementById("numItems").textContent = `${availableItems.length} item found`;
   } else {
@@ -197,14 +202,13 @@ document.getElementById("cartList").addEventListener("click", (e) => {
 });
   done = true;
   }
-  
+  lucide.createIcons();
 };
 
-document.addEventListener("DOMContentLoaded", () =>{
-  loadMenuItems();
-  
-  });
+document.addEventListener("DOMContentLoaded", () =>{loadMenuItems();});
 
+
+//Event listeners for the buttons relating to browsing the items
 vegan?.addEventListener("click", () =>{
     restrictions[0] = vegan.checked;
     loadMenuItems();
@@ -234,5 +238,62 @@ document.getElementById("cart")?.addEventListener("click", () => {
     document.getElementById('item-edit-modal').classList.remove('hidden');
     updateCart();
 }); 
+document.getElementById("checkOut").addEventListener("click", () => {
+  
+  if(loggedIn && currentUser){
+    if(cart.length == 0){
+      document.getElementById('cartWarning').classList.remove('hidden');
+      return;
+    }
+    vendorActions.saveOrder();
+    
+    
+    
+  } else {
+    alert("You must be logged in to proceed to checkout")
+  }
+}); 
+
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUser = user;
+    //alert("logged in")
+    loggedIn = true;
+  } else {
+    //alert("not logged in")
+    loggedIn = false;
+    
+  }
+});
+
+const vendorActions = {
+saveOrder: async () => {
+    //event.preventDefault();
+    let succeed = false;
+    if (!currentUser) {
+      console.error("No user logged in");
+      return;
+    }
+    
+    const orderData = {
+        userId: currentUser.uid,
+        menuItems: cart,
+        status: "pending"
+    };
+    console.log(orderData.userId, orderData.menuItems, orderData.status);
+    try {
+
+      await addDoc(collection(db, "orders"), orderData);
+      succeed = true;
+    } catch (error) {
+        console.error("Error saving item:", error);
+    }
+    if(succeed){
+      window.location.href = "checkOut.html"
+    }
+}
+
+};
 export const loadBrowseItems = loadMenuItems;
 export { loadMenuItems };

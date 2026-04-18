@@ -7,6 +7,7 @@ export function initAuthUI() {
     const CustomerdashboardLink = document.getElementById("CustomerdashboardLink");
     const VendordashboardLink = document.getElementById("VendordashboardLink");
     const AdmindashboardLink = document.getElementById("AdmindashboardLink");
+    const CheckOutLink = document.getElementById("CheckOutLink");
     const loginBtn = document.getElementById("loginLink");
     const logoutBtn = document.getElementById("logoutBtn");
 
@@ -24,6 +25,7 @@ export function initAuthUI() {
       // ✅ User is logged in
         if(data.role === "customer"){
           CustomerdashboardLink?.classList.remove("hidden");
+          CheckOutLink?.classList.remove("hidden");
         } else if(data.role === "vendor"){
           VendordashboardLink?.classList.remove("hidden");
         } else if(data.role === "admin"){
