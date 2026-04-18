@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CampusBites - Customer Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="scripts/checkOut.js"></script>
+</head>
+<body class="min-h-screen bg-gray-100">
+
+  <nav class="bg-white border-b border-gray-200 shadow-sm">
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+      <header class="flex items-center gap-2">
+        <i data-lucide="utensils" class="w-7 h-7 text-indigo-600"></i>
+        <span class="text-xl font-bold text-gray-900">CampusBites</span>
+      </header>
+
+      <section class="flex items-center gap-6">
+        <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
+        <a href="login.html" class="text-gray-700 hover:text-indigo-600">Log Out</a>
+      </section>
+    </section>
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <header class="mb-10">
+  <section class="flex items-center justify-between">
+    <h1 class="text-3xl md:text-4xl font-bold text-gray-900">
+      Orders
+    </h1>
+  </section>
+
+  <p class="mt-2 text-gray-600">
+    Keep track of all of your placed orders
+  </p>
+</header>
+
+    
+
+  </main>
+
+<script type="module">
+  import { initAuthUI, logout } from "./scripts/auth.js";
+
+  initAuthUI();
+  lucide.createIcons();
+  // Attach logout button
+  document.getElementById("logoutBtn")?.addEventListener("click", logout);
+</script>
+</body>
+</html>
