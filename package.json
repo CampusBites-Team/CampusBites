@@ -7,16 +7,19 @@
     "test": "jest",
     "test:coverage": "jest --coverage"
   },
-  "jest": {
-    "testEnvironment": "jsdom",
-    "collectCoverageFrom": [
-      "scripts/**/*.js"
-    ],
-    "coverageReporters": [
-      "text",
-      "lcov"
-    ]
+"jest": {
+  "testEnvironment": "jsdom",
+  "moduleNameMapper": {
+    "^https://.*$": "<rootDir>/__mocks__/cdnModule.js"
   },
+  "collectCoverageFrom": [
+    "scripts/**/*.js"
+  ],
+  "coverageReporters": [
+    "text",
+    "lcov"
+  ]
+},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/MpiloMario/CampusBites.git"

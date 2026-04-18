@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CampusBites - Recommendations</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="min-h-screen bg-gray-100">
+
+  <nav class="bg-white border-b border-gray-200 shadow-sm">
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+      <header class="flex items-center gap-2">
+        <i data-lucide="utensils" class="w-7 h-7 text-indigo-600"></i>
+        <span class="text-xl font-bold text-gray-900">CampusBites</span>
+      </header>
+
+      <section class="flex items-center gap-6 mx-auto">
+        <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
+        <a id="CustomerdashboardLink" href="customer-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
+        <a href="recommendations.html" class="text-gray-700 hover:text-indigo-600">For You</a>
+      </section>
+        <a href="login.html" id="logoutBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300">Log Out</a>
+    </section>
+  </nav>
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <header class="text-center mb-8">
+        <h2 class="text-3xl font-bold mb-2">Recommended For You</h2>
+        <p class="text-gray-600">Based on your order history and dietary preferences</p>
+    </header>
+
+    <section class="mb-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-8 text-white">
+        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
+            <i data-lucide="sparkles" class="w-6 h-6"></i>
+            ML-Powered Meal Suggestions
+        </h3>
+        <p class="mb-4 text-indigo-100">
+            Our system analyzes your past orders, dietary restrictions, and popular combinations to suggest meals you'll love.
+        </p>
+
+        <section class="flex gap-2 flex-wrap">
+            <span class="px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm">Collaborative Filtering</span>
+            <span class="px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm">Content-Based Matching</span>
+            <span class="px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm">Dietary Constraint Optimization</span>
+        </section>
+    </section>
+
+    <section id="recommendations-grid" class="grid md:grid-cols-3 gap-6">
+        <!-- Populated by JS -->
+    </section>
+
+    <section class="mt-12">
+        <h3 class="text-xl font-bold mb-6">Trending Now</h3>
+        <section id="trending-grid" class="grid md:grid-cols-4 gap-4">
+            <!-- Populated by JS -->
+        </section>
+    </section>
+
+</section>
+<script type="module">
+  import { initAuthUI, logout } from "./scripts/auth.js";
+
+  initAuthUI();
+  lucide.createIcons();
+  // Attach logout button
+  document.getElementById("logoutBtn")?.addEventListener("click", logout);
+</script>
+</body> 
+</html>

@@ -1,4 +1,4 @@
-## Sprint 1 Review
+## Sprint 1 Overview
 
 **Sprint Duration:** 30 March 2026 - 13 April 2026
 

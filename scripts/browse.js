@@ -30,18 +30,11 @@ function applyFilter(item){
   if(!item.available){
     return false;
   }
-  if(restrictions[0] && !item.dietary.includes("Vegan")){
-    return false;
-  }
-  if(restrictions[1] && !item.dietary.includes("Vegetarian")){
-    return false;
-  }
-  if(restrictions[2] && item.allergens.includes("Gluten")){
-    return false;
-  }
-  if(restrictions[3] && !item.dietary.includes("Halal")){
-    return false;
-  }
+  if (restrictions[0] && !(item.dietary || []).includes("Vegan")) return false;
+  if (restrictions[1] && !(item.dietary || []).includes("Vegetarian")) return false;
+  if (restrictions[3] && !(item.dietary || []).includes("Halal")) return false;
+  if (restrictions[2] && (item.allergens || []).includes("Gluten")) return false;
+ 
   if(category != "AllCategories" && item.category != category){
     return false;
   }
@@ -108,6 +101,7 @@ function updateCart(){
   } else {
     document.getElementById("numItemsCart").textContent = `${cart.length} items in cart`;
   }
+  globalThis.lucide?.createIcons?.();
 }
 
 const loadMenuItems = async () => {
@@ -200,11 +194,7 @@ document.getElementById("cartList").addEventListener("click", (e) => {
         const btn = e.target.closest("button");
         const id = btn.id;
         for (let i = 0; i < cart.length; i++) {
-                if (id == i) {
-                    
-                    cart.splice(i, 1);
-                    break;
-                }
+            cart.splice(cart.findIndex(i => i.id === id), 1);
             }
       
     }
@@ -219,31 +209,31 @@ document.addEventListener("DOMContentLoaded", () =>{loadMenuItems();});
 
 
 //Event listeners for the buttons relating to browsing the items
-vegan.addEventListener("click", () =>{
+vegan?.addEventListener("click", () =>{
     restrictions[0] = vegan.checked;
     loadMenuItems();
 });
-halal.addEventListener("click", () =>{
+halal?.addEventListener("click", () =>{
     restrictions[3] = halal.checked;
     loadMenuItems();
 });
-gluten.addEventListener("click", () =>{
+gluten?.addEventListener("click", () =>{
     restrictions[2] = gluten.checked;
     loadMenuItems();
 });
-vegetarian.addEventListener("click", () =>{
+vegetarian?.addEventListener("click", () =>{
     restrictions[1] = vegetarian.checked;
     loadMenuItems();
 });
-document.getElementById("Vendors").addEventListener("click", () =>{
+document.getElementById("Vendors")?.addEventListener("change", () =>{
     vendor = document.getElementById("Vendors").value;
     loadMenuItems();
 });
-document.getElementById("Categories").addEventListener("click", () =>{
+document.getElementById("Categories")?.addEventListener("change", () =>{
     category = document.getElementById("Categories").value;
     loadMenuItems();
 });
-document.getElementById("cart").addEventListener("click", () => {
+document.getElementById("cart")?.addEventListener("click", () => {
     document.getElementById('modal-title').textContent = 'Items in Cart';
     document.getElementById('item-edit-modal').classList.remove('hidden');
     updateCart();
@@ -256,7 +246,7 @@ document.getElementById("checkOut").addEventListener("click", () => {
       return;
     }
     vendorActions.saveOrder();
-    window.location.href = "checkOut.html"
+    
     
     
   } else {
@@ -280,6 +270,7 @@ onAuthStateChanged(auth, async (user) => {
 const vendorActions = {
 saveOrder: async () => {
     //event.preventDefault();
+    let succeed = false;
     if (!currentUser) {
       console.error("No user logged in");
       return;
@@ -294,10 +285,15 @@ saveOrder: async () => {
     try {
 
       await addDoc(collection(db, "orders"), orderData);
-
+      succeed = true;
     } catch (error) {
         console.error("Error saving item:", error);
+    }
+    if(succeed){
+      window.location.href = "checkOut.html"
     }
 }
 
 };
+export const loadBrowseItems = loadMenuItems;
+export { loadMenuItems };

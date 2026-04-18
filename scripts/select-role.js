@@ -1,18 +1,16 @@
 import { auth, db, doc, setDoc } from "./database.js";
 
+let navigate = (page) => window.location.assign(page);
+export function setNavigate(fn) { navigate = fn; }
+
 document.getElementById("customer").onclick = () => saveRole("customer");
 document.getElementById("vendor").onclick = () => saveRole("vendor");
 
-async function saveRole(role) {
+export async function saveRole(role) {
   const user = auth.currentUser;
-
   await setDoc(doc(db, "users", user.uid), {
     email: user.email,
     role: role
   });
-
-  if (role === "customer")
-    window.location.href = "customer-dashboard.html";
-  else
-    window.location.href = "vendor-dashboard.html";
+  navigate(role === "customer" ? 'customer-dashboard.html' : 'vendor-dashboard.html');
 }

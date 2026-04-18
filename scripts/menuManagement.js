@@ -17,7 +17,7 @@ import {
   getDownloadURL
 } from "./database.js";
 
-lucide.createIcons();
+globalThis.lucide?.createIcons?.();
 let currentUser = null;
 let userData = null; 
 
@@ -33,7 +33,9 @@ auth.onAuthStateChanged(async (user) => {
   } else {
     // Optional: Redirect to login if no user is found
     console.log("No user is signed in.");
-    window.location.href = "index.html"; // redirect to homepage page
+    if (typeof window !== "undefined" && window.location) {
+        window.location.assign("index.html");
+    }
   }
 });
 
@@ -49,7 +51,7 @@ initMenuManagement: async () => {
     }));
 
     const tbody = document.getElementById('menu-table-body');
-
+    if (!tbody) return;
     tbody.innerHTML = items.map(item => `
         <tr>
         <td class="px-6 py-4">
@@ -85,6 +87,7 @@ openEditItem: async (id) => {
     const snap = await getDocs(query(collection(db, "menu_items"), where("vendorId", "==", currentUser.uid)));
 
     const itemDoc = snap.docs.find(d => d.id === id);
+    if (!itemDoc) return;
     const item = itemDoc.data();
 
     document.getElementById('edit-item-id').value = id;
@@ -196,4 +199,3 @@ document.getElementById("add-item-btn")
 // IMPORTANT: make functions global for HTML onclick
 window.views = views;
 window.vendorActions = vendorActions;
-
