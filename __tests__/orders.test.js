@@ -1,5 +1,17 @@
+jest.mock('../scripts/database.js', () => ({
+  db: {},
+  auth: {},
+  onAuthStateChanged: jest.fn(),
+  getDoc: jest.fn(),
+  doc: jest.fn(),
+  collection: jest.fn(),
+  query: jest.fn(),
+  where: jest.fn(),
+  onSnapshot: jest.fn(),
+}));
+
 import { buildOrderHTML, mapSnapshotToOrders, renderOrders, listenToVendorOrders } from "../scripts/orders.js";
-import { onSnapshot } from "../__mocks__/database.js";
+import { onSnapshot } from "../scripts/database.js";
 
 // ─── buildOrderHTML (pure — no mocks needed) ───────────────
 
