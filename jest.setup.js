@@ -1,0 +1,1 @@
+global.lucide = { createIcons: () => {} };

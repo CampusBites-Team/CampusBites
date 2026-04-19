@@ -95,10 +95,32 @@ async function handleSocialLogin(user) {
   redirectUser(userSnap.data().role);
 }
 
+// ---------------- PASSWORD TOGGLE ----------------
+export function initPasswordToggle() {
+  const passwordInput = document.getElementById("loginPassword");
+  const toggleButton = document.getElementById("toggleLoginPassword");
+
+  if (!passwordInput || !toggleButton) return;
+
+  toggleButton.addEventListener("click", () => {
+    const isHidden = passwordInput.type === "password";
+
+    passwordInput.type = isHidden ? "text" : "password";
+
+    toggleButton.innerHTML = isHidden
+      ? '<i data-lucide="eye-off" class="h-5 w-5"></i>'
+      : '<i data-lucide="eye" class="h-5 w-5"></i>';
+
+    if (typeof lucide !== "undefined") {
+      lucide.createIcons();
+    }
+  });
+}
 // ---------------- INIT (SAFE FOR BROWSER ONLY) ----------------
 export function initLoginPage() {
   initLoginForm();
   initSocialLogins();
+  initPasswordToggle();
 
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();

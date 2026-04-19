@@ -10,7 +10,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
-  signOut
+  signOut,
+  sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
 import {
@@ -26,6 +27,7 @@ import {
   query,
   where,
   serverTimestamp,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 import {
   getStorage,
@@ -75,7 +77,8 @@ export {
   query,
   where,
   serverTimestamp,
-  signOut
+  signOut,
+  sendPasswordResetEmail
 };
 
 /*export class MenuItem{
