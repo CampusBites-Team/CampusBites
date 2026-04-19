@@ -281,7 +281,7 @@ saveOrder: async () => {
         menuItems: cart,
         status: "pending"
     };
-    console.log(orderData.userId, orderData.menuItems, orderData.status);
+    //console.log(orderData.userId, orderData.menuItems, orderData.status);
     try {
 
       await addDoc(collection(db, "orders"), orderData);
