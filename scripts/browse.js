@@ -104,17 +104,64 @@ function updateCart(){
   globalThis.lucide?.createIcons?.();
 }
 
+function populateVendorFilter(items) {
+  const vendorSelect = document.getElementById("Vendors");
+  if (!vendorSelect) return;
+
+  const currentValue = vendorSelect.value || "AllVendors";
+
+  const vendorNames = [...new Set(
+    items
+      .map(item => item.vendorName)
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b))
+  )];
+
+  vendorSelect.innerHTML = `
+    <option value="AllVendors">AllVendors</option>
+    ${vendorNames.map(name => `<option value="${name}">${name}</option>`).join("")}
+  `;
+
+  if (vendorNames.includes(currentValue) || currentValue === "AllVendors") {
+    vendorSelect.value = currentValue;
+  } else {
+    vendorSelect.value = "AllVendors";
+    vendor = "AllVendors";
+  }
+}
+
 const loadMenuItems = async () => {
-  const snapshot = await getDocs(collection(db, "menu_items"));
-  const items = snapshot.docs.map(doc => ({
+  const [menuSnapshot, usersSnapshot] = await Promise.all([
+    getDocs(collection(db, "menu_items")),
+    getDocs(collection(db, "users"))
+  ]);
+
+  const items = menuSnapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
   }));
+
+  const approvedVendorIds = new Set(
+    usersSnapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .filter(user => user.role === "vendor" && user.status === "approved")
+      .map(vendor => vendor.id)
+  );
+
   const container = document.getElementById("menu");
-  const availableItems = items.filter(applyFilter);
+  const visibleItems = items.filter(item => approvedVendorIds.has(item.vendorId));
+  populateVendorFilter(visibleItems);
+
+
+  const availableItems = items.filter(item => {
+    if (!approvedVendorIds.has(item.vendorId)) {
+      return false;
+    }
+    return applyFilter(item);
+  });
+
   container.innerHTML = availableItems.map(item => `
     <article class="bg-white p-4 rounded-xl shadow-sm">
-
       <img src="${item.image || 'assets/default.jpg'}"
            class="w-full h-48 object-cover rounded-lg mb-4">
 
@@ -130,7 +177,6 @@ const loadMenuItems = async () => {
         ${item.description}
       </p>
 
-      <!-- Dietary tags -->
       ${item.dietary?.length ? `
         <section class="flex flex-wrap gap-1 mb-2">
           ${item.dietary.map(tag => `
@@ -139,7 +185,6 @@ const loadMenuItems = async () => {
         </section>
       ` : ''}
 
-      <!-- Allergens -->
       ${item.allergens?.length ? `
         <section class="flex flex-wrap gap-1 mb-3">
           <span class="text-xs text-orange-500 font-medium mr-1">⚠ Contains:</span>
@@ -153,55 +198,47 @@ const loadMenuItems = async () => {
         <button class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200">
           Details
         </button>
-        <button id = "${item.vendorName + item.name}" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700">
+        <button id="${item.vendorName + item.name}" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700">
           <i data-lucide="plus" class="w-4 h-4"></i> Add
         </button>
       </section>
-
     </article>
   `).join('');
 
-  
-  if(availableItems.length == 1){
+  if (availableItems.length === 1) {
     document.getElementById("numItems").textContent = `${availableItems.length} item found`;
   } else {
     document.getElementById("numItems").textContent = `${availableItems.length} items found`;
   }
-  if(!done){
+
+  if (!done) {
     menuList.addEventListener("click", (e) => {
-    if (e.target.closest("button")) {
+      if (e.target.closest("button")) {
         const btn = e.target.closest("button");
         const id = btn.id;
 
-        
-            for (let i = 0; i < availableItems.length; i++) {
-                if (id === availableItems[i].vendorName + availableItems[i].name) {
-                    addToCart(availableItems[i]);
-                }
-            }
-        
-        /*for(let i = 0; i < cart.length; i++){
-            if(id == i){
-                cart.splice(i, 1);
-                i--;
-                updateCart();
-            }
-        }*/
-    }
-});
-document.getElementById("cartList").addEventListener("click", (e) => {
-    if (e.target.closest("button")) {
+        for (let i = 0; i < availableItems.length; i++) {
+          if (id === availableItems[i].vendorName + availableItems[i].name) {
+            addToCart(availableItems[i]);
+          }
+        }
+      }
+    });
+
+    document.getElementById("cartList").addEventListener("click", (e) => {
+      if (e.target.closest("button")) {
         const btn = e.target.closest("button");
         const id = btn.id;
         for (let i = 0; i < cart.length; i++) {
-            cart.splice(cart.findIndex(i => i.id === id), 1);
-            }
-      
-    }
-    updateCart();
-});
-  done = true;
+          cart.splice(cart.findIndex(i => i.id === id), 1);
+        }
+      }
+      updateCart();
+    });
+
+    done = true;
   }
+
   lucide.createIcons();
 };
 

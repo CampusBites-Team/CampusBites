@@ -19,7 +19,6 @@ document.body.innerHTML = `
 const { calculateVendorStats } = require('../scripts/admin.js');
 
 describe('calculateVendorStats', () => {
-
   test('counts correctly', () => {
     const users = [
       { role: 'vendor', status: 'approved' },

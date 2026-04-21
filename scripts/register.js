@@ -19,6 +19,13 @@ import {
 
 let selectedLogoFile = null;
 
+const isValidLogoFile = (file) => {
+  if (!file) return false;
+
+  const allowedTypes = ["image/png", "image/jpeg"];
+  return allowedTypes.includes(file.type);
+};
+
 export function initRegisterUI() {
   const form = document.getElementById("registerForm");
 
@@ -37,7 +44,6 @@ export function initRegisterUI() {
   const microsoftBtn = document.getElementById("microsoftRegister");
   const appleBtn = document.getElementById("appleRegister");
 
-  // ---------------- FORM SUBMIT ----------------
   if (form) {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -54,6 +60,9 @@ export function initRegisterUI() {
           if (!shopName.trim()) return alert("Shop name required");
           if (!location.trim()) return alert("Shop location required");
           if (!selectedLogoFile) return alert("Shop logo required");
+          if (!isValidLogoFile(selectedLogoFile)) {
+            return alert("Shop logo must be a PNG or JPEG image.");
+          }
         }
 
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -89,7 +98,6 @@ export function initRegisterUI() {
     });
   }
 
-  // ---------------- ROLE TOGGLE (THIS IS WHAT YOUR TESTS USE) ----------------
   if (roleSelect) {
     roleSelect.addEventListener("change", () => {
       if (roleSelect.value === "vendor") {
@@ -117,11 +125,17 @@ export function initRegisterUI() {
     });
   }
 
-  // ---------------- LOGO PREVIEW ----------------
   if (logoInput) {
     logoInput.addEventListener("change", (e) => {
       const file = e.target.files[0];
       if (!file) return;
+
+      if (!isValidLogoFile(file)) {
+        alert("Shop logo must be a PNG or JPEG image.");
+        logoInput.value = "";
+        selectedLogoFile = null;
+        return;
+      }
 
       selectedLogoFile = file;
 
@@ -143,7 +157,6 @@ export function initRegisterUI() {
     });
   }
 
-  // ---------------- SOCIAL BUTTONS ----------------
   function safeClick(btn, provider) {
     if (!btn) return;
 
@@ -165,7 +178,6 @@ export function initRegisterUI() {
   safeClick(appleBtn, new OAuthProvider("apple.com"));
 }
 
-// ---------------- SOCIAL LOGIN ----------------
 async function handleSocialLogin(user) {
   const userRef = doc(db, "users", user.uid);
   const userSnap = await getDoc(userRef);
@@ -203,7 +215,6 @@ function redirectUser(role) {
   }
 }
 
-// ---------------- LOGO UPLOAD ----------------
 const uploadLogo = async (file, uid) => {
   if (!file) return null;
 
@@ -231,7 +242,6 @@ export const buildUserObject = ({
   };
 };
 
-// auto-init ONLY in browser (safe for Jest)
 if (typeof window !== "undefined") {
   if (document.readyState !== "loading") {
     initRegisterUI();
