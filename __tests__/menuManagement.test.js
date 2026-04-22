@@ -29,7 +29,7 @@ jest.mock('../scripts/database.js', () => ({
 }));
 
 describe("menu.js", () => {
-  let auth, getDocs, getDoc, addDoc, updateDoc, deleteDoc;
+  let auth, getDocs, getDoc, addDoc, updateDoc, deleteDoc, uploadBytes, getDownloadURL;
 
  beforeEach(() => {
   jest.resetModules();
@@ -58,10 +58,8 @@ describe("menu.js", () => {
   `;
 
   document.getElementById("item-form").reset = jest.fn();
-
-  ({ auth, getDocs, getDoc, addDoc, updateDoc, deleteDoc } =
-    require('../scripts/database.js'));
-
+  ({ auth, getDocs, getDoc, addDoc, updateDoc, deleteDoc, uploadBytes, getDownloadURL } =
+  require('../scripts/database.js'));
   auth.onAuthStateChanged.mockImplementation(cb => cb({ uid: "user123" }));
 
   getDoc.mockResolvedValue({
@@ -225,4 +223,124 @@ describe("menu.js", () => {
 
   logSpy.mockRestore();
 }); 
+test("saveItem rejects negative price", async () => {
+  global.alert = jest.fn();
+  getDocs.mockResolvedValue({ docs: [] });
+
+  await loadModule();
+
+  document.getElementById("item-name").value = "Burger";
+  document.getElementById("item-description").value = "Nice";
+  document.getElementById("item-price").value = "-10";
+  document.getElementById("item-category").value = "Fast Food";
+
+  const event = { preventDefault: jest.fn() };
+
+  await window.vendorActions.saveItem(event);
+
+  expect(alert).toHaveBeenCalledWith("Price must be a positive amount greater than 0.");
+  expect(addDoc).not.toHaveBeenCalled();
+});
+
+test("saveItem rejects zero price", async () => {
+  global.alert = jest.fn();
+  getDocs.mockResolvedValue({ docs: [] });
+
+  await loadModule();
+
+  document.getElementById("item-name").value = "Burger";
+  document.getElementById("item-description").value = "Nice";
+  document.getElementById("item-price").value = "0";
+  document.getElementById("item-category").value = "Fast Food";
+
+  const event = { preventDefault: jest.fn() };
+
+  await window.vendorActions.saveItem(event);
+
+  expect(alert).toHaveBeenCalledWith("Price must be a positive amount greater than 0.");
+  expect(addDoc).not.toHaveBeenCalled();
+});
+
+test("saveItem rejects invalid image type", async () => {
+  global.alert = jest.fn();
+  getDocs.mockResolvedValue({ docs: [] });
+
+  await loadModule();
+
+  document.getElementById("item-name").value = "Burger";
+  document.getElementById("item-description").value = "Nice";
+  document.getElementById("item-price").value = "50";
+  document.getElementById("item-category").value = "Fast Food";
+
+  const badFile = new File(["fake"], "menu.gif", { type: "image/gif" });
+
+  Object.defineProperty(document.getElementById("item-image"), "files", {
+    value: [badFile],
+    configurable: true
+  });
+
+  const event = { preventDefault: jest.fn() };
+
+  await window.vendorActions.saveItem(event);
+
+  expect(alert).toHaveBeenCalledWith("Only PNG and JPEG images are allowed.");
+  expect(addDoc).not.toHaveBeenCalled();
+});
+
+test("saveItem rejects oversized image", async () => {
+  global.alert = jest.fn();
+  getDocs.mockResolvedValue({ docs: [] });
+
+  await loadModule();
+
+  document.getElementById("item-name").value = "Burger";
+  document.getElementById("item-description").value = "Nice";
+  document.getElementById("item-price").value = "50";
+  document.getElementById("item-category").value = "Fast Food";
+
+  const bigFile = new File(["fake"], "menu.png", { type: "image/png" });
+  Object.defineProperty(bigFile, "size", {
+    value: 6 * 1024 * 1024,
+    configurable: true
+  });
+
+  Object.defineProperty(document.getElementById("item-image"), "files", {
+    value: [bigFile],
+    configurable: true
+  });
+
+  const event = { preventDefault: jest.fn() };
+
+  await window.vendorActions.saveItem(event);
+
+  expect(alert).toHaveBeenCalledWith("Image must be smaller than 5MB.");
+  expect(addDoc).not.toHaveBeenCalled();
+});
+test("saveItem uploads valid png image", async () => {
+  getDocs.mockResolvedValue({ docs: [] });
+  uploadBytes.mockResolvedValue();
+  getDownloadURL.mockResolvedValue("https://example.com/item.png");
+
+  await loadModule();
+
+  document.getElementById("item-name").value = "Burger";
+  document.getElementById("item-description").value = "Nice";
+  document.getElementById("item-price").value = "50";
+  document.getElementById("item-category").value = "Fast Food";
+
+  const goodFile = new File(["fake"], "menu.png", { type: "image/png" });
+
+  Object.defineProperty(document.getElementById("item-image"), "files", {
+    value: [goodFile],
+    configurable: true
+  });
+
+  const event = { preventDefault: jest.fn() };
+
+  await window.vendorActions.saveItem(event);
+
+  expect(uploadBytes).toHaveBeenCalled();
+  expect(getDownloadURL).toHaveBeenCalled();
+  expect(addDoc).toHaveBeenCalled();
+});
 });
