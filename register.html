@@ -136,7 +136,7 @@
                       <i data-lucide="image" class="h-5 w-5 text-gray-400"></i>
                       <span class="text-sm text-gray-500">Upload your shop logo</span>
                   </section>
-                <input type="file" id="logoInput" accept="image/*" />
+                <input type="file" id="logoInput"  accept=".png,.jpg,.jpeg,image/png,image/jpeg" />
               </section>
               </section>
               <button
@@ -206,5 +206,11 @@
   </section>
 
   <script type="module" src="scripts/register.js"></script>
+  <script type="module">
+  import { initAuthUI} from "./scripts/auth.js";
+
+  initAuthUI();
+  lucide.createIcons();
+</script>
 </body>
 </html>

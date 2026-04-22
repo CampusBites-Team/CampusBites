@@ -128,4 +128,72 @@ describe("register submit flow", () => {
 
     expect(alert).toHaveBeenCalledWith("Email already in use");
   });
+  test("vendor registration requires shop logo", async () => {
+  document.getElementById("registerRole").value = "vendor";
+  document.getElementById("shop-name").value = "Bites";
+  document.getElementById("shop-location").value = "Block A";
+
+  document.getElementById("registerForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  await Promise.resolve();
+
+  expect(alert).toHaveBeenCalledWith("Shop logo required");
+  expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
+});
+
+test("invalid vendor logo file type is rejected on change", async () => {
+  const logoInput = document.getElementById("logoInput");
+
+  const badFile = new File(["fake"], "logo.gif", { type: "image/gif" });
+
+  Object.defineProperty(logoInput, "files", {
+    value: [badFile],
+    configurable: true
+  });
+
+  logoInput.dispatchEvent(new Event("change", { bubbles: true }));
+
+  expect(alert).toHaveBeenCalledWith("Shop logo must be a PNG or JPEG image.");
+});
+
+test("valid vendor logo file type is accepted on change", async () => {
+  const logoInput = document.getElementById("logoInput");
+
+  const goodFile = new File(["fake"], "logo.png", { type: "image/png" });
+
+  Object.defineProperty(logoInput, "files", {
+    value: [goodFile],
+    configurable: true
+  });
+
+  logoInput.dispatchEvent(new Event("change", { bubbles: true }));
+
+  expect(alert).not.toHaveBeenCalledWith("Shop logo must be a PNG or JPEG image.");
+});
+
+test("vendor registration rejects invalid selected logo on submit", async () => {
+  document.getElementById("registerRole").value = "vendor";
+  document.getElementById("shop-name").value = "Bites";
+  document.getElementById("shop-location").value = "Block A";
+
+  const logoInput = document.getElementById("logoInput");
+  const badFile = new File(["fake"], "logo.gif", { type: "image/gif" });
+
+  Object.defineProperty(logoInput, "files", {
+    value: [badFile],
+    configurable: true
+  });
+
+  logoInput.dispatchEvent(new Event("change", { bubbles: true }));
+
+  document.getElementById("registerForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  await Promise.resolve();
+
+  expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
+});
 });

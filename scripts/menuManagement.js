@@ -138,7 +138,13 @@ saveItem: async (event) => {
 
     const name = document.getElementById('item-name').value;
     const description = document.getElementById('item-description').value;
-    const price = parseFloat(document.getElementById('item-price').value);
+    const priceInput = document.getElementById('item-price').value.trim();
+    const price = parseFloat(priceInput);
+
+    if (Number.isNaN(price) || price <= 0) {
+        alert("Price must be a positive amount greater than 0.");
+        return;
+    }
     const category = document.getElementById('item-category').value;
 
     const allergens = [...document.querySelectorAll('.item-allergen:checked')]
@@ -147,10 +153,25 @@ saveItem: async (event) => {
     const dietary = [...document.querySelectorAll('.item-dietary:checked')]
         .map(cb => cb.value);
 
-    let imageUrl = "";
 
     // upload image if exists
+    let imageUrl = "";
+
     if (file) {
+        const allowedTypes = ["image/png", "image/jpeg"];
+
+        if (!allowedTypes.includes(file.type)) {
+            alert("Only PNG and JPEG images are allowed.");
+            return;
+        }
+
+        const maxBytes = 5 * 1024 * 1024;
+
+        if (file.size > maxBytes) {
+            alert("Image must be smaller than 5MB.");
+            return;
+        }
+
         const storageRef = ref(storage, `menu_items/${Date.now()}_${file.name}`);
         await uploadBytes(storageRef, file);
         imageUrl = await getDownloadURL(storageRef);

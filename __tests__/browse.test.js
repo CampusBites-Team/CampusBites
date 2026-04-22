@@ -64,12 +64,27 @@ const sampleItems = [
   }
 ];
 
+const approvedVendors = [
+  { id: "vendor-1", role: "vendor", status: "approved", shopName: "Shop1" },
+  { id: "vendor-2", role: "vendor", status: "approved", shopName: "Shop2" },
+  { id: "vendor-3", role: "vendor", status: "approved", shopName: "Shop3" }
+];
+
 const makeSnapshot = (items) => ({
   docs: items.map((item) => ({
     id: item.id,
-    data: () => item
+    data: () => {
+      const { id, ...rest } = item;
+      return rest;
+    }
   }))
 });
+
+const mockBrowseQueries = (db, items = sampleItems, vendors = approvedVendors) => {
+  db.getDocs
+    .mockResolvedValueOnce(makeSnapshot(items))   // menu_items
+    .mockResolvedValueOnce(makeSnapshot(vendors)); // users
+};
 
 const flush = async () => {
   await Promise.resolve();
@@ -93,9 +108,6 @@ describe("browse.js", () => {
 
       <select id="Vendors">
         <option value="AllVendors">AllVendors</option>
-        <option value="Shop1">Shop1</option>
-        <option value="Shop2">Shop2</option>
-        <option value="Shop3">Shop3</option>
       </select>
 
       <select id="Categories">
@@ -135,7 +147,7 @@ describe("browse.js", () => {
   });
 
   test("renders available items only", async () => {
-    db.getDocs.mockResolvedValue(makeSnapshot(sampleItems));
+    mockBrowseQueries(db);
     db.onAuthStateChanged.mockImplementation((_auth, cb) => cb(null));
 
     const mod = await import("../scripts/browse.js");
@@ -149,7 +161,7 @@ describe("browse.js", () => {
   });
 
   test("updates count text for multiple items", async () => {
-    db.getDocs.mockResolvedValue(makeSnapshot(sampleItems));
+    mockBrowseQueries(db);
     db.onAuthStateChanged.mockImplementation((_auth, cb) => cb(null));
 
     const mod = await import("../scripts/browse.js");
@@ -159,7 +171,7 @@ describe("browse.js", () => {
   });
 
   test("adds item to cart and opens cart modal", async () => {
-    db.getDocs.mockResolvedValue(makeSnapshot(sampleItems));
+    mockBrowseQueries(db);
     db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "customer-1" }));
 
     const mod = await import("../scripts/browse.js");
@@ -175,7 +187,7 @@ describe("browse.js", () => {
   });
 
   test("removes item from cart", async () => {
-    db.getDocs.mockResolvedValue(makeSnapshot(sampleItems));
+    mockBrowseQueries(db);
     db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "customer-1" }));
 
     const mod = await import("../scripts/browse.js");
@@ -192,7 +204,7 @@ describe("browse.js", () => {
   });
 
   test("shows warning when logged in user checks out with empty cart", async () => {
-    db.getDocs.mockResolvedValue(makeSnapshot(sampleItems));
+    mockBrowseQueries(db);
     db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "customer-1" }));
 
     const mod = await import("../scripts/browse.js");
@@ -205,7 +217,7 @@ describe("browse.js", () => {
   });
 
   test("alerts when logged out user tries to check out", async () => {
-    db.getDocs.mockResolvedValue(makeSnapshot(sampleItems));
+    mockBrowseQueries(db);
     db.onAuthStateChanged.mockImplementation((_auth, cb) => cb(null));
 
     const mod = await import("../scripts/browse.js");
@@ -217,7 +229,7 @@ describe("browse.js", () => {
   });
 
   test("creates one order per vendor on checkout", async () => {
-    db.getDocs.mockResolvedValue(makeSnapshot(sampleItems));
+    mockBrowseQueries(db);
     db.addDoc.mockResolvedValue({});
     db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "customer-1" }));
 
@@ -258,23 +270,23 @@ describe("browse.js", () => {
   });
 
   test("groups same-vendor items into one order with summed total", async () => {
-    db.getDocs.mockResolvedValue(
-      makeSnapshot([
-        sampleItems[0],
-        {
-          id: "5",
-          name: "Fries",
-          vendorName: "Shop1",
-          vendorId: "vendor-1",
-          price: 20,
-          description: "Crispy",
-          category: "Sides",
-          available: true,
-          dietary: [],
-          allergens: []
-        }
-      ])
-    );
+    mockBrowseQueries(db, [
+      sampleItems[0],
+      {
+        id: "5",
+        name: "Fries",
+        vendorName: "Shop1",
+        vendorId: "vendor-1",
+        price: 20,
+        description: "Crispy",
+        category: "Sides",
+        available: true,
+        dietary: [],
+        allergens: []
+      }
+    ], [
+      { id: "vendor-1", role: "vendor", status: "approved", shopName: "Shop1" }
+    ]);
 
     db.addDoc.mockResolvedValue({});
     db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "customer-1" }));
@@ -303,7 +315,7 @@ describe("browse.js", () => {
   });
 
   test("handles addDoc failure during checkout", async () => {
-    db.getDocs.mockResolvedValue(makeSnapshot(sampleItems));
+    mockBrowseQueries(db);
     db.addDoc.mockRejectedValue(new Error("Firestore failed"));
     db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "customer-1" }));
 
@@ -315,5 +327,23 @@ describe("browse.js", () => {
     await flush();
 
     expect(errorSpy).toHaveBeenCalled();
+  });
+
+  test("hides suspended vendor items", async () => {
+    mockBrowseQueries(db, sampleItems, [
+      { id: "vendor-1", role: "vendor", status: "approved", shopName: "Shop1" },
+      { id: "vendor-2", role: "vendor", status: "suspended", shopName: "Shop2" },
+      { id: "vendor-3", role: "vendor", status: "approved", shopName: "Shop3" }
+    ]);
+
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb(null));
+
+    const mod = await import("../scripts/browse.js");
+    await mod.loadBrowseItems();
+
+    const html = document.getElementById("menu").innerHTML;
+    expect(html).toContain("Burger");
+    expect(html).toContain("Wrap");
+    expect(html).not.toContain("Pizza");
   });
 });
