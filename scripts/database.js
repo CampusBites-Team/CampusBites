@@ -27,6 +27,7 @@ import {
   query,
   where,
   serverTimestamp,
+  Timestamp,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 import {
@@ -53,6 +54,7 @@ const storage = getStorage(app);
 
 export {
   auth,
+  getAuth,
   db,
   storage,
   ref,
@@ -78,6 +80,7 @@ export {
   query,
   where,
   serverTimestamp,
+  Timestamp,
   signOut,
   sendPasswordResetEmail
 };
