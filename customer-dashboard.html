@@ -18,32 +18,34 @@
 
       <section class="flex items-center gap-6 mx-auto">
         <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
+        <a href="customer-profile.html" class="text-gray-700 hover:text-indigo-600">Profile</a>
         <a href="recommendations.html" class="text-gray-700 hover:text-indigo-600">For You</a>
         <a id="CheckOutLink" href="checkOut.html" class="text-gray-700 hover:text-indigo-600 hidden">Orders</a>
       </section>
-        <a href="login.html" id="logoutBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300">Log Out</a>
+
+      <a href="login.html" id="logoutBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300">Log Out</a>
     </section>
   </nav>
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
     <header class="mb-10">
-  <section class="flex items-center justify-between">
-    <h1 class="text-3xl md:text-4xl font-bold text-gray-900">
-      Customer Dashboard
-    </h1>
+      <section class="flex items-center justify-between">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900">
+          Customer Dashboard
+        </h1>
 
-    <a
-      href="browse.html"
-      class="bg-indigo-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition"
-    >
-      Place Order
-    </a>
-  </section>
+        <a
+          href="browse.html"
+          class="bg-indigo-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition"
+        >
+          Place Order
+        </a>
+      </section>
 
-  <p class="mt-2 text-gray-600">
-    Browse vendors, place orders, and track your meals in one place.
-  </p>
-</header>
+      <p class="mt-2 text-gray-600">
+        Browse vendors, place orders, and track your meals in one place.
+      </p>
+    </header>
 
     <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
       <article class="bg-white rounded-2xl shadow-md p-6">
@@ -121,13 +123,13 @@
 
   </main>
 
-<script type="module">
-  import { initAuthUI, logout } from "./scripts/auth.js";
+  <script type="module">
+    import { initAuthUI, logout } from "./scripts/auth.js";
 
-  initAuthUI();
-  lucide.createIcons();
-  // Attach logout button
-  document.getElementById("logoutBtn")?.addEventListener("click", logout);
-</script>
+    initAuthUI();
+    lucide.createIcons();
+
+    document.getElementById("logoutBtn")?.addEventListener("click", logout);
+  </script>
 </body>
 </html>
