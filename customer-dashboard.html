@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <body class="min-h-screen bg-gray-100">
 
   <nav class="bg-white border-b border-gray-200 shadow-sm">
@@ -18,16 +19,23 @@
 
       <section class="flex items-center gap-6 mx-auto">
         <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
-        <a href="customer-profile.html" class="text-gray-700 hover:text-indigo-600">Profile</a>
+        <a href="customer-profile.html" class="text-gray-700 hover:text-indigo-600">My Account</a>
         <a href="recommendations.html" class="text-gray-700 hover:text-indigo-600">For You</a>
         <a id="CheckOutLink" href="checkOut.html" class="text-gray-700 hover:text-indigo-600 hidden">Orders</a>
       </section>
 
-      <a href="login.html" id="logoutBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300">Log Out</a>
+      <a
+        href="login.html"
+        id="logoutBtn"
+        class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300"
+      >
+        Log Out
+      </a>
     </section>
   </nav>
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
     <header class="mb-10">
       <section class="flex items-center justify-between">
         <h1 class="text-3xl md:text-4xl font-bold text-gray-900">
@@ -48,14 +56,19 @@
     </header>
 
     <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+
       <article class="bg-white rounded-2xl shadow-md p-6">
         <header class="flex items-center gap-3 mb-4">
           <i data-lucide="store" class="w-6 h-6 text-indigo-600"></i>
-          <h2 class="text-xl font-semibold text-gray-900">Browse Vendors</h2>
+          <h2 class="text-xl font-semibold text-gray-900">
+            Browse Vendors
+          </h2>
         </header>
+
         <p class="text-gray-600 mb-4">
           Explore different campus food vendors and see what is available today.
         </p>
+
         <a href="browse.html" class="inline-block text-indigo-600 font-semibold hover:underline">
           View Vendors
         </a>
@@ -64,11 +77,15 @@
       <article class="bg-white rounded-2xl shadow-md p-6">
         <header class="flex items-center gap-3 mb-4">
           <i data-lucide="shopping-bag" class="w-6 h-6 text-indigo-600"></i>
-          <h2 class="text-xl font-semibold text-gray-900">My Orders</h2>
+          <h2 class="text-xl font-semibold text-gray-900">
+            My Orders
+          </h2>
         </header>
+
         <p class="text-gray-600 mb-4">
           Check the status of your recent and active orders.
         </p>
+
         <a href="checkOut.html" class="inline-block text-indigo-600 font-semibold hover:underline">
           Track Orders
         </a>
@@ -76,25 +93,33 @@
 
       <article class="bg-white rounded-2xl shadow-md p-6">
         <header class="flex items-center gap-3 mb-4">
-          <i data-lucide="credit-card" class="w-6 h-6 text-indigo-600"></i>
-          <h2 class="text-xl font-semibold text-gray-900">Payments</h2>
+          <i data-lucide="user-circle" class="w-6 h-6 text-indigo-600"></i>
+          <h2 class="text-xl font-semibold text-gray-900">
+            My Account
+          </h2>
         </header>
+
         <p class="text-gray-600 mb-4">
-          View payment history and manage your completed transactions.
+          Update your details, phone number, and profile picture.
         </p>
-        <a href="#" class="inline-block text-indigo-600 font-semibold hover:underline">
-          Payment History
+
+        <a href="customer-profile.html" class="inline-block text-indigo-600 font-semibold hover:underline">
+          Manage Account
         </a>
       </article>
-      
+
       <article class="bg-white rounded-2xl shadow-md p-6">
         <header class="flex items-center gap-3 mb-4">
           <i data-lucide="history" class="w-6 h-6 text-indigo-600"></i>
-          <h2 class="text-xl font-semibold text-gray-900">Recent Order Activity</h2>
+          <h2 class="text-xl font-semibold text-gray-900">
+            Recent Order Activity
+          </h2>
         </header>
+
         <p class="text-gray-600 mb-4">
-          View recently ordered and order again!
+          View recently ordered meals and order again.
         </p>
+
         <a href="#" class="inline-block text-indigo-600 font-semibold hover:underline">
           Order History
         </a>
@@ -104,17 +129,35 @@
 
     <section class="mb-10">
       <header class="mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">Recommended Vendors</h2>
-        <p class="text-gray-600">Popular spots around campus right now.</p>
+        <h2 class="text-2xl font-bold text-gray-900">
+          Recommended Vendors
+        </h2>
+        <p class="text-gray-600">
+          Popular spots around campus right now.
+        </p>
       </header>
 
       <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
         <article class="bg-white rounded-2xl shadow-md overflow-hidden">
-          <img src="assets/jim.jpg" alt="Jimmy's food stall" class="w-full h-48 object-cover object-top" />
+          <img
+            src="assets/jim.jpg"
+            alt="Jimmy's food stall"
+            class="w-full h-48 object-cover object-top"
+          />
+
           <section class="p-6">
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">Jimmy's</h3>
-            <p class="text-sm text-gray-500 mb-2">Fast Food • Matrix Ground Floor</p>
-            <p class="text-gray-600">Burgers, fries and grilled meals.</p>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">
+              Jimmy's
+            </h3>
+
+            <p class="text-sm text-gray-500 mb-2">
+              Fast Food • Matrix Ground Floor
+            </p>
+
+            <p class="text-gray-600">
+              Burgers, fries and grilled meals.
+            </p>
           </section>
         </article>
 
@@ -131,5 +174,6 @@
 
     document.getElementById("logoutBtn")?.addEventListener("click", logout);
   </script>
+
 </body>
 </html>
