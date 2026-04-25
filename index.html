@@ -1,205 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>CampusBites - University Food Ordering</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+  <title>CampusBites - University Food Ordering</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <style>
-    .glass-effect{
-        background: rgba(255,255,255,0.95);
-        backdrop-filter: blur(10px);
-    }
-    .slide-in{
-        animation:slideIn 10s ease-out;
-    }
-    @keyframes slideIn{
-        from{transform: translateY(20px); opacity:0;}
-        to{transform: translateY(0); opacity:1;}
-    }
-    html {
+  .glass-effect {
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+  }
+
+  .slide-in {
+    animation: slideIn 10s ease-out;
+  }
+
+  @keyframes slideIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  html {
     scroll-behavior: smooth;
-    }
+  }
 </style>
+
 <body class="bg-gray-50 text-gray-800">
-    <nav class="fixed bg-white w-full z-50 glass-effect border-b border-gray-200">
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
-            <header class="flex items-center gap-2 cursor-pointer">
-                <i data-lucide="utensils" class="w-8 h-8 text-indigo-600"></i>
-                <span class="text-xl font-bold text-gray-900">CampusBites</span>
-            </header>
-            <section class="md:flex space-x-8">
-                <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
-                <a href="browse.html" class="text-gray-700 hover:text-indigo-600">Browse</a>
-                <a id="CustomerdashboardLink" href="customer-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
-                <a id="VendordashboardLink" href="vendor-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
-                <a id="AdmindashboardLink" href="admin-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
-                <a id="CheckOutLink" href="checkOut.html" class="text-gray-700 hover:text-indigo-600 hidden">Orders</a>
-            </section>
-            <section class="flex items-center gap-4">
-                <a href="login.html" id="loginLink"class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
-                    Sign in
-                </a>
-                <button id="logoutBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition hidden">
-                        Logout
-                </button>
-            </section>
-        </section>
 
-    </nav>
-    <section class=" relative text-white pt-20">
-                <section class="absolute inset-0">
-                    <img src="assets/Matrix.jpg" class="w-full h-full object-cover">
-                </section>
-                <section class="absolute inset-0 bg-black/60"></section>
-            <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+  <nav class="fixed bg-white w-full z-50 glass-effect border-b border-gray-200">
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
 
-                <section class="text-center slide-in">
-                    <h1 class="text-white text-4xl md:text-6xl font-bold mb-6 drop-shadow-lg">Skip the Queue, <br>Enjoy Your Meal</h1>
-                    <p class="text-xl mb-8 text-gray-200">Order from multiple campus vendors and pick up when ready. No more missing classes for lunch!</p>
-                    <section class="flex justify-center gap-4">
-                        <button id = "OrderNowButton" class="bg-transparent border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-indigo-600 transition shadow-lg">
-                            Order Now
-                        </button>
-                        <button id = "LearnButton" class="bg-transparent border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-indigo-600 transition shadow-lg">
-                            Learn More
-                        </button>
-                    </section>
-                </section>
-            </section>
+      <header class="flex items-center gap-2 cursor-pointer">
+        <i data-lucide="utensils" class="w-8 h-8 text-indigo-600"></i>
+        <span class="text-xl font-bold text-gray-900">CampusBites</span>
+      </header>
+
+      <section class="md:flex space-x-8">
+        <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
+        <a href="browse.html" class="text-gray-700 hover:text-indigo-600">Browse</a>
+
+        <a id="CustomerdashboardLink" href="customer-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">
+          Dashboard
+        </a>
+
+        <a id="VendordashboardLink" href="vendor-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">
+          Dashboard
+        </a>
+
+        <a id="AdmindashboardLink" href="admin-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">
+          Dashboard
+        </a>
+
+        <a id="CustomerProfileLink" href="customer-profile.html" class="text-gray-700 hover:text-indigo-600 hidden">
+          My Account
+        </a>
+
+        <a id="CheckOutLink" href="checkOut.html" class="text-gray-700 hover:text-indigo-600 hidden">
+          Orders
+        </a>
+      </section>
+
+      <section class="flex items-center gap-4">
+        <a
+          href="login.html"
+          id="loginLink"
+          class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+        >
+          Sign in
+        </a>
+
+        <button
+          id="logoutBtn"
+          class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition hidden"
+        >
+          Logout
+        </button>
+      </section>
+
+    </section>
+  </nav>
+
+  <section class="relative text-white pt-20">
+
+    <section class="absolute inset-0">
+      <img src="assets/Matrix.jpg" class="w-full h-full object-cover" alt="Campus background">
     </section>
 
-<section class="py-20 bg-white">
+    <section class="absolute inset-0 bg-black/60"></section>
 
-    <!-- Features Section -->
-    <section id = "FeaturesSection" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <header class="text-center mb-12">
-            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Features
-            </h2>
-        </header>
+    <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
 
-        <section class="grid md:grid-cols-3 gap-8">
+      <section class="text-center slide-in">
 
-            <article class="text-center p-6 rounded-xl bg-gray-50 hover:shadow-lg transition">
-                <figure class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="clock" class="w-8 h-8 text-indigo-600"></i>
-                </figure>
-                <h3 class="text-xl font-semibold mb-2">Save Time</h3>
-                <p class="text-gray-600">
-                    Order ahead and skip queues. Get notified when your food is ready.
-                </p>
-            </article>
+        <h1 class="text-white text-4xl md:text-6xl font-bold mb-6 drop-shadow-lg">
+          Skip the Queue,<br>Enjoy Your Meal
+        </h1>
 
-            <article class="text-center p-6 rounded-xl bg-gray-50 hover:shadow-lg transition">
-                <figure class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="heart-pulse" class="w-8 h-8 text-green-600"></i>
-                </figure>
-                <h3 class="text-xl font-semibold mb-2">Dietary Safety</h3>
-                <p class="text-gray-600">
-                    Full allergen and dietary information for every item. SA R.146 compliant food safety standards.
-                </p>
-            </article>
+        <p class="text-xl mb-8 text-gray-200">
+          Order from multiple campus vendors and pick up when ready.
+          No more missing classes for lunch!
+        </p>
 
-            <article class="text-center p-6 rounded-xl bg-gray-50 hover:shadow-lg transition">
-                <figure class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="store" class="w-8 h-8 text-orange-600"></i>
-                </figure>
-                <h3 class="text-xl font-semibold mb-2">Multi-Vendor</h3>
-                <p class="text-gray-600">
-                    Order from multiple vendors in one transaction.
-                </p>
-            </article>
+        <section class="flex justify-center gap-4">
+
+          <button
+            id="OrderNowButton"
+            class="bg-transparent border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-indigo-600 transition shadow-lg"
+          >
+            Order Now
+          </button>
+
+          <button
+            id="LearnButton"
+            class="bg-transparent border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-indigo-600 transition shadow-lg"
+          >
+            Learn More
+          </button>
 
         </section>
+
+      </section>
+
     </section>
-    <!-- Services Section -->
-    <section id = "ServicesSection" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
-        <header class="text-center mb-12">
-            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Our Services
-            </h2>
-        </header>
 
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-8">
+  </section>
 
-            <article id = "BrowseVendors" class="text-center bg-gray-50 p-8 rounded-2xl shadow hover:shadow-lg transition">
-                <figure class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="store" class="w-8 h-8 text-indigo-600"></i>
-                </figure>
-                <h3 class="text-xl font-semibold text-gray-900 mb-3">Browse Vendors</h3>
-                <p class="text-gray-600">
-                    Explore menus and find meals that suit your taste.
-                </p>
-            </article>
-            <article class="text-center bg-gray-50 p-8 rounded-2xl shadow hover:shadow-lg transition">
-                <figure class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="shopping-bag" class="w-10 h-10 text-indigo-600"></i>
-                </figure>
-                <h3 class="text-xl font-semibold text-gray-900 mb-3">Order & Track</h3>
-                <p class="text-gray-600">
-                    Place orders and receive real-time updates.
-                </p>
-            </article>
-            <article class="text-center bg-gray-50 p-8 rounded-2xl shadow hover:shadow-lg transition">
-                <figure class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="credit-card" class="w-10 h-10 text-indigo-600"></i>
-                </figure>
-                <h3 class="text-xl font-semibold text-gray-900 mb-3">Secure Payments</h3>
-                <p class="text-gray-600">
-                    Pay online quickly and securely.
-                </p>
-            </article>
+  <script type="module">
+    import { initAuthUI, logout } from "./scripts/auth.js";
 
-        </section>
-    </section>
-</section>
-<section class="py-20 bg-gray-50">
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-3xl font-bold text-center mb-12">Featured Vendors</h2>
-        <section class="grid md:grid-cols-3 gap-6">
-            <article class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition curser-pointer">
-                <img src="assets/jim.jpg" class="w-full h-48 object-cover object-top">
-                <figure class="p-6">
-                    <h3 class="text-xl font-semibold mb-2">Jimmy's</h3>
-                    <p class="text-gray-600 text-sm mb-2">Fast Food • Matrix Ground floor</p>
-                    <p class="text-gray-500 text-sm">Burgers, fries and grilled items</p>
-                </figure>
-            </article>
-            <article class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition curser-pointer">
-                <img src="assets/Xpresso.png" class="w-full h-48 object-contain">
-                <figure class="p-6">
-                    <h3 class="text-xl font-semibold mb-2">Xpresso</h3>
-                    <p class="text-gray-600 text-sm mb-2">Café • Matrix Ground floor</p>
-                    <p class="text-gray-500 text-sm">Fresh coffee and light meals</p>
-                </figure>
-            </article>
-        </section>
-    </section>
-</section>
-    <script>
-        lucide.createIcons();
-        const orderNow = document.getElementById("OrderNowButton");
-        const learn = document.getElementById("LearnButton");
-        const bVendors = document.getElementById("BrowseVendors");
-        orderNow.addEventListener("click", () => {
-            window.location.href = "browse.html";
-        });
-        learn.addEventListener("click", () =>{
-            document.getElementById("FeaturesSection").scrollIntoView();
-        });
-        bVendors.addEventListener("click", () =>{
-            window.location.href = "browse.html";
-        });
-    </script>
-</body>
-<script type="module">
-  import { initAuthUI, logout } from "./scripts/auth.js";
+    initAuthUI();
+    lucide.createIcons();
 
-  initAuthUI();
-  lucide.createIcons();
-  // Attach logout button
-  document.getElementById("logoutBtn")?.addEventListener("click", logout);
-</script>
+    const orderNow = document.getElementById("OrderNowButton");
+    const learn = document.getElementById("LearnButton");
+
+    orderNow?.addEventListener("click", () => {
+      window.location.href = "browse.html";
+    });
+
+    learn?.addEventListener("click", () => {
+      document.getElementById("FeaturesSection")?.scrollIntoView();
+    });
+
+    document.getElementById("logoutBtn")?.addEventListener("click", logout);
+  </script>
+
 </body>
 </html>

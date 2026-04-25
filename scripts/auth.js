@@ -8,51 +8,51 @@ export function initAuthUI() {
     const VendordashboardLink = document.getElementById("VendordashboardLink");
     const AdmindashboardLink = document.getElementById("AdmindashboardLink");
     const CheckOutLink = document.getElementById("CheckOutLink");
+    const CustomerProfileLink = document.getElementById("CustomerProfileLink");
     const loginBtn = document.getElementById("loginLink");
     const logoutBtn = document.getElementById("logoutBtn");
 
   onAuthStateChanged(auth, async (user) => {
       if (!user) {
-    // optional safety redirect for protected pages
-    return;
-  }
-    if (user) {
+        CustomerdashboardLink?.classList.add("hidden");
+        VendordashboardLink?.classList.add("hidden");
+        AdmindashboardLink?.classList.add("hidden");
+        CheckOutLink?.classList.add("hidden");
+        CustomerProfileLink?.classList.add("hidden");
+        logoutBtn?.classList.add("hidden");
+        loginBtn?.classList.remove("hidden");
+        console.log("User is not logged in.");
+        return;
+      }
+
     const userRef = doc(db, "users", user.uid);
     const userSnap = await getDoc(userRef);
 
     if (userSnap.exists()) {
       const data = userSnap.data();
-      // ✅ User is logged in
+
         if(data.role === "customer"){
           CustomerdashboardLink?.classList.remove("hidden");
           CheckOutLink?.classList.remove("hidden");
+          CustomerProfileLink?.classList.remove("hidden");
         } else if(data.role === "vendor"){
           VendordashboardLink?.classList.remove("hidden");
         } else if(data.role === "admin"){
           AdmindashboardLink?.classList.remove("hidden");
         }
+
       logoutBtn?.classList.remove("hidden");
       loginBtn?.classList.add("hidden");
-
-    } }
-    else {
-      // ❌ User is NOT logged in
-      CustomerdashboardLink?.classList.add("hidden");
-      VendordashboardLink?.classList.add("hidden");
-      AdmindashboardLink?.classList.add("hidden");
-      logoutBtn?.classList.add("hidden");
-      loginBtn?.classList.remove("hidden");
-      console.log("User is not logged in.");
     }
   });
 }
+
 export async function logout() {
   try {
     await signOut(auth);
 
     console.log("User signed out successfully");
 
-    // 🔥 ALWAYS redirect after logout
     window.location.href = "index.html";
 
   } catch (error) {

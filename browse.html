@@ -1,158 +1,243 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>CampusBites - Browse</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+  <title>CampusBites - Browse</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
-    <nav class="fixed bg-white w-full z-50 glass-effect border-b border-gray-200">
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
-            <header class="flex items-center gap-2 cursor-pointer">
-                <i data-lucide="utensils" class="w-8 h-8 text-indigo-600"></i>
-                <span class="text-xl font-bold text-gray-900">CampusBites</span>
-            </header>
-            <section class="md:flex space-x-8">
-                <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
-                <a href="browse.html" class="text-gray-700 hover:text-indigo-600">Browse</a>
-                <a id="AdmindashboardLink" href="admin-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
-                <a id="CustomerdashboardLink" href="customer-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
-                <a id="VendordashboardLink" href="vendor-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
-                <a id="CheckOutLink" href="checkOut.html" class="text-gray-700 hover:text-indigo-600 hidden">Orders</a>
+
+<body class="bg-gray-100">
+
+  <nav class="fixed bg-white w-full z-50 border-b border-gray-200 shadow-sm">
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
+
+      <header class="flex items-center gap-2 cursor-pointer">
+        <i data-lucide="utensils" class="w-8 h-8 text-indigo-600"></i>
+        <span class="text-xl font-bold text-gray-900">CampusBites</span>
+      </header>
+
+      <section class="md:flex space-x-8">
+        <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
+        <a href="browse.html" class="text-indigo-600 font-semibold">Browse</a>
+
+        <a id="CustomerdashboardLink" href="customer-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">
+          Dashboard
+        </a>
+
+        <a id="VendordashboardLink" href="vendor-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">
+          Dashboard
+        </a>
+
+        <a id="AdmindashboardLink" href="admin-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">
+          Dashboard
+        </a>
+
+        <a id="CustomerProfileLink" href="customer-profile.html" class="text-gray-700 hover:text-indigo-600 hidden">
+          My Account
+        </a>
+
+        <a id="CheckOutLink" href="checkOut.html" class="text-gray-700 hover:text-indigo-600 hidden">
+          Orders
+        </a>
+      </section>
+
+      <section class="flex items-center gap-4">
+        <a
+          href="login.html"
+          id="loginLink"
+          class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+        >
+          Sign in
+        </a>
+
+        <button
+          id="logoutBtn"
+          class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition hidden"
+        >
+          Logout
+        </button>
+      </section>
+
+    </section>
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
+
+    <section class="flex flex-col md:flex-row gap-6">
+
+      <aside class="w-full md:w-64 space-y-6">
+
+        <section class="bg-white p-4 rounded-xl shadow-sm">
+
+          <h3 class="font-semibold mb-4 flex items-center gap-2">
+            <i data-lucide="filter" class="w-4 h-4"></i>
+            Filters
+          </h3>
+
+          <section class="mb-4">
+            <label class="text-sm font-medium text-gray-700 mb-2 block">
+              Vendor
+            </label>
+
+            <select
+              id="Vendors"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            >
+              <option value="AllVendors" selected>All Vendors</option>
+              <option value="RayQuan Stop">RayQuan Stop</option>
+              <option value="BobThePlug">BobThePlug</option>
+              <option value="Vendor">Vendor</option>
+            </select>
+          </section>
+
+          <section class="mb-4">
+            <label class="text-sm font-medium text-gray-700 mb-2 block">
+              Category
+            </label>
+
+            <select
+              id="Categories"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            >
+              <option value="AllCategories" selected>All Categories</option>
+              <option value="Light Meals">Light Meals</option>
+              <option value="Main Course">Main Course</option>
+              <option value="Beverages">Beverages</option>
+              <option value="Healthy">Healthy</option>
+              <option value="Desserts">Desserts</option>
+            </select>
+          </section>
+
+          <section class="mb-4">
+            <label class="text-sm font-medium text-gray-700 mb-2 block">
+              Dietary
+            </label>
+
+            <section class="space-y-2">
+              <label class="flex items-center gap-2 text-sm">
+                <input id="Vegan" type="checkbox" class="rounded text-green-600">
+                Vegan
+              </label>
+
+              <label class="flex items-center gap-2 text-sm">
+                <input id="Vegetarian" type="checkbox" class="rounded text-green-600">
+                Vegetarian
+              </label>
+
+              <label class="flex items-center gap-2 text-sm">
+                <input id="Gluten-Free" type="checkbox" class="rounded text-green-600">
+                Gluten-Free
+              </label>
+
+              <label class="flex items-center gap-2 text-sm">
+                <input id="Halal" type="checkbox" class="rounded text-green-600">
+                Halal
+              </label>
             </section>
-            <section class="flex items-center gap-4">
-                <a href="login.html" id="loginLink"class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
-                    Sign in
-                </a>
-            </section>
+          </section>
+
+          <section>
+            <label class="text-sm font-medium text-gray-700 mb-2 block">
+              Max Price: R200
+            </label>
+
+            <input
+              type="range"
+              min="0"
+              max="200"
+              value="200"
+              class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            >
+          </section>
+
+          <section class="bg-indigo-50 p-4 rounded-xl mt-4">
+            <h4 class="text-sm font-semibold text-indigo-900 mb-2">
+              Allergen Information
+            </h4>
+
+            <p class="text-xs text-indigo-700">
+              All menu items comply with SA Regulation R.146 of 2010 regarding allergen declaration.
+            </p>
+          </section>
 
         </section>
-    </nav>
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
-        <section class="flex flex-col md:flex-row gap-6">
-            <!--Sidebar Filters-->
-            <aside class="w-full md:w-64 space-y-6">
-                <section class="bg-white p-4 rounded-xl shadow-sm">
-                    <h3 id = "test" class="font-semibold mb-4 flex items-center gap-2">
-                        <i data-lucide="filter" class="w-4 h-4"></i> Filters
-                    </h3>
-                    <section class="mb-4">
-                        <label class="text-sm font-medium text-gray-700 mb-2 block">Vendor</label>
-                        <select id = "Vendors" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                            <option value = "AllVendors" selected="selected">All Vendors</option>
-                            <option value = "RayQuan Stop">RayQuan Stop</option>
-                            <option value = "BobThePlug">BobThePlug</option>
-                            <option value = "Vendor">Vendor</option>
-                        </select>
-                        
-                    </section>
-                    
-                    <!--Category Filter-->
-                    <section class="mb-4">
-                        <label class="text-sm font-medium text-gray-700 mb-2 block">Category</label>
-                        <select id = "Categories" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                            <option value = "AllCategories" selected="selected">All Categories</option>
-                            <option value = "Light Meals">Light Meals</option>
-                            <option value = "Main Course">Main Course</option>
-                            <option value = "Beverages">Beverages</option>
-                            <option value = "Healthy">Healthy</option>
-                            <option value = "Desserts">Desserts</option>
-                        </select>
-                    </section>
-                    <!--Dietary Filter-->
-                    <section class="mb-4">
-                        <label class="text-sm font-medium text-gray-700 mb-2 block">Dietary</label>
-                        <section class="space-y-2">
-                            <label class="flex items-center gap-2 text-sm">
-                                <input id = "Vegan" type="checkbox" class="rounded text-green-600">Vegan
-                            </label>                            
-                            <label class="flex items-center gap-2 text-sm">
-                                <input id = "Vegetarian" type="checkbox" class="rounded text-green-600">Vegetarian
-                            </label>
-                            <label class="flex items-center gap-2 text-sm">
-                                <input id = "Gluten-Free" type="checkbox" class="rounded text-green-600">Gluten-Free
-                            </label>                            
-                            <label class="flex items-center gap-2 text-sm">
-                                <input id = "Halal" type="checkbox" class="rounded text-green-600">Halal
-                            </label>
-                        </section>
-                    </section>
-                    <!-- Price Filter-->
-                     <section>
-                        <label class="text-sm font-medium text-gray-700 mb-2 block">
-                            Max Price: R200
-                        </label>
-                        <input type="range" min="0" max="200" value="200" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-                     </section>
-                     <!--Info-->
-                     <section class="bg-indigo-50 p-4 rounded-xl">
-                        <h4 class="text-sm font-semibold text-indigo-900 mb-2">Allergen Information</h4>
-                        <p class="text-xs text-indigo-700">
-                             All menu items comply with SA Regulation R.146 of 2010 regarding allergen declaration.
-                        </p>
-                    </section>
-                    
-                </section>
-                <section class = "my-0">
-                    <div class="flex flex-row">
-                        <i data-lucide="ShoppingCart" class="w-8 h-8 mx-0 text-indigo-600"></i> 
-                        <button id = "cart" class="bg-indigo-600 text-white mx-5 px-4 py-2 rounded-lg hover:bg-indigo-700 transition"> View Cart</button>
-                        
-                    </div>
-                    </section>
-            </aside>
-            <!-- Menu Items -->
-             <section class="flex-1">
-                <header class="mb-6 flex justify-between items-center">
-                    <h2 class="text-2xl font-bold">Browse Menu</h2>
-                    <p id = "numItems" class="text-sm text-gray-500">3 items found</p>
-                </header>
-                <section id = "menu" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"> 
-                    
-                </section>
 
-             </section>
+        <section>
+          <section class="flex items-center gap-3">
+            <i data-lucide="shopping-cart" class="w-8 h-8 text-indigo-600"></i>
+
+            <button
+              id="cart"
+              class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+            >
+              View Cart
+            </button>
+          </section>
         </section>
-        <section id="item-edit-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
 
-    <article class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto slide-in p-6">
-        <div class="flex justify-center"><h3 class="text-xl font-bold mb-4" id="modal-title">Items in Cart</h3></div>
-        
-        <section id = "cartList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"> </section>
+      </aside>
+
+      <section class="flex-1">
+
+        <header class="mb-6 flex justify-between items-center">
+          <h2 class="text-2xl font-bold">Browse Menu</h2>
+          <p id="numItems" class="text-sm text-gray-500">3 items found</p>
+        </header>
+
+        <section id="menu" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></section>
+
+      </section>
+
+    </section>
+
+    <section
+      id="item-edit-modal"
+      class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4"
+    >
+      <article class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+
+        <header class="flex justify-center">
+          <h3 class="text-xl font-bold mb-4">Items in Cart</h3>
+        </header>
+
+        <section id="cartList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></section>
+
         <section class="flex gap-3 mt-6">
-                <button type="button"
-                    onclick="document.getElementById('item-edit-modal').classList.add('hidden')"
-                    class="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50">
-                    Close
-                </button>
-                <button id = "checkOut" class="bg-indigo-600 text-white mx-5 px-4 py-2 rounded-lg hover:bg-indigo-700 transition"> Check Out</button>
-            </section>
-            <p id = "numItemsCart" class="text-sm text-gray-500">0 items in cart</p>
-    </article>
-</section>
-<section id="cartWarning" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+          <button
+            type="button"
+            onclick="document.getElementById('item-edit-modal').classList.add('hidden')"
+            class="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50"
+          >
+            Close
+          </button>
 
-    <article class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto slide-in p-6">
-        <div class="flex justify-center"><h3 class="text-xl font-bold mb-4" id="modal-title">No items in cart</h3></div>
-        <section class="flex gap-3 mt-6">
-                <button type="button"
-                    onclick="document.getElementById('cartWarning').classList.add('hidden')"
-                    class="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50">
-                    Dismiss
-                </button>
-            </section>
-    </article>
-</section>
-    </main>
-</body>
-<script type="module">
-  import { initAuthUI, logout } from "./scripts/auth.js";
+          <button
+            id="checkOut"
+            class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+          >
+            Check Out
+          </button>
+        </section>
 
-  initAuthUI();
-lucide.createIcons();
-  // Attach logout button
-  document.getElementById("logoutBtn")?.addEventListener("click", logout);
-</script>
-<script type="module" src="./scripts/browse.js"></script>
+        <p id="numItemsCart" class="text-sm text-gray-500 mt-3">
+          0 items in cart
+        </p>
+
+      </article>
+    </section>
+
+  </main>
+
+  <script type="module">
+    import { initAuthUI, logout } from "./scripts/auth.js";
+
+    initAuthUI();
+    lucide.createIcons();
+
+    document.getElementById("logoutBtn")?.addEventListener("click", logout);
+  </script>
+
+  <script type="module" src="./scripts/browse.js"></script>
+
 </body>
 </html>

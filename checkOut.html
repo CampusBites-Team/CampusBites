@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CampusBites - Customer Dashboard</title>
+  <title>CampusBites - Orders</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script type="module" src="scripts/checkOut.js"></script>
 </head>
+
 <body class="min-h-screen bg-gray-100">
 
   <nav class="bg-white border-b border-gray-200 shadow-sm">
@@ -16,75 +17,115 @@
         <i data-lucide="utensils" class="w-7 h-7 text-indigo-600"></i>
         <span class="text-xl font-bold text-gray-900">CampusBites</span>
       </header>
-  <section class="md:flex space-x-8">
-                <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
-                <a href="browse.html" class="text-gray-700 hover:text-indigo-600">Browse</a>
-                <a id="CustomerdashboardLink" href="customer-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
-                <a id="VendordashboardLink" href="vendor-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
-                <a id="AdmindashboardLink" href="admin-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
-            </section>
+
+      <section class="md:flex space-x-8">
+        <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
+        <a href="browse.html" class="text-gray-700 hover:text-indigo-600">Browse</a>
+
+        <a id="CustomerdashboardLink" href="customer-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">
+          Dashboard
+        </a>
+
+        <a id="CustomerProfileLink" href="customer-profile.html" class="text-gray-700 hover:text-indigo-600 hidden">
+          My Account
+        </a>
+
+        <a id="VendordashboardLink" href="vendor-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">
+          Dashboard
+        </a>
+
+        <a id="AdmindashboardLink" href="admin-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">
+          Dashboard
+        </a>
+      </section>
+
       <section class="flex items-center gap-6">
-      <a href="login.html" id="logoutBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition hidden">Log Out</a>
+        <a
+          href="login.html"
+          id="logoutBtn"
+          class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition hidden"
+        >
+          Log Out
+        </a>
       </section>
     </section>
   </nav>
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <header class="mb-10">
-  <section class="flex items-center justify-between">
-    <h1 class="text-3xl md:text-4xl font-bold text-gray-900">
-      Orders
-    </h1>
-  </section>
 
-  <p class="mt-2 text-gray-600">
-    Keep track of all of your placed orders
-  </p>
-</header>
+    <header class="mb-10">
+      <section class="flex items-center justify-between">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900">
+          Orders
+        </h1>
+      </section>
+
+      <p class="mt-2 text-gray-600">
+        Keep track of all of your placed orders.
+      </p>
+    </header>
 
     <section class="bg-white rounded-xl shadow-sm overflow-hidden">
-        
-        <table class="w-full">
-            
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Details</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                </tr>
-            </thead>
+      <table class="w-full">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              Order
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              Details
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              Status
+            </th>
+          </tr>
+        </thead>
 
-            <tbody id="order-table-body" class="divide-y divide-gray-200">
-                
-            </tbody>
-
-        </table>
-
+        <tbody id="order-table-body" class="divide-y divide-gray-200"></tbody>
+      </table>
     </section>
-    <section id="item-details-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-    <article class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto slide-in p-6">
-        <div class="flex justify-center"><h3 class="text-xl font-bold mb-4" id="modal-title">Order Details</h3></div>
-        
-        <section id = "itemList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"> </section>
+
+    <section
+      id="item-details-modal"
+      class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4"
+    >
+      <article class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto slide-in p-6">
+
+        <header class="flex justify-center">
+          <h3 class="text-xl font-bold mb-4" id="modal-title">
+            Order Details
+          </h3>
+        </header>
+
+        <section id="itemList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></section>
+
         <section class="flex gap-3 mt-6">
-                <button type="button"
-                    onclick="document.getElementById('item-details-modal').classList.add('hidden')"
-                    class="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50">
-                    Close
-                </button>
-            </section>
-            <p id = "numItemsOrder" class="text-sm text-gray-500">0 items in order</p>
-    </article>
-    <section>
+          <button
+            type="button"
+            onclick="document.getElementById('item-details-modal').classList.add('hidden')"
+            class="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50"
+          >
+            Close
+          </button>
+        </section>
+
+        <p id="numItemsOrder" class="text-sm text-gray-500">
+          0 items in order
+        </p>
+
+      </article>
+    </section>
+
   </main>
 
-<script type="module">
-  import { initAuthUI, logout } from "./scripts/auth.js";
+  <script type="module">
+    import { initAuthUI, logout } from "./scripts/auth.js";
 
-  initAuthUI();
-  lucide.createIcons();
-  // Attach logout button
-  document.getElementById("logoutBtn")?.addEventListener("click", logout);
-</script>
+    initAuthUI();
+    lucide.createIcons();
+
+    document.getElementById("logoutBtn")?.addEventListener("click", logout);
+  </script>
+
 </body>
 </html>
