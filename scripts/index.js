@@ -68,7 +68,10 @@ function renderVendors() {
     visibleVendors.push(...vendors.slice(0, 3 - visibleVendors.length));
   }
 
-  featuredVendors.innerHTML = visibleVendors.map(vendor => `
+  featuredVendors.innerHTML = visibleVendors.map(vendor => {
+    const rating = getVendorRating(vendor);
+
+    return `
     <article 
         class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl hover:scale-105 transform duration-300 transition cursor-pointer vendor-slide"
         onclick="goToVendor('${vendor.id}')"
@@ -87,9 +90,18 @@ function renderVendors() {
         <p class="text-gray-600 text-sm mb-2">
           ${vendor.category || assignCategory(vendor.shopName || vendor.fullName || vendor.email)} • ${vendor.location || "Campus"}
         </p>
+
+        <p class="flex items-center gap-1 mb-2">
+          ${renderStars(rating)}
+          <span class="text-sm text-gray-600 ml-1">${rating}/5</span>
+        </p>
       </figure>
     </article>
-  `).join("");
+    `;
+}).join("");
+
+lucide.createIcons();
+
 }
 
 window.goToVendor = function (vendorId) {
@@ -124,6 +136,34 @@ async function loadFeaturedVendors() {
       </p>
     `;
   }
+}
+function renderStars(rating) {
+  const rounded = Math.round(rating);
+  let stars = "";
+
+  for (let i = 1; i <= 5; i++) {
+    stars += `
+      <i data-lucide="star"
+         class="w-4 h-4 inline ${
+           i <= rounded
+             ? "fill-yellow-400 text-yellow-400"
+             : "text-gray-300"
+         }">
+      </i>
+    `;
+  }
+
+  return stars;
+}
+function getVendorRating(vendor) {
+  if (vendor.rating) return Number(vendor.rating).toFixed(1);
+
+  const name = vendor.shopName || vendor.fullName || vendor.email || "vendor";
+  const total = name
+    .split("")
+    .reduce((sum, char) => sum + char.charCodeAt(0), 0);
+
+  return (3.8 + (total % 12) / 10).toFixed(1);
 }
 
 loadFeaturedVendors();
