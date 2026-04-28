@@ -79,7 +79,7 @@ function renderVendors() {
       <img 
         src="${vendor.image || vendor.logo || "assets/default_vendor.jpg"}" 
         alt="${vendor.shopName || vendor.fullName || "Vendor"}"
-        class="w-full h-48 object-contain bg-white p-4"
+        class="w-full h-52 object-cover object-center"
       >
 
       <figure class="p-6">
