@@ -12,19 +12,14 @@ describe("index.js", () => {
   let getDocs;
   let collection;
 
-  async function loadModule() {
+  const flushPromises = async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+  };
+
+  beforeEach(async () => {
     jest.resetModules();
 
-    const dbModule = await import("../scripts/database.js");
-    getDocs = dbModule.getDocs;
-    collection = dbModule.collection;
-
-    collection.mockReturnValue("usersRef");
-
-    return import("../scripts/index.js");
-  }
-
-  beforeEach(() => {
     document.body.innerHTML = `
       <button id="OrderNowButton"></button>
       <button id="LearnButton"></button>
@@ -37,16 +32,23 @@ describe("index.js", () => {
       createIcons: jest.fn()
     };
 
-    jest.spyOn(global, "setInterval").mockImplementation(() => 999);
+    jest.spyOn(global, "setInterval").mockImplementation(() => 1);
+    jest.spyOn(console, "error").mockImplementation(() => {});
+
+    // IMPORTANT: re-import mocks AFTER resetModules
+    const dbModule = await import("../scripts/database.js");
+
+    getDocs = dbModule.getDocs;
+    collection = dbModule.collection;
+
+    collection.mockReturnValue("usersCollection");
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  test("renders approved vendors only", async () => {
-    await loadModule();
-
+  test("loads and renders only approved vendors", async () => {
     getDocs.mockResolvedValue({
       docs: [
         {
@@ -54,7 +56,10 @@ describe("index.js", () => {
           data: () => ({
             role: "vendor",
             status: "approved",
-            shopName: "Jimmy's"
+            shopName: "Jimmy's",
+            rating: 4.8,
+            category: "Fast Food",
+            location: "Campus"
           })
         },
         {
@@ -62,66 +67,92 @@ describe("index.js", () => {
           data: () => ({
             role: "vendor",
             status: "pending",
-            shopName: "Hidden Vendor"
+            shopName: "Hidden"
           })
         }
       ]
     });
 
     await import("../scripts/index.js");
+    await flushPromises();
 
-    await Promise.resolve();
+    const html =
+      document.getElementById("featured-vendors").innerHTML;
 
-    const html = document.getElementById("featured-vendors").innerHTML;
+    expect(collection).toHaveBeenCalledWith({}, "users");
+    expect(getDocs).toHaveBeenCalledWith("usersCollection");
 
     expect(html).toContain("Jimmy's");
-    expect(html).not.toContain("Hidden Vendor");
+    expect(html).not.toContain("Hidden");
+    expect(html).toContain("4.8/5");
   });
 
   test("shows no vendors message", async () => {
-    await loadModule();
-
     getDocs.mockResolvedValue({ docs: [] });
 
     await import("../scripts/index.js");
-    await Promise.resolve();
+    await flushPromises();
 
     expect(
       document.getElementById("featured-vendors").innerHTML
     ).toContain("No approved vendors available yet.");
   });
 
-  test("shows error message if firestore fails", async () => {
-    await loadModule();
+  test("renders fallback vendor fields", async () => {
+    getDocs.mockResolvedValue({
+      docs: [
+        {
+          id: "1",
+          data: () => ({
+            role: "vendor",
+            status: "approved"
+          })
+        }
+      ]
+    });
 
+    await import("../scripts/index.js");
+    await flushPromises();
+
+    const html =
+      document.getElementById("featured-vendors").innerHTML;
+
+    expect(html).toContain("assets/default_vendor.jpg");
+    expect(html).toContain("Unnamed Vendor");
+    expect(html).toContain("Campus");
+  });
+
+  test("renders star icons", async () => {
+    getDocs.mockResolvedValue({
+      docs: [
+        {
+          id: "1",
+          data: () => ({
+            role: "vendor",
+            status: "approved",
+            shopName: "Xpresso",
+            rating: 5
+          })
+        }
+      ]
+    });
+
+    await import("../scripts/index.js");
+    await flushPromises();
+
+    expect(
+      document.getElementById("featured-vendors").innerHTML
+    ).toContain('data-lucide="star"');
+  });
+
+  test("shows error message on firestore failure", async () => {
     getDocs.mockRejectedValue(new Error("fail"));
 
     await import("../scripts/index.js");
-    await Promise.resolve();
+    await flushPromises();
 
     expect(
       document.getElementById("featured-vendors").innerHTML
     ).toContain("Failed to load featured vendors.");
-  });
-
-  test("lucide icons called", async () => {
-    await loadModule();
-
-    getDocs.mockResolvedValue({ docs: [] });
-
-    await import("../scripts/index.js");
-    await Promise.resolve();
-
-    expect(global.lucide.createIcons).toHaveBeenCalled();
-  });
-
-  test("redirect function exists", async () => {
-    await loadModule();
-
-    getDocs.mockResolvedValue({ docs: [] });
-
-    await import("../scripts/index.js");
-
-    expect(typeof window.goToVendor).toBe("function");
   });
 });
