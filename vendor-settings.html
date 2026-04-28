@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CampusBites - Store Settings</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="min-h-screen bg-gray-100">
+
+  <nav class="bg-white border-b border-gray-200 shadow-sm">
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+      <header class="flex items-center gap-2">
+        <i data-lucide="utensils" class="w-7 h-7 text-indigo-600"></i>
+        <span class="text-xl font-bold text-gray-900">CampusBites</span>
+      </header>
+
+      <section class="flex items-center gap-6 mx-auto">
+        <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
+        <a href="vendor-dashboard.html" class="text-gray-700 hover:text-indigo-600">Dashboard</a>
+        <a href="browse.html" class="text-gray-700 hover:text-indigo-600">Browse</a>
+        <a href="menu-management.html" class="text-gray-700 hover:text-indigo-600">Menu</a>
+        <a href="vendor-settings.html" class="text-indigo-600 font-semibold">Store Settings</a>
+      </section>
+
+      <a href="login.html" id="logoutBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition hidden">
+        Log Out
+      </a>
+    </section>
+  </nav>
+
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <header class="mb-10">
+      <h1 class="text-3xl md:text-4xl font-bold text-gray-900">
+        Store Settings
+      </h1>
+      <p class="mt-2 text-gray-600">
+        Update the details customers see on your public vendor profile.
+      </p>
+    </header>
+
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <article class="bg-white rounded-2xl shadow-md p-6">
+        <header class="mb-6">
+          <h2 class="text-2xl font-bold text-gray-900">
+            Vendor Details
+          </h2>
+          <p class="text-gray-600">
+            Update your shop name and collection location.
+          </p>
+        </header>
+
+        <form id="vendorDetailsForm" class="space-y-5">
+
+          <section>
+            <label for="shopName" class="block text-sm font-medium text-gray-700 mb-1">
+              Shop Name
+            </label>
+            <input
+              type="text"
+              id="shopName"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              placeholder="Enter your shop name"
+            />
+          </section>
+
+          <section>
+            <label for="location" class="block text-sm font-medium text-gray-700 mb-1">
+              Location
+            </label>
+            <input
+              type="text"
+              id="location"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              placeholder="Example: Matrix Ground Floor"
+            />
+          </section>
+
+          <section class="bg-gray-50 rounded-xl p-4">
+            <h3 class="font-semibold text-gray-900 mb-1">
+              Current Saved Details
+            </h3>
+            <p id="savedVendorDetails" class="text-gray-600">
+              No vendor details set yet.
+            </p>
+          </section>
+
+          <footer class="flex justify-end">
+            <button
+              type="submit"
+              class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition"
+            >
+              Save Details
+            </button>
+          </footer>
+
+        </form>
+      </article>
+
+      <article class="bg-white rounded-2xl shadow-md p-6">
+        <header class="mb-6">
+          <h2 class="text-2xl font-bold text-gray-900">
+            Operating Hours
+          </h2>
+          <p class="text-gray-600">
+            Set when customers should see your store as open or closed.
+          </p>
+        </header>
+
+        <form id="operatingHoursForm" class="space-y-5">
+
+          <section>
+            <label for="openingTime" class="block text-sm font-medium text-gray-700 mb-1">
+              Opening Time
+            </label>
+            <input
+              type="time"
+              id="openingTime"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            />
+          </section>
+
+          <section>
+            <label for="closingTime" class="block text-sm font-medium text-gray-700 mb-1">
+              Closing Time
+            </label>
+            <input
+              type="time"
+              id="closingTime"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            />
+          </section>
+
+          <section class="bg-gray-50 rounded-xl p-4">
+            <h3 class="font-semibold text-gray-900 mb-1">
+              Current Saved Hours
+            </h3>
+            <p id="savedOperatingHours" class="text-gray-600">
+              No operating hours set yet.
+            </p>
+          </section>
+
+          <footer class="flex justify-end">
+            <button
+              type="submit"
+              class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition"
+            >
+              Save Hours
+            </button>
+          </footer>
+
+        </form>
+      </article>
+
+    </section>
+
+  </main>
+
+  <script type="module">
+    import { initAuthUI, logout } from "./scripts/auth.js";
+
+    initAuthUI();
+    lucide.createIcons();
+    document.getElementById("logoutBtn")?.addEventListener("click", logout);
+  </script>
+
+  <script type="module" src="./scripts/vendor-settings.js"></script>
+
+</body>
+</html>

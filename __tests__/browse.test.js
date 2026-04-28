@@ -82,8 +82,8 @@ const makeSnapshot = (items) => ({
 
 const mockBrowseQueries = (db, items = sampleItems, vendors = approvedVendors) => {
   db.getDocs
-    .mockResolvedValueOnce(makeSnapshot(items))   // menu_items
-    .mockResolvedValueOnce(makeSnapshot(vendors)); // users
+    .mockResolvedValueOnce(makeSnapshot(items))
+    .mockResolvedValueOnce(makeSnapshot(vendors));
 };
 
 const flush = async () => {
@@ -125,11 +125,11 @@ describe("browse.js", () => {
       <button id="cart"></button>
       <p id="numItems"></p>
       <p id="numItemsCart"></p>
-      <div id="cartWarning" class="hidden"></div>
+      <section id="cartWarning" class="hidden"></section>
 
       <section id="menu"></section>
 
-      <div id="item-edit-modal" class="hidden"></div>
+      <section id="item-edit-modal" class="hidden"></section>
       <h3 id="modal-title"></h3>
       <section id="cartList"></section>
 
@@ -154,6 +154,7 @@ describe("browse.js", () => {
     await mod.loadBrowseItems();
 
     const html = document.getElementById("menu").innerHTML;
+
     expect(html).toContain("Burger");
     expect(html).toContain("Pizza");
     expect(html).toContain("Wrap");
@@ -342,8 +343,36 @@ describe("browse.js", () => {
     await mod.loadBrowseItems();
 
     const html = document.getElementById("menu").innerHTML;
+
     expect(html).toContain("Burger");
     expect(html).toContain("Wrap");
     expect(html).not.toContain("Pizza");
+  });
+
+  test("filters items by vendor selection", async () => {
+    mockBrowseQueries(db);
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb(null));
+
+    const mod = await import("../scripts/browse.js");
+    await mod.loadBrowseItems();
+
+    document.getElementById("Vendors").innerHTML = `
+      <option value="AllVendors">AllVendors</option>
+      <option value="Shop1">Shop1</option>
+    `;
+
+    document.getElementById("Vendors").value = "Shop1";
+
+    mockBrowseQueries(db);
+
+    document.getElementById("Vendors").dispatchEvent(new Event("change"));
+
+    await flush();
+
+    const html = document.getElementById("menu").innerHTML;
+
+    expect(html).toContain("Burger");
+    expect(html).not.toContain("Pizza");
+    expect(html).not.toContain("Wrap");
   });
 });
