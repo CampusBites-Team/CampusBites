@@ -271,10 +271,9 @@ document.getElementById("Categories")?.addEventListener("change", () =>{
     loadMenuItems();
 });
 document.getElementById("cart")?.addEventListener("click", () => {
-    document.getElementById('modal-title').textContent = 'Items in Cart';
     document.getElementById('item-edit-modal').classList.remove('hidden');
     updateCart();
-}); 
+});
 document.getElementById("checkOut").addEventListener("click", async () => {
   if (!loggedIn || !currentUser) {
     alert("You must be logged in to proceed to checkout");
