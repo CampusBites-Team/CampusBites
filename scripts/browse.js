@@ -18,93 +18,164 @@ const halal = document.getElementById("Halal");
 const gluten = document.getElementById("Gluten-Free");
 const menuList = document.getElementById("menu");
 
-let cart = [];
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
 let restrictions = [false, false, false, false];
 let vendor = "AllVendors";
 let category = "AllCategories";
 let done = false;
+function renderStars(rating) {
+  const rounded = Math.round(rating);
+  let stars = "";
+
+  for (let i = 1; i <= 5; i++) {
+    stars += `
+      <i data-lucide="star"
+         class="w-4 h-4 inline ${
+           i <= rounded
+             ? "fill-yellow-400 text-yellow-400"
+             : "text-gray-300"
+         }">
+      </i>
+    `;
+  }
+
+  return stars;
+}
+function getVendorRating(vendor) {
+  if (vendor.rating) return Number(vendor.rating).toFixed(1);
+
+  const name = vendor.shopName || vendor.fullName || vendor.email || "vendor";
+  const total = name
+    .split("")
+    .reduce((sum, char) => sum + char.charCodeAt(0), 0);
+
+  return (3.8 + (total % 12) / 10).toFixed(1);
+}
+function saveCart() {
+  localStorage.setItem("cart", JSON.stringify(cart));
+}
+
+function updateCartCount() {
+  const cartCount = document.getElementById("cartCount");
+
+  if (cartCount) {
+    cartCount.textContent = cart.length;
+  }
+}
 
 function addToCart(item) {
   cart.push(item);
+  saveCart();
+  updateCart();
+  updateCartCount();
 }
 
 function applyFilter(item) {
-  if (!item.available) {
-    return false;
-  }
+  if (!item.available) return false;
 
   if (restrictions[0] && !(item.dietary || []).includes("Vegan")) return false;
   if (restrictions[1] && !(item.dietary || []).includes("Vegetarian")) return false;
   if (restrictions[3] && !(item.dietary || []).includes("Halal")) return false;
   if (restrictions[2] && (item.allergens || []).includes("Gluten")) return false;
 
-  if (category != "AllCategories" && item.category != category) {
-    return false;
-  }
-
-  if (vendor != "AllVendors" && item.vendorName != vendor) {
-    return false;
-  }
+  if (category !== "AllCategories" && item.category !== category) return false;
+  if (vendor !== "AllVendors" && item.vendorName !== vendor) return false;
 
   return true;
 }
 
 function updateCart() {
   const container = document.getElementById("cartList");
-  let html = ``;
+  const numItemsCart = document.getElementById("numItemsCart");
+  const cartWarning = document.getElementById("cartWarning");
 
-  for (let i = 0; i < cart.length; i++) {
-    html += `<article class="bg-white p-4 rounded-xl shadow-sm">
+  if (!container) return;
 
-      <img src="${cart[i].image || "assets/default.jpg"}"
-           class="w-full h-48 object-cover rounded-lg mb-4">
+  cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  if (cartWarning) {
+    cartWarning.classList.add("hidden");
+  }
+
+  if (!cart.length) {
+    container.innerHTML = `
+      <p class="text-center text-gray-500 col-span-3">
+        Your cart is empty.
+      </p>
+    `;
+
+    if (numItemsCart) {
+      numItemsCart.textContent = "0 items in cart";
+    }
+
+    updateCartCount();
+    return;
+  }
+
+  container.innerHTML = cart.map((item, index) => `
+    <article class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+
+      <img 
+        src="${item.image || item.imageUrl || "assets/default_vendor.jpg"}"
+        alt="${item.name || "Menu item"}"
+        class="w-full h-48 object-cover rounded-lg mb-4"
+      >
 
       <section class="flex justify-between items-start mb-2">
         <section>
-          <h3 class="text-lg font-semibold">${cart[i].name}</h3>
-          <p class="text-sm text-gray-500">${cart[i].vendorName || "Vendor"}</p>
+          <h3 class="text-lg font-semibold">${item.name || "Unnamed Item"}</h3>
+          <p class="text-sm text-gray-500">${item.vendorName || "Vendor"}</p>
         </section>
-        <span class="font-bold text-indigo-600">R${cart[i].price}</span>
+
+        <span class="font-bold text-indigo-600">
+          R${Number(item.price || 0).toFixed(2)}
+        </span>
       </section>
 
       <p class="text-sm text-gray-600 mb-3 line-clamp-2">
-        ${cart[i].description}
+        ${item.description || "No description available."}
       </p>
 
-      ${cart[i].dietary?.length ? `
+      ${(item.dietary || []).length ? `
         <section class="flex flex-wrap gap-1 mb-2">
-          ${cart[i].dietary.map(tag => `
-            <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">${tag}</span>
+          ${(item.dietary || []).map(tag => `
+            <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+              ${tag}
+            </span>
           `).join("")}
         </section>
       ` : ""}
 
-      ${cart[i].allergens?.length ? `
+      ${(item.allergens || []).length ? `
         <section class="flex flex-wrap gap-1 mb-3">
           <span class="text-xs text-orange-500 font-medium mr-1">⚠ Contains:</span>
-          ${cart[i].allergens.map(a => `
-            <span class="text-xs bg-orange-50 text-orange-600 border border-orange-200 px-2 py-0.5 rounded-full">${a}</span>
+          ${(item.allergens || []).map(a => `
+            <span class="text-xs bg-orange-50 text-orange-600 border border-orange-200 px-2 py-0.5 rounded-full">
+              ${a}
+            </span>
           `).join("")}
         </section>
-      ` : "<section class=\"mb-3\"></section>"}
+      ` : "<section class='mb-3'></section>"}
 
       <section class="flex gap-2">
-        <button id="${i}" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700">
-          <i data-lucide="minus" class="w-4 h-4"></i> Remove
+        <button 
+          data-cart-index="${index}" 
+          class="remove-cart-btn flex-1 bg-red-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-red-700"
+        >
+          <i data-lucide="minus" class="w-4 h-4"></i>
+          Remove
         </button>
       </section>
 
-    </article>`;
+    </article>
+  `).join("");
+
+  if (numItemsCart) {
+    numItemsCart.textContent =
+      cart.length === 1 ? "1 item in cart" : `${cart.length} items in cart`;
   }
 
-  container.innerHTML = html;
-
-  if (cart.length == 1) {
-    document.getElementById("numItemsCart").textContent = `${cart.length} item in cart`;
-  } else {
-    document.getElementById("numItemsCart").textContent = `${cart.length} items in cart`;
-  }
-
+  updateCartCount();
   globalThis.lucide?.createIcons?.();
 }
 
@@ -122,7 +193,7 @@ function populateVendorFilter(items) {
   )];
 
   vendorSelect.innerHTML = `
-    <option value="AllVendors">AllVendors</option>
+    <option value="AllVendors">All Vendors</option>
     ${vendorNames.map(name => `<option value="${name}">${name}</option>`).join("")}
   `;
 
@@ -145,60 +216,80 @@ const loadMenuItems = async () => {
     ...doc.data()
   }));
 
-  const approvedVendorIds = new Set(
-    usersSnapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
-      .filter(user => user.role === "vendor" && user.status === "approved")
-      .map(vendor => vendor.id)
-  );
+  const approvedVendors = usersSnapshot.docs
+    .map(doc => ({ id: doc.id, ...doc.data() }))
+    .filter(user => user.role === "vendor" && user.status === "approved");
 
-  const container = document.getElementById("menu");
+  const approvedVendorIds = new Set(approvedVendors.map(vendor => vendor.id));
+  const vendorMap = {};
+    approvedVendors.forEach(vendor => {
+      vendorMap[vendor.id] = vendor;
+    });
+
   const visibleItems = items.filter(item => approvedVendorIds.has(item.vendorId));
 
   populateVendorFilter(visibleItems);
 
-  const availableItems = items.filter(item => {
-    if (!approvedVendorIds.has(item.vendorId)) {
-      return false;
-    }
+  const availableItems = visibleItems.filter(item => applyFilter(item));
 
-    return applyFilter(item);
+  const container = document.getElementById("menu");
+
+  if (!container) return;
+  container.innerHTML = availableItems.map(item => {
+  const itemVendor = vendorMap[item.vendorId];
+
+  const rating = getVendorRating(itemVendor || {
+    shopName: item.vendorName,
+    fullName: item.vendorName,
+    email: item.vendorName
   });
 
-  container.innerHTML = availableItems.map(item => `
+  return `
     <article class="bg-white p-4 rounded-xl shadow-sm">
-      <img src="${item.image || "assets/default.jpg"}"
-           class="w-full h-48 object-cover rounded-lg mb-4">
+      <img 
+        src="${item.image || item.imageUrl || "assets/default.jpg"}"
+        alt="${item.name || "Menu item"}"
+        class="w-full h-48 object-cover rounded-lg mb-4"
+      >
 
       <section class="flex justify-between items-start mb-2">
         <section>
-          <h3 class="text-lg font-semibold">${item.name}</h3>
+          <h3 class="text-lg font-semibold">${item.name || "Unnamed Item"}</h3>
           <p class="text-sm text-gray-500">${item.vendorName || "Vendor"}</p>
         </section>
-        <span class="font-bold text-indigo-600">R${item.price}</span>
-      </section>
 
+        <span class="font-bold text-indigo-600">
+          R${Number(item.price || 0).toFixed(2)}
+        </span>
+      </section>
       <p class="text-sm text-gray-600 mb-3 line-clamp-2">
-        ${item.description}
+        ${item.description || "No description available."}
       </p>
 
-      ${item.dietary?.length ? `
+      ${(item.dietary || []).length ? `
         <section class="flex flex-wrap gap-1 mb-2">
-          ${item.dietary.map(tag => `
-            <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">${tag}</span>
+          ${(item.dietary || []).map(tag => `
+            <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+              ${tag}
+            </span>
           `).join("")}
         </section>
       ` : ""}
 
-      ${item.allergens?.length ? `
+      ${(item.allergens || []).length ? `
         <section class="flex flex-wrap gap-1 mb-3">
           <span class="text-xs text-orange-500 font-medium mr-1">⚠ Contains:</span>
-          ${item.allergens.map(a => `
-            <span class="text-xs bg-orange-50 text-orange-600 border border-orange-200 px-2 py-0.5 rounded-full">${a}</span>
+          ${(item.allergens || []).map(a => `
+            <span class="text-xs bg-orange-50 text-orange-600 border border-orange-200 px-2 py-0.5 rounded-full">
+              ${a}
+            </span>
           `).join("")}
         </section>
-      ` : "<section class=\"mb-3\"></section>"}
-
+      ` : "<section class='mb-3'></section>"}
+      <p class="flex items-center gap-1 mb-2">
+        ${renderStars(rating)}
+        <span class="text-sm text-gray-600 ml-1">${rating}/5</span>
+      </p>
       <section class="flex gap-2">
         <button
           data-vendor-id="${item.vendorId}"
@@ -207,65 +298,82 @@ const loadMenuItems = async () => {
           Details
         </button>
 
-        <button id="${item.vendorName + item.name}" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700">
-          <i data-lucide="plus" class="w-4 h-4"></i> Add
+        <button
+          data-item-id="${item.id}"
+          class="add-cart-btn flex-1 bg-indigo-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700"
+        >
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          Add
         </button>
       </section>
     </article>
-  `).join("");
+  `;
+}).join("");
 
-  if (availableItems.length === 1) {
-    document.getElementById("numItems").textContent = `${availableItems.length} item found`;
-  } else {
-    document.getElementById("numItems").textContent = `${availableItems.length} items found`;
+ 
+
+  const numItems = document.getElementById("numItems");
+
+  if (numItems) {
+    numItems.textContent =
+      availableItems.length === 1
+        ? "1 item found"
+        : `${availableItems.length} items found`;
   }
 
   if (!done) {
-    menuList.addEventListener("click", (e) => {
-      if (e.target.closest("button")) {
-        const btn = e.target.closest("button");
+    menuList?.addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
 
-        if (btn.classList.contains("vendor-details-btn")) {
-          const vendorId = btn.dataset.vendorId;
+      if (btn.classList.contains("vendor-details-btn")) {
+        const vendorId = btn.dataset.vendorId;
 
-          if (vendorId) {
-            window.location.href = `vendor-profile.html?vendorId=${vendorId}`;
-          }
-
-          return;
+        if (vendorId) {
+          window.location.href = `vendor-profile.html?vendorId=${vendorId}`;
         }
 
-        const id = btn.id;
+        return;
+      }
 
-        for (let i = 0; i < availableItems.length; i++) {
-          if (id === availableItems[i].vendorName + availableItems[i].name) {
-            addToCart(availableItems[i]);
-          }
+      if (btn.classList.contains("add-cart-btn")) {
+        const itemId = btn.dataset.itemId;
+        const selectedItem = availableItems.find(item => item.id === itemId);
+
+        if (selectedItem) {
+          addToCart(selectedItem);
         }
       }
     });
 
-    document.getElementById("cartList").addEventListener("click", (e) => {
-      if (e.target.closest("button")) {
-        const btn = e.target.closest("button");
-        const id = btn.id;
+    document.getElementById("cartList")?.addEventListener("click", (e) => {
+      const btn = e.target.closest(".remove-cart-btn");
+      if (!btn) return;
 
-        for (let i = 0; i < cart.length; i++) {
-          cart.splice(cart.findIndex(i => i.id === id), 1);
-        }
+      const index = Number(btn.dataset.cartIndex);
+
+      if (!Number.isNaN(index)) {
+        cart.splice(index, 1);
+        saveCart();
+        updateCart();
       }
-
-      updateCart();
     });
 
     done = true;
   }
 
+  updateCartCount();
   lucide.createIcons();
 };
 
 document.addEventListener("DOMContentLoaded", () => {
   loadMenuItems();
+  updateCartCount();
+
+  if (window.location.hash === "#cart") {
+    document.getElementById("item-edit-modal")?.classList.remove("hidden");
+    updateCart();
+  }
 });
 
 vegan?.addEventListener("click", () => {
@@ -299,23 +407,32 @@ document.getElementById("Categories")?.addEventListener("change", () => {
 });
 
 document.getElementById("cart")?.addEventListener("click", () => {
-  document.getElementById("modal-title").textContent = "Items in Cart";
-  document.getElementById("item-edit-modal").classList.remove("hidden");
+  cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  document.getElementById("item-edit-modal")?.classList.remove("hidden");
   updateCart();
 });
 
-document.getElementById("checkOut").addEventListener("click", () => {
-  if (loggedIn && currentUser) {
-    if (cart.length == 0) {
-      document.getElementById("cartWarning").classList.remove("hidden");
-      return;
-    }
+document.getElementById("closeCartModal")?.addEventListener("click", () => {
+  document.getElementById("item-edit-modal")?.classList.add("hidden");
+});
 
-    vendorActions.saveOrder();
+document.getElementById("checkOut")?.addEventListener("click", () => {
+  const cartWarning = document.getElementById("cartWarning");
 
-  } else {
+  if (!loggedIn || !currentUser) {
     alert("You must be logged in to proceed to checkout");
+    return;
   }
+
+  cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  if (cart.length === 0) {
+    cartWarning?.classList.remove("hidden");
+    return;
+  }
+
+  vendorActions.saveOrder();
 });
 
 onAuthStateChanged(auth, async (user) => {
@@ -323,6 +440,7 @@ onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     loggedIn = true;
   } else {
+    currentUser = null;
     loggedIn = false;
   }
 });
@@ -333,6 +451,8 @@ const vendorActions = {
       console.error("No user logged in");
       return;
     }
+
+    cart = JSON.parse(localStorage.getItem("cart")) || [];
 
     if (!cart.length) {
       console.error("Cart is empty");
@@ -355,14 +475,17 @@ const vendorActions = {
 
       const orderPromises = Object.entries(groupedByVendor).map(
         async ([vendorId, items]) => {
-          const total = items.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
+          const total = items.reduce(
+            (sum, item) => sum + (Number(item.price) || 0),
+            0
+          );
 
           const orderData = {
             userId: currentUser.uid,
             vendorId,
             vendorName: items[0]?.vendorName || "",
             menuItems: items,
-            status: "pending",
+            status: "Pending",
             total
           };
 
@@ -373,6 +496,9 @@ const vendorActions = {
       await Promise.all(orderPromises);
 
       cart = [];
+      saveCart();
+      updateCartCount();
+
       window.location.href = "checkOut.html";
     } catch (error) {
       console.error("Error saving orders:", error);
