@@ -2,7 +2,6 @@ import {
   auth,
   db,
   getDocs,
-  addDoc,
   collection,
   onAuthStateChanged
 } from "./database.js";
@@ -463,22 +462,13 @@ const payfast = {
     if (btn) { btn.disabled = true; btn.textContent = "Redirecting..."; }
 
     try {
-      const groupedByVendor = cart.reduce((acc, item) => {
-        const vendorId = item.vendorId;
-        if (!vendorId) return acc;
-        if (!acc[vendorId]) acc[vendorId] = [];
-        acc[vendorId].push(item);
-        return acc;
-      }, {});
-
-      const totalAmount = cart.reduce(
-        (sum, item) => sum + (Number(item.price) || 0), 0
-      );
-
-      const res = await fetch("/api/payfast-init", {
+      const res = await fetch("/api/payfast/create-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: totalAmount, userId: currentUser.uid })
+        body: JSON.stringify({
+          userId: currentUser.uid,
+          cart: cart.map((item) => ({ menuItemId: item.id }))
+        })
       });
 
       if (!res.ok) {
@@ -487,28 +477,6 @@ const payfast = {
       }
 
       const { action, fields } = await res.json();
-
-      const orderPromises = Object.entries(groupedByVendor).map(
-        async ([vendorId, items]) => {
-          const total = items.reduce(
-            (sum, item) => sum + (Number(item.price) || 0),
-            0
-          );
-
-          const orderData = {
-            userId: currentUser.uid,
-            vendorId,
-            vendorName: items[0]?.vendorName || "",
-            menuItems: items,
-            status: "Pending",
-            total
-          };
-
-          return addDoc(collection(db, "orders"), orderData);
-        }
-      );
-
-      await Promise.all(orderPromises);
 
       const form = document.createElement("form");
       form.method = "POST";

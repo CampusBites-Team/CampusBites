@@ -29,6 +29,9 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": "20.x"
+  },
   "bugs": {
     "url": "https://github.com/MpiloMario/CampusBites/issues"
   },
@@ -40,4 +43,8 @@
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0"
   }
+
+  
+
+
 }
