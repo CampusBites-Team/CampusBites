@@ -1,9 +1,19 @@
 const crypto = require("crypto");
 
-// PayFast uses application/x-www-form-urlencoded encoding where spaces become "+"
-// (not %20). encodeURIComponent uses %20, so we adjust. This matches PHP urlencode().
+// PayFast signs requests using PHP urlencode() output. encodeURIComponent leaves
+// `! * ' ( ) ~` unencoded and encodes spaces as %20; PHP urlencode encodes those
+// chars and uses + for space. Without this normalization, any field containing
+// parens (e.g. "CampusBites order (2 vendors)") or apostrophes ("O'Brien")
+// produces a signature PayFast rejects with "Generated signature does not match".
 function pfEncode(value) {
-  return encodeURIComponent(String(value)).replace(/%20/g, "+");
+  return encodeURIComponent(String(value))
+    .replace(/%20/g, "+")
+    .replace(/!/g, "%21")
+    .replace(/\*/g, "%2A")
+    .replace(/'/g, "%27")
+    .replace(/\(/g, "%28")
+    .replace(/\)/g, "%29")
+    .replace(/~/g, "%7E");
 }
 
 // Build the signature for an ordered set of fields. Used both for outgoing
