@@ -5,6 +5,7 @@ from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
 export function initAuthUI() {
     const CustomerdashboardLink = document.getElementById("CustomerdashboardLink");
+    const RecommendationLink = document.getElementById("RecommendationLink");
     const VendordashboardLink = document.getElementById("VendordashboardLink");
     const AdmindashboardLink = document.getElementById("AdmindashboardLink");
     const CheckOutLink = document.getElementById("CheckOutLink");
@@ -15,6 +16,7 @@ export function initAuthUI() {
   onAuthStateChanged(auth, async (user) => {
       if (!user) {
         CustomerdashboardLink?.classList.add("hidden");
+        RecommendationLink?.classList.add("hidden");
         VendordashboardLink?.classList.add("hidden");
         AdmindashboardLink?.classList.add("hidden");
         CheckOutLink?.classList.add("hidden");
@@ -34,6 +36,7 @@ export function initAuthUI() {
         if(data.role === "customer"){
           CustomerdashboardLink?.classList.remove("hidden");
           CheckOutLink?.classList.remove("hidden");
+          RecommendationLink?.classList.remove("hidden");
           CustomerProfileLink?.classList.remove("hidden");
         } else if(data.role === "vendor"){
           VendordashboardLink?.classList.remove("hidden");
