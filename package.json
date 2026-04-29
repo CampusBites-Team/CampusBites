@@ -36,6 +36,9 @@
     "url": "https://github.com/MpiloMario/CampusBites/issues"
   },
   "homepage": "https://github.com/MpiloMario/CampusBites#readme",
+  "dependencies": {
+    "firebase-admin": "^12.7.0"
+  },
   "devDependencies": {
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.2",
@@ -43,8 +46,4 @@
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0"
   }
-
-  
-
-
 }

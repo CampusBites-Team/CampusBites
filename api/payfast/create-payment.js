@@ -12,6 +12,15 @@ function generatePaymentId() {
 }
 
 module.exports = async (req, res) => {
+  try {
+    return await handler(req, res);
+  } catch (err) {
+    console.error("create-payment error:", err);
+    return res.status(500).json({ error: err.message || "Internal error" });
+  }
+};
+
+async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
@@ -144,4 +153,4 @@ module.exports = async (req, res) => {
     fields,
     m_payment_id
   });
-};
+}
