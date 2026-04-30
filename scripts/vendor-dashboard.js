@@ -66,7 +66,6 @@ export async function fetchVendorOrders(vendorId) {
     ...orderDoc.data()
   }));
 
-  // Optional: newest first if createdAt exists
   orders.sort((a, b) => {
     const aTime = a.createdAt?.seconds || 0;
     const bTime = b.createdAt?.seconds || 0;
@@ -77,7 +76,7 @@ export async function fetchVendorOrders(vendorId) {
 }
 
 export function getStatusButtons(order) {
-  const statuses = ["Pending", "Preparing", "Ready","Collected"];
+  const statuses = ["Pending", "Preparing", "Ready", "Collected"];
   const currentStatus = order.status || "Pending";
 
   return statuses.map((status) => {

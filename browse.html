@@ -18,42 +18,21 @@
 
       <section class="md:flex space-x-8">
         <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
-        <a href="browse.html" class="text-indigo-600 font-semibold">Browse</a>
-
-        <a id="CustomerdashboardLink" href="customer-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">
-          Dashboard
-        </a>
-
-        <a id="VendordashboardLink" href="vendor-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">
-          Dashboard
-        </a>
-
-        <a id="AdmindashboardLink" href="admin-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">
-          Dashboard
-        </a>
-
-        <a id="CustomerProfileLink" href="customer-profile.html" class="text-gray-700 hover:text-indigo-600 hidden">
-          My Account
-        </a>
-
-        <a id="CheckOutLink" href="checkOut.html" class="text-gray-700 hover:text-indigo-600 hidden">
-          Orders
-        </a>
+        <a href="browse.html" class="text-gray-700 hover:text-indigo-600">Browse</a>
+        <a id="CustomerdashboardLink" href="customer-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
+        <a id="RecommendationLink" href="recommendations.html" class="text-gray-700 hover:text-indigo-600 hidden">For You</a>
+        <a id="VendordashboardLink" href="vendor-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
+        <a id="AdmindashboardLink" href="admin-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
+        <a id="CustomerProfileLink" href="customer-profile.html" class="text-gray-700 hover:text-indigo-600 hidden">My Account</a>
+        <a id="CheckOutLink" href="checkOut.html" class="text-gray-700 hover:text-indigo-600 hidden">Orders</a>
       </section>
 
       <section class="flex items-center gap-4">
-        <a
-          href="login.html"
-          id="loginLink"
-          class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
-        >
+        <a href="login.html" id="loginLink" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
           Sign in
         </a>
 
-        <button
-          id="logoutBtn"
-          class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition hidden"
-        >
+        <button id="logoutBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition hidden">
           Logout
         </button>
       </section>
@@ -75,30 +54,15 @@
           </h3>
 
           <section class="mb-4">
-            <label class="text-sm font-medium text-gray-700 mb-2 block">
-              Vendor
-            </label>
-
-            <select
-              id="Vendors"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            >
+            <label class="text-sm font-medium text-gray-700 mb-2 block">Vendor</label>
+            <select id="Vendors" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
               <option value="AllVendors" selected>All Vendors</option>
-              <option value="RayQuan Stop">RayQuan Stop</option>
-              <option value="BobThePlug">BobThePlug</option>
-              <option value="Vendor">Vendor</option>
             </select>
           </section>
 
           <section class="mb-4">
-            <label class="text-sm font-medium text-gray-700 mb-2 block">
-              Category
-            </label>
-
-            <select
-              id="Categories"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            >
+            <label class="text-sm font-medium text-gray-700 mb-2 block">Category</label>
+            <select id="Categories" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
               <option value="AllCategories" selected>All Categories</option>
               <option value="Light Meals">Light Meals</option>
               <option value="Main Course">Main Course</option>
@@ -109,9 +73,7 @@
           </section>
 
           <section class="mb-4">
-            <label class="text-sm font-medium text-gray-700 mb-2 block">
-              Dietary
-            </label>
+            <label class="text-sm font-medium text-gray-700 mb-2 block">Dietary</label>
 
             <section class="space-y-2">
               <label class="flex items-center gap-2 text-sm">
@@ -136,25 +98,8 @@
             </section>
           </section>
 
-          <section>
-            <label class="text-sm font-medium text-gray-700 mb-2 block">
-              Max Price: R200
-            </label>
-
-            <input
-              type="range"
-              min="0"
-              max="200"
-              value="200"
-              class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-            >
-          </section>
-
           <section class="bg-indigo-50 p-4 rounded-xl mt-4">
-            <h4 class="text-sm font-semibold text-indigo-900 mb-2">
-              Allergen Information
-            </h4>
-
+            <h4 class="text-sm font-semibold text-indigo-900 mb-2">Allergen Information</h4>
             <p class="text-xs text-indigo-700">
               All menu items comply with SA Regulation R.146 of 2010 regarding allergen declaration.
             </p>
@@ -162,15 +107,15 @@
 
         </section>
 
-        <section>
+        <section class="bg-white p-4 rounded-xl shadow-sm">
           <section class="flex items-center gap-3">
-            <i data-lucide="shopping-cart" class="w-8 h-8 text-indigo-600"></i>
-
-            <button
-              id="cart"
-              class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
-            >
+            <button id="cart" class="relative bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2">
+              <i data-lucide="shopping-cart" class="w-5 h-5"></i>
               View Cart
+
+              <span id="cartCount" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                0
+              </span>
             </button>
           </section>
         </section>
@@ -178,23 +123,18 @@
       </aside>
 
       <section class="flex-1">
-
         <header class="mb-6 flex justify-between items-center">
           <h2 class="text-2xl font-bold">Browse Menu</h2>
-          <p id="numItems" class="text-sm text-gray-500">3 items found</p>
+          <p id="numItems" class="text-sm text-gray-500">0 items found</p>
         </header>
 
         <section id="menu" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></section>
-
       </section>
 
     </section>
 
-    <section
-      id="item-edit-modal"
-      class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4"
-    >
-      <article class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+    <section id="item-edit-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+      <article class="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto p-6">
 
         <header class="flex justify-center">
           <h3 class="text-xl font-bold mb-4">Items in Cart</h3>
@@ -202,26 +142,23 @@
 
         <section id="cartList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></section>
 
-        <section class="flex gap-3 mt-6">
-          <button
-            type="button"
-            onclick="document.getElementById('item-edit-modal').classList.add('hidden')"
-            class="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50"
-          >
-            Close
-          </button>
-
-          <button
-            id="checkOut"
-            class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition disabled:opacity-60"
-          >
-            Pay Now
-          </button>
-        </section>
+        <p id="cartWarning" class="hidden text-sm text-red-500 mt-3">
+          Your cart is empty.
+        </p>
 
         <p id="numItemsCart" class="text-sm text-gray-500 mt-3">
           0 items in cart
         </p>
+
+        <section class="flex gap-3 mt-6">
+          <button type="button" id="closeCartModal" class="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50">
+            Close
+          </button>
+
+          <button id="checkOut" class="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
+            Check Out
+          </button>
+        </section>
 
       </article>
     </section>

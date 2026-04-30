@@ -20,18 +20,25 @@
       <section class="flex items-center gap-6 mx-auto">
         <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
 
-        <a id="CustomerdashboardLink" href="customer-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">
-          Dashboard
-        </a>
-
-        <a href="recommendations.html" class="text-indigo-600 font-semibold">
-          For You
-        </a>
-
-        <a id="CustomerProfileLink" href="customer-profile.html" class="text-gray-700 hover:text-indigo-600 hidden">
-          My Account
-        </a>
+        <a id="CustomerdashboardLink" href="customer-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
+        <a href="browse.html" class="text-gray-700 hover:text-indigo-600">Browse</a>
+        <a id="RecommendationLink" href="recommendations.html" class="text-gray-700 hover:text-indigo-600 hidden">For You</a>
+        <a id="CustomerProfileLink" href="customer-profile.html" class="text-gray-700 hover:text-indigo-600 hidden">My Account</a>
       </section>
+      <section class="flex justify-end items-center px-6 py-4">
+      <button 
+        id="cartBtn"
+        class="relative bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2"
+      >
+        <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+        <span 
+          id="cartCount"
+          class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center"
+        >
+          0
+        </span>
+      </button>
+</section>
 
       <a
         href="login.html"
@@ -90,6 +97,7 @@
     </section>
 
   </main>
+  <script type="module" src="./scripts/ForYou.js"></script>
 
   <script type="module">
     import { initAuthUI, logout } from "./scripts/auth.js";
