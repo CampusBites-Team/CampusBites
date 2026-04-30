@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CampusBites - Payment Cancelled</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="min-h-screen bg-gray-100">
+
+  <nav class="bg-white border-b border-gray-200 shadow-sm">
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+      <header class="flex items-center gap-2">
+        <i data-lucide="utensils" class="w-7 h-7 text-indigo-600"></i>
+        <span class="text-xl font-bold text-gray-900">CampusBites</span>
+      </header>
+      <section class="md:flex space-x-8">
+        <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
+        <a href="browse.html" class="text-gray-700 hover:text-indigo-600">Browse</a>
+      </section>
+    </section>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <article class="bg-white rounded-2xl shadow-sm p-10 text-center">
+      <i data-lucide="x-circle" class="w-16 h-16 text-red-500 mx-auto mb-4"></i>
+      <h1 class="text-2xl font-bold text-gray-900 mb-2">Payment cancelled</h1>
+      <p class="text-gray-600 mb-6">No charge was made. Your cart is empty — you can browse again and try once more.</p>
+      <a href="browse.html" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">Back to browse</a>
+    </article>
+  </main>
+
+  <script>
+    lucide.createIcons();
+    try { sessionStorage.removeItem("cb_pending_payment_id"); } catch {}
+  </script>
+
+</body>
+</html>

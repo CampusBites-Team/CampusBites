@@ -2,7 +2,6 @@ import {
   auth,
   db,
   getDocs,
-  addDoc,
   collection,
   onAuthStateChanged
 } from "./database.js";
@@ -432,7 +431,7 @@ document.getElementById("checkOut")?.addEventListener("click", () => {
     return;
   }
 
-  vendorActions.saveOrder();
+  payfast.payNow();
 });
 
 onAuthStateChanged(auth, async (user) => {
@@ -445,8 +444,8 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-const vendorActions = {
-  saveOrder: async () => {
+const payfast = {
+  payNow: async () => {
     if (!currentUser) {
       console.error("No user logged in");
       return;
@@ -459,49 +458,47 @@ const vendorActions = {
       return;
     }
 
+    const btn = document.getElementById("checkOut");
+    if (btn) { btn.disabled = true; btn.textContent = "Redirecting..."; }
+
     try {
-      const groupedByVendor = cart.reduce((acc, item) => {
-        const vendorId = item.vendorId;
+      const res = await fetch("/api/payfast/create-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: currentUser.uid,
+          cart: cart.map((item) => ({ menuItemId: item.id }))
+        })
+      });
 
-        if (!vendorId) return acc;
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Payment init failed (${res.status})`);
+      }
 
-        if (!acc[vendorId]) {
-          acc[vendorId] = [];
-        }
+      const { action, fields } = await res.json();
 
-        acc[vendorId].push(item);
-        return acc;
-      }, {});
-
-      const orderPromises = Object.entries(groupedByVendor).map(
-        async ([vendorId, items]) => {
-          const total = items.reduce(
-            (sum, item) => sum + (Number(item.price) || 0),
-            0
-          );
-
-          const orderData = {
-            userId: currentUser.uid,
-            vendorId,
-            vendorName: items[0]?.vendorName || "",
-            menuItems: items,
-            status: "Pending",
-            total
-          };
-
-          return addDoc(collection(db, "orders"), orderData);
-        }
-      );
-
-      await Promise.all(orderPromises);
-
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = action;
+      form.style.display = "none";
+      for (const [key, value] of Object.entries(fields)) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = key;
+        input.value = value;
+        form.appendChild(input);
+      }
+      document.body.appendChild(form);
       cart = [];
       saveCart();
       updateCartCount();
 
-      window.location.href = "checkOut.html";
+      form.submit();
     } catch (error) {
-      console.error("Error saving orders:", error);
+      console.error("Error starting payment:", error);
+      alert("Could not start payment: " + error.message);
+      if (btn) { btn.disabled = false; btn.textContent = "Pay Now"; }
     }
   }
 };

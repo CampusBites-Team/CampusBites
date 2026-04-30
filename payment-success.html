@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CampusBites - Confirming Payment</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="min-h-screen bg-gray-100">
+
+  <nav class="bg-white border-b border-gray-200 shadow-sm">
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+      <header class="flex items-center gap-2">
+        <i data-lucide="utensils" class="w-7 h-7 text-indigo-600"></i>
+        <span class="text-xl font-bold text-gray-900">CampusBites</span>
+      </header>
+      <section class="md:flex space-x-8">
+        <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
+        <a href="browse.html" class="text-gray-700 hover:text-indigo-600">Browse</a>
+      </section>
+    </section>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <article id="status-card" class="bg-white rounded-2xl shadow-sm p-10 text-center">
+      <section id="loading-state">
+        <div class="mx-auto w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-6"></div>
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">Confirming your payment...</h1>
+        <p class="text-gray-600">Hang tight — PayFast is letting us know your transaction has cleared.</p>
+        <p class="text-sm text-gray-400 mt-6" id="payment-id-line"></p>
+      </section>
+
+      <section id="success-state" class="hidden">
+        <i data-lucide="check-circle-2" class="w-16 h-16 text-green-500 mx-auto mb-4"></i>
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">Payment confirmed</h1>
+        <p class="text-gray-600 mb-6">Your order has been sent to the vendor.</p>
+        <a href="checkOut.html" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">View my orders</a>
+      </section>
+
+      <section id="error-state" class="hidden">
+        <i data-lucide="alert-triangle" class="w-16 h-16 text-orange-500 mx-auto mb-4"></i>
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">Still confirming...</h1>
+        <p class="text-gray-600 mb-6">PayFast hasn't notified us yet. This usually takes under a minute. You can check your orders shortly — if the payment cleared, the order will appear there.</p>
+        <a href="checkOut.html" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">Go to my orders</a>
+      </section>
+    </article>
+  </main>
+
+  <script type="module">
+    import { db } from "./scripts/database.js";
+    import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+    lucide.createIcons();
+
+    const params = new URLSearchParams(window.location.search);
+    const fromQuery = params.get("m_payment_id");
+    const fromSession = (() => {
+      try { return sessionStorage.getItem("cb_pending_payment_id"); } catch { return null; }
+    })();
+    const m_payment_id = fromQuery || fromSession;
+
+    if (m_payment_id) {
+      document.getElementById("payment-id-line").textContent = `Reference: ${m_payment_id}`;
+    }
+
+    function show(stateId) {
+      ["loading-state", "success-state", "error-state"].forEach((id) => {
+        document.getElementById(id).classList.toggle("hidden", id !== stateId);
+      });
+      lucide.createIcons();
+    }
+
+    if (!m_payment_id) {
+      show("error-state");
+    } else {
+      const ref = doc(db, "pending_payments", m_payment_id);
+      const unsub = onSnapshot(ref, (snap) => {
+        if (!snap.exists()) return;
+        const data = snap.data();
+        if (data.status === "paid") {
+          try { sessionStorage.removeItem("cb_pending_payment_id"); } catch {}
+          show("success-state");
+          unsub();
+          setTimeout(() => { window.location.href = "checkOut.html"; }, 1500);
+        } else if (data.status === "failed" || data.status === "cancelled") {
+          show("error-state");
+          unsub();
+        }
+      }, (err) => {
+        console.error("snapshot error", err);
+      });
+
+      // Fallback: if we haven't received an update in 90 seconds, switch to error state.
+      setTimeout(() => {
+        if (!document.getElementById("success-state").classList.contains("hidden")) return;
+        show("error-state");
+        unsub();
+      }, 90000);
+    }
+  </script>
+
+</body>
+</html>

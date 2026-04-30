@@ -247,12 +247,22 @@ describe("browse.js", () => {
     );
   });
 
-  test("creates one order per vendor", async () => {
+  test("posts cart items to PayFast and submits the returned form", async () => {
     mockBrowseQueries(db);
-    db.addDoc.mockResolvedValue({});
     db.onAuthStateChanged.mockImplementation((_auth, cb) =>
       cb({ uid: "customer-1" })
     );
+
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        action: "https://sandbox.payfast.co.za/eng/process",
+        fields: { merchant_id: "10000100", amount: "130.00", signature: "abc" }
+      })
+    });
+    global.fetch = fetchMock;
+
+    const submitSpy = jest.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(() => {});
 
     const mod = await import("../scripts/browse.js");
     await mod.loadBrowseItems();
@@ -263,35 +273,38 @@ describe("browse.js", () => {
     document.getElementById("checkOut").click();
 
     await flush();
+    await flush();
 
-    expect(db.addDoc).toHaveBeenCalledTimes(2);
-
-    expect(db.addDoc).toHaveBeenNthCalledWith(
-      1,
-      [{}, "orders"],
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/payfast/create-payment",
       expect.objectContaining({
-        userId: "customer-1",
-        vendorId: "vendor-1",
-        vendorName: "Shop1",
-        status: "Pending",
-        total: 50
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: "customer-1",
+          cart: [{ menuItemId: "1" }, { menuItemId: "2" }]
+        })
       })
     );
 
-    expect(db.addDoc).toHaveBeenNthCalledWith(
-      2,
-      [{}, "orders"],
-      expect.objectContaining({
-        userId: "customer-1",
-        vendorId: "vendor-2",
-        vendorName: "Shop2",
-        status: "Pending",
-        total: 80
-      })
+    const form = document.querySelector(
+      'form[action="https://sandbox.payfast.co.za/eng/process"]'
     );
+    expect(form).toBeTruthy();
+    expect(form.method.toUpperCase()).toBe("POST");
+    expect(form.querySelector('input[name="merchant_id"]').value).toBe("10000100");
+    expect(form.querySelector('input[name="amount"]').value).toBe("130.00");
+    expect(form.querySelector('input[name="signature"]').value).toBe("abc");
+
+    expect(submitSpy).toHaveBeenCalledTimes(1);
+
+    expect(JSON.parse(localStorage.getItem("cart") || "[]")).toEqual([]);
+
+    delete global.fetch;
   });
 
-  test("groups same vendor items into one order", async () => {
+  test("sends all cart entries to PayFast even when items share a vendor", async () => {
     mockBrowseQueries(
       db,
       [
@@ -319,10 +332,20 @@ describe("browse.js", () => {
       ]
     );
 
-    db.addDoc.mockResolvedValue({});
     db.onAuthStateChanged.mockImplementation((_auth, cb) =>
       cb({ uid: "customer-1" })
     );
+
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        action: "https://sandbox.payfast.co.za/eng/process",
+        fields: { merchant_id: "10000100", amount: "70.00", signature: "abc" }
+      })
+    });
+    global.fetch = fetchMock;
+
+    jest.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(() => {});
 
     const mod = await import("../scripts/browse.js");
     await mod.loadBrowseItems();
@@ -333,19 +356,19 @@ describe("browse.js", () => {
     document.getElementById("checkOut").click();
 
     await flush();
+    await flush();
 
-    expect(db.addDoc).toHaveBeenCalledTimes(1);
-
-    expect(db.addDoc).toHaveBeenCalledWith(
-      [{}, "orders"],
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/payfast/create-payment",
       expect.objectContaining({
-        userId: "customer-1",
-        vendorId: "vendor-1",
-        vendorName: "Shop1",
-        status: "Pending",
-        total: 70
+        body: JSON.stringify({
+          userId: "customer-1",
+          cart: [{ menuItemId: "1" }, { menuItemId: "5" }]
+        })
       })
     );
+
+    delete global.fetch;
   });
 
   test("handles addDoc failure", async () => {
@@ -356,6 +379,12 @@ describe("browse.js", () => {
       cb({ uid: "customer-1" })
     );
 
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ error: "boom" })
+    });
+
     const mod = await import("../scripts/browse.js");
     await mod.loadBrowseItems();
 
@@ -363,8 +392,12 @@ describe("browse.js", () => {
     document.getElementById("checkOut").click();
 
     await flush();
+    await flush();
 
-    expect(errorSpy).toHaveBeenCalled();
+    expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining("boom"));
+    expect(document.getElementById("checkOut").disabled).toBe(false);
+
+    delete global.fetch;
   });
 
   test("filters by vendor", async () => {
