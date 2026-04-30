@@ -1,8 +1,11 @@
 import {
   db,
   getDocs,
+  doc,
+  deleteDoc,
   collection,
   auth,
+  updateDoc,
   onAuthStateChanged,
   query,
   where
@@ -10,6 +13,7 @@ import {
 
 let currentUser = null;
 let ordersCache = [];
+let orderIds = [];
 
 // ----------------------
 // Auth
@@ -113,7 +117,15 @@ function renderOrders(orders) {
             ${itemsHtml}
           </div>
         </td>
-
+        <td class="px-6 py-4">
+          <button
+            type="button"
+            data-index="${-(index + 1)}"
+            class="bg-indigo-600 text-white py-3 px-3 rounded-lg hover:bg-indigo-700"
+          >
+            Cancel Order
+          </button>
+        </td>
         <td class="px-6 py-4">
           <button
             type="button"
@@ -213,6 +225,21 @@ function updateDetails(order) {
   globalThis.lucide?.createIcons?.();
 }
 
+async function updateOrderStatus(order, status) {
+  try{
+    await updateDoc(doc(db, "orders", order.id), {
+      status: status
+    });
+    order.status = status;
+    renderOrders(ordersCache);
+  } catch(error){
+    console.error(error);
+    alert("Failed to cancel order");
+    
+  }
+  
+}
+
 // ----------------------
 // Table click handler
 // ----------------------
@@ -221,14 +248,36 @@ document.getElementById("order-table-body")?.addEventListener("click", (e) => {
   if (!button) return;
 
   const index = Number(button.dataset.index);
-  const order = ordersCache[index];
-  if (!order) return;
+  if(index >= 0){
+    const order = ordersCache[index];
+    if (!order) return;
 
-  const modalTitle = document.getElementById("modal-title");
-  const modal = document.getElementById("item-details-modal");
+    const modalTitle = document.getElementById("modal-title");
+    const modal = document.getElementById("item-details-modal");
 
-  if (modalTitle) modalTitle.textContent = "Items in Order";
-  modal?.classList.remove("hidden");
+    if (modalTitle) modalTitle.textContent = "Items in Order";
+    modal?.classList.remove("hidden");
 
-  updateDetails(order);
+    updateDetails(order);
+  } else {
+    const order = ordersCache[-(index + 1)];
+    if (!order) return;
+    //alert(order.status)
+    if(order.status == "Pending" || order.status == "pending"){
+      updateOrderStatus(order, "cancelled");
+      
+      
+      
+      
+      
+    } else if(order.status == "cancelled" || order.status == "Cancelled") {
+      alert("Order is already cancelled");
+    } else {
+      alert("Order cannot be cancelled, it is already in progress.");
+    }
+    
+    
+    
+  }
+  
 });
