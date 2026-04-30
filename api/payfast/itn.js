@@ -57,7 +57,16 @@ module.exports = async (req, res) => {
 
   // 1. Signature
   if (!verifyItnSignature(pairs, passphrase)) {
-    console.warn("[ITN] signature mismatch", { m_payment_id: fields.m_payment_id });
+    // Log the field names (not values — values can contain PII) so we can spot
+    // unexpected fields in the body, plus passphrase length to confirm env is
+    // configured. Body length helps spot truncation.
+    console.warn("[ITN] signature mismatch", {
+      m_payment_id: fields.m_payment_id,
+      received_signature: fields.signature,
+      field_keys: pairs.map(([k]) => k),
+      raw_body_length: raw.length,
+      passphrase_length: passphrase.length
+    });
     return res.status(200).end();
   }
 
@@ -65,19 +74,28 @@ module.exports = async (req, res) => {
   const skipIpCheck = process.env.PAYFAST_SKIP_IP_CHECK === "true";
   const clientIp = getClientIp(req);
   if (!skipIpCheck && !isPayFastIp(clientIp)) {
-    console.warn("[ITN] source IP not in PayFast range", { clientIp });
+    console.warn("[ITN] source IP not in PayFast range", {
+      clientIp,
+      m_payment_id: fields.m_payment_id
+    });
     return res.status(200).end();
   }
 
   // 3. Server-to-server validation (re-POST raw body, expect "VALID")
   let valid = false;
+  let validateError = null;
   try {
     valid = await validateAtPayFast(raw, host);
   } catch (err) {
+    validateError = err.message;
     console.error("[ITN] validate request failed", err);
   }
   if (!valid) {
-    console.warn("[ITN] PayFast did not respond VALID", { m_payment_id: fields.m_payment_id });
+    console.warn("[ITN] PayFast did not respond VALID", {
+      m_payment_id: fields.m_payment_id,
+      host,
+      validateError
+    });
     return res.status(200).end();
   }
 

@@ -101,6 +101,32 @@ describe("parseUrlEncodedOrdered + verifyItnSignature", () => {
     const pairs = parseUrlEncodedOrdered(`m_payment_id=cb_xyz&signature=${sig}`);
     expect(verifyItnSignature(pairs, "secret-B")).toBe(false);
   });
+
+  test("verifies ITN bodies that include empty fields (PayFast includes them in md5)", () => {
+    // PayFast's PHP sample iterates every POSTed field — including empties like
+    // item_description= and name_last= — when computing the ITN signature.
+    const sigBody =
+      "m_payment_id=cb_xyz" +
+      "&pf_payment_id=12345" +
+      "&payment_status=COMPLETE" +
+      "&item_name=CampusBites+order" +
+      "&item_description=" +
+      "&amount_gross=150.00" +
+      "&amount_fee=-3.00" +
+      "&amount_net=147.00" +
+      "&custom_str1=user_abc" +
+      "&custom_str2=" +
+      "&custom_str3=" +
+      "&name_first=Jane" +
+      "&name_last=" +
+      "&email_address=jane%40example.com" +
+      "&merchant_id=10000100";
+    const sig = crypto.createHash("md5")
+      .update(sigBody + "&passphrase=secret")
+      .digest("hex");
+    const pairs = parseUrlEncodedOrdered(sigBody + `&signature=${sig}`);
+    expect(verifyItnSignature(pairs, "secret")).toBe(true);
+  });
 });
 
 describe("isPayFastIp", () => {

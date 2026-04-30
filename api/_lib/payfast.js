@@ -1,9 +1,19 @@
 const crypto = require("crypto");
 
-// PayFast uses application/x-www-form-urlencoded encoding where spaces become "+"
-// (not %20). encodeURIComponent uses %20, so we adjust. This matches PHP urlencode().
+// PayFast signs requests using PHP urlencode() output. encodeURIComponent leaves
+// `! * ' ( ) ~` unencoded and encodes spaces as %20; PHP urlencode encodes those
+// chars and uses + for space. Without this normalization, any field containing
+// parens (e.g. "CampusBites order (2 vendors)") or apostrophes ("O'Brien")
+// produces a signature PayFast rejects with "Generated signature does not match".
 function pfEncode(value) {
-  return encodeURIComponent(String(value)).replace(/%20/g, "+");
+  return encodeURIComponent(String(value))
+    .replace(/%20/g, "+")
+    .replace(/!/g, "%21")
+    .replace(/\*/g, "%2A")
+    .replace(/'/g, "%27")
+    .replace(/\(/g, "%28")
+    .replace(/\)/g, "%29")
+    .replace(/~/g, "%7E");
 }
 
 // Build the signature for an ordered set of fields. Used both for outgoing
@@ -12,10 +22,23 @@ function pfEncode(value) {
 //
 // fieldsInOrder: array of [key, value] pairs in the order they will be posted.
 // passphrase:    merchant passphrase; appended as a final pair if non-empty.
-function buildSignature(fieldsInOrder, passphrase) {
-  const parts = fieldsInOrder
-    .filter(([, v]) => v !== undefined && v !== null && String(v).length > 0)
-    .map(([k, v]) => `${k}=${pfEncode(String(v).trim())}`);
+// options.filterEmpty: drop fields whose value is empty/null/undefined. Default
+//                      true, which is right for outgoing requests. Must be
+//                      false for ITN verification — PayFast includes empty
+//                      fields like item_description= and name_last= in their
+//                      md5, so dropping them here produces a mismatch.
+// options.trim:        trim whitespace before encoding. Default true. Must be
+//                      false for ITN verification — PayFast's PHP sample does
+//                      not trim, and trimming would break verification of
+//                      values that legitimately contain leading/trailing space.
+function buildSignature(fieldsInOrder, passphrase, { filterEmpty = true, trim = true } = {}) {
+  const fields = filterEmpty
+    ? fieldsInOrder.filter(([, v]) => v !== undefined && v !== null && String(v).length > 0)
+    : fieldsInOrder;
+  const parts = fields.map(([k, v]) => {
+    const sv = v === null || v === undefined ? "" : String(v);
+    return `${k}=${pfEncode(trim ? sv.trim() : sv)}`;
+  });
 
   if (passphrase && passphrase.length > 0) {
     parts.push(`passphrase=${pfEncode(passphrase.trim())}`);
@@ -40,11 +63,13 @@ function parseUrlEncodedOrdered(rawBody) {
 
 // Verify ITN signature: the `signature` field is excluded from the calculation,
 // then md5 of remaining fields (in received order) plus passphrase must match.
+// Empties and whitespace are preserved — PayFast's ITN signature is computed
+// over every field it posts, including empty ones, without trimming.
 function verifyItnSignature(orderedPairs, passphrase) {
   const received = orderedPairs.find(([k]) => k === "signature")?.[1];
   if (!received) return false;
   const withoutSig = orderedPairs.filter(([k]) => k !== "signature");
-  const computed = buildSignature(withoutSig, passphrase);
+  const computed = buildSignature(withoutSig, passphrase, { filterEmpty: false, trim: false });
   return computed === received;
 }
 

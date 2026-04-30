@@ -2,7 +2,6 @@ import {
   auth,
   db,
   getDocs,
-  addDoc,
   collection,
   onAuthStateChanged
 } from "./database.js";
@@ -432,7 +431,7 @@ document.getElementById("checkOut")?.addEventListener("click", () => {
     return;
   }
 
-  vendorActions.saveOrder();
+  payfast.payNow();
 });
 
 onAuthStateChanged(auth, async (user) => {
@@ -463,41 +462,22 @@ const payfast = {
     if (btn) { btn.disabled = true; btn.textContent = "Redirecting..."; }
 
     try {
-      const groupedByVendor = cart.reduce((acc, item) => {
-        const vendorId = item.vendorId;
-
-        if (!vendorId) return acc;
+      const res = await fetch("/api/payfast/create-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: currentUser.uid,
+          cart: cart.map((item) => ({ menuItemId: item.id }))
+        })
+      });
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || `Payment init failed (${res.status})`);
       }
 
-      const { action, fields, m_payment_id } = await res.json();
+      const { action, fields } = await res.json();
 
-      const orderPromises = Object.entries(groupedByVendor).map(
-        async ([vendorId, items]) => {
-          const total = items.reduce(
-            (sum, item) => sum + (Number(item.price) || 0),
-            0
-          );
-
-          const orderData = {
-            userId: currentUser.uid,
-            vendorId,
-            vendorName: items[0]?.vendorName || "",
-            menuItems: items,
-            status: "Pending",
-            total
-          };
-
-          return addDoc(collection(db, "orders"), orderData);
-        }
-      );
-
-      await Promise.all(orderPromises);
-
-      // Build a hidden form and submit to PayFast
       const form = document.createElement("form");
       form.method = "POST";
       form.action = action;
@@ -514,7 +494,7 @@ const payfast = {
       saveCart();
       updateCartCount();
 
-      window.location.href = "checkOut.html";
+      form.submit();
     } catch (error) {
       console.error("Error starting payment:", error);
       alert("Could not start payment: " + error.message);
