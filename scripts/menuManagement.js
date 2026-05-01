@@ -95,6 +95,9 @@ openEditItem: async (id) => {
     document.getElementById('item-description').value = item.description;
     document.getElementById('item-price').value = item.price;
     document.getElementById('item-category').value = item.category;
+    document.getElementById('item-calories').value = item.calories || "";
+    document.getElementById('item-protein').value = item.protein || "";
+    document.getElementById('item-carbs').value = item.carbs || "";
 
     // checkboxes reset
     document.querySelectorAll('.item-allergen').forEach(cb => {
@@ -133,9 +136,12 @@ saveItem: async (event) => {
       console.error("No user logged in");
       return;
     }
+
     const id = document.getElementById('edit-item-id').value;
     const file = document.getElementById('item-image').files[0];
-
+    const calories = parseFloat(document.getElementById('item-calories').value) || 0;
+    const protein = parseFloat(document.getElementById('item-protein').value) || 0;
+    const carbs = parseFloat(document.getElementById('item-carbs').value) || 0;
     const name = document.getElementById('item-name').value;
     const description = document.getElementById('item-description').value;
     const priceInput = document.getElementById('item-price').value.trim();
@@ -185,6 +191,9 @@ saveItem: async (event) => {
         price,
         category,
         allergens,
+        calories,
+        protein,
+        carbs,
         dietary,
         available: true,
         createdAt: serverTimestamp()

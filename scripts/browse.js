@@ -203,6 +203,125 @@ function populateVendorFilter(items) {
     vendor = "AllVendors";
   }
 }
+function showItemDetails(item) {
+  const modal = document.getElementById("details-modal");
+  if (!modal) return;
+  const location = item.location || "Unknown location";
+
+  modal.innerHTML = `
+    <section class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4">
+      <article class="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto relative shadow-xl">
+
+        <button id="closeDetailsModal"
+          class="absolute top-3 right-3 bg-white rounded-full p-1 shadow hover:bg-gray-100">
+          ✕
+        </button>
+
+        <img
+          src="${item.image || item.imageUrl || "assets/default_vendor.jpg"}"
+          alt="${item.name || "Menu item"}"
+          class="w-full h-52 object-cover rounded-t-2xl"
+        >
+
+        <section class="p-8">
+          <section class="flex justify-between items-start mb-2">
+            <section>
+              <p class="text-sm text-indigo-600 font-medium">${item.vendorName || "Vendor"}</p>
+              <h2 class="text-2xl font-bold text-gray-900">${item.name || "Unnamed Item"}</h2>
+            </section>
+          <span>
+          <p class="font-bold text-indigo-600">
+            R${Number(item.price || 0).toFixed(2)}
+          <p>
+          <section class="font-bold flex items-center gap-2 mt-1">
+            <i data-lucide="map-pin" class="w-4 h-4 text-gray-500"></i>
+            <p class="text-sm text-gray-500">${location}</p>
+          </section>
+          </span>
+          </section>
+
+          <p class="text-sm text-gray-600 mb-4">
+            ${item.description || "No description available."}
+          </p>
+
+          <section class="mb-4">
+            <h3 class="font-semibold text-sm mb-2 text-red-600">⚠ Allergens</h3>
+            ${
+              (item.allergens || []).length
+                ? `<section class="flex flex-wrap gap-2">
+                    ${(item.allergens || []).map(a => `
+                      <span class="text-xs bg-red-50 text-red-600 border border-red-200 px-3 py-1 rounded-full">
+                        ${a}
+                      </span>
+                    `).join("")}
+                  </section>`
+                : `<p class="text-sm text-gray-500">No allergens listed.</p>`
+            }
+          </section>
+
+          <section class="mb-4">
+            <h3 class="font-semibold text-sm mb-2 text-green-600">✓ Dietary Information</h3>
+            ${
+              (item.dietary || []).length
+                ? `<section class="flex flex-wrap gap-2">
+                    ${(item.dietary || []).map(tag => `
+                      <span class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
+                        ${tag}
+                      </span>
+                    `).join("")}
+                  </section>`
+                : `<p class="text-sm text-gray-500">No dietary information listed.</p>`
+            }
+          </section>
+
+          <section class="mb-4">
+            <h3 class="font-semibold text-sm mb-2">Nutritional Info</h3>
+
+            <section class="grid grid-cols-3 gap-3 text-center">
+              <section class="bg-gray-50 rounded-lg p-3">
+                <p class="font-bold">${item.calories || 320}</p>
+                <p class="text-xs text-gray-500">kcal</p>
+              </section>
+
+              <section class="bg-gray-50 rounded-lg p-3">
+                <p class="font-bold">${item.protein || "18"}g</p>
+                <p class="text-xs text-gray-500">protein</p>
+              </section>
+
+              <section class="bg-gray-50 rounded-lg p-3">
+                <p class="font-bold">${item.carbs || "18"}g</p>
+                <p class="text-xs text-gray-500">carbs</p>
+              </section>
+            </section>
+          </section>
+
+          <button
+            id="detailsAddToCart"
+            class="w-full bg-indigo-600 text-white py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700"
+          >
+            <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+            Add to Cart - R ${Number(item.price || 0).toFixed(2)}
+          </button>
+        </section>
+      </article>
+    </section>
+  `;
+
+  modal.classList.remove("hidden");
+
+  document.getElementById("closeDetailsModal")?.addEventListener("click", () => {
+    modal.classList.add("hidden");
+    modal.innerHTML = "";
+  });
+
+  document.getElementById("detailsAddToCart")?.addEventListener("click", () => {
+    addToCart(item);
+    modal.classList.add("hidden");
+    modal.innerHTML = "";
+  });
+
+  globalThis.lucide?.createIcons?.();
+}
 
 const loadMenuItems = async () => {
   const [menuSnapshot, usersSnapshot] = await Promise.all([
@@ -225,7 +344,16 @@ const loadMenuItems = async () => {
       vendorMap[vendor.id] = vendor;
     });
 
-  const visibleItems = items.filter(item => approvedVendorIds.has(item.vendorId));
+  const visibleItems = items
+  .filter(item => approvedVendorIds.has(item.vendorId))
+  .map(item => {
+    const vendor = vendorMap[item.vendorId];
+
+    return {
+      ...item,
+      location: vendor?.location || "Unknown location"
+    };
+  });
 
   populateVendorFilter(visibleItems);
 
@@ -236,6 +364,7 @@ const loadMenuItems = async () => {
   if (!container) return;
   container.innerHTML = availableItems.map(item => {
   const itemVendor = vendorMap[item.vendorId];
+  const location = itemVendor?.location || "Unknown location";
 
   const rating = getVendorRating(itemVendor || {
     shopName: item.vendorName,
@@ -254,32 +383,21 @@ const loadMenuItems = async () => {
       <section class="flex justify-between items-start mb-2">
         <section>
           <h3 class="text-lg font-semibold">${item.name || "Unnamed Item"}</h3>
-          <p class="text-sm text-gray-500">${item.vendorName || "Vendor"}</p>
+          <p class="text-sm font-semibold text-gray-500">${item.vendorName || "Vendor"}</p>
         </section>
 
         <span class="font-bold text-indigo-600">
           R${Number(item.price || 0).toFixed(2)}
+          <p class="text-sm text-gray-500">${location || "Vendor Location"}</p>
         </span>
       </section>
       <p class="text-sm text-gray-600 mb-3 line-clamp-2">
         ${item.description || "No description available."}
       </p>
-
-      ${(item.dietary || []).length ? `
-        <section class="flex flex-wrap gap-1 mb-2">
-          ${(item.dietary || []).map(tag => `
-            <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-              ${tag}
-            </span>
-          `).join("")}
-        </section>
-      ` : ""}
-
       ${(item.allergens || []).length ? `
         <section class="flex flex-wrap gap-1 mb-3">
-          <span class="text-xs text-orange-500 font-medium mr-1">⚠ Contains:</span>
           ${(item.allergens || []).map(a => `
-            <span class="text-xs bg-orange-50 text-orange-600 border border-orange-200 px-2 py-0.5 rounded-full">
+            <span class="text-xs bg-red-50 text-red-600 border border-red-200 px-2 py-0.5 rounded-full">
               ${a}
             </span>
           `).join("")}
@@ -291,8 +409,8 @@ const loadMenuItems = async () => {
       </p>
       <section class="flex gap-2">
         <button
-          data-vendor-id="${item.vendorId}"
-          class="vendor-details-btn flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200"
+          data-item-id="${item.id}"
+          class="item-details-btn flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200"
         >
           Details
         </button>
@@ -325,11 +443,12 @@ const loadMenuItems = async () => {
       const btn = e.target.closest("button");
       if (!btn) return;
 
-      if (btn.classList.contains("vendor-details-btn")) {
-        const vendorId = btn.dataset.vendorId;
+     if (btn.classList.contains("item-details-btn")) {
+        const itemId = btn.dataset.itemId;
+        const selectedItem = availableItems.find(item => item.id === itemId);
 
-        if (vendorId) {
-          window.location.href = `vendor-profile.html?vendorId=${vendorId}`;
+        if (selectedItem) {
+          showItemDetails(selectedItem);
         }
 
         return;
