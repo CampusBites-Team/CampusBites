@@ -15,6 +15,7 @@ describe("index.js", () => {
   const flushPromises = async () => {
     await Promise.resolve();
     await Promise.resolve();
+    await Promise.resolve();
   };
 
   async function loadIndex() {
@@ -28,9 +29,12 @@ describe("index.js", () => {
     document.body.innerHTML = `
       <button id="OrderNowButton"></button>
       <button id="LearnButton"></button>
-      <div id="BrowseVendors"></div>
-      <div id="FeaturesSection"></div>
-      <div id="featured-vendors"></div>
+      <section id="BrowseVendors"></section>
+      <section id="FeaturesSection"></section>
+
+      <button id="prevVendorBtn"></button>
+      <button id="nextVendorBtn"></button>
+      <section id="featured-vendors"></section>
     `;
 
     global.lucide = {
@@ -40,11 +44,8 @@ describe("index.js", () => {
     global.alert = jest.fn();
 
     jest.spyOn(console, "error").mockImplementation(() => {});
-
-    jest.spyOn(global, "setInterval").mockImplementation((callback) => {
-      callback();
-      return 1;
-    });
+    jest.spyOn(global, "setInterval").mockImplementation(() => 1);
+    jest.spyOn(Math, "random").mockReturnValue(0.6);
 
     const dbModule = await import("../scripts/database.js");
 
@@ -58,7 +59,7 @@ describe("index.js", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   test("loads and renders only approved vendors", async () => {
@@ -287,5 +288,50 @@ describe("index.js", () => {
     document.getElementById("BrowseVendors").click();
 
     expect(console.error).toHaveBeenCalled();
+  });
+
+  test("next button changes featured vendors", async () => {
+    getDocs.mockResolvedValue({
+      docs: [
+        { id: "1", data: () => ({ role: "vendor", status: "approved", shopName: "A" }) },
+        { id: "2", data: () => ({ role: "vendor", status: "approved", shopName: "B" }) },
+        { id: "3", data: () => ({ role: "vendor", status: "approved", shopName: "C" }) },
+        { id: "4", data: () => ({ role: "vendor", status: "approved", shopName: "D" }) }
+      ]
+    });
+
+    await loadIndex();
+
+    const before = document.getElementById("featured-vendors").innerHTML;
+
+    document.getElementById("nextVendorBtn").click();
+
+    const after = document.getElementById("featured-vendors").innerHTML;
+
+    expect(after).not.toBe(before);
+    expect(after).toContain("D");
+  });
+
+  test("prev button navigates backwards", async () => {
+    getDocs.mockResolvedValue({
+      docs: [
+        { id: "1", data: () => ({ role: "vendor", status: "approved", shopName: "A" }) },
+        { id: "2", data: () => ({ role: "vendor", status: "approved", shopName: "B" }) },
+        { id: "3", data: () => ({ role: "vendor", status: "approved", shopName: "C" }) },
+        { id: "4", data: () => ({ role: "vendor", status: "approved", shopName: "D" }) }
+      ]
+    });
+
+    await loadIndex();
+
+    const initial = document.getElementById("featured-vendors").innerHTML;
+
+    document.getElementById("nextVendorBtn").click();
+    document.getElementById("prevVendorBtn").click();
+
+    const afterPrev = document.getElementById("featured-vendors").innerHTML;
+
+    expect(afterPrev).toBe(initial);
+    expect(afterPrev).toContain("A");
   });
 });

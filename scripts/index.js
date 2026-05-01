@@ -45,14 +45,14 @@ browseVendors?.addEventListener("click", () => {
   window.location.href = "browse.html";
 });
 
-let vendors = [];
-let currentIndex = 0;
+export let vendors = [];
+export let currentIndex = 0;
 
 function shuffleArray(array) {
   return array.sort(() => Math.random() - 0.5);
 }
 
-function renderVendors() {
+export function renderVendors() {
   if (!featuredVendors || vendors.length === 0) {
     featuredVendors.innerHTML = `
       <p class="text-center text-gray-500 col-span-3">

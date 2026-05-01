@@ -131,6 +131,7 @@ describe("browse.js", () => {
 
       <section id="item-edit-modal" class="hidden"></section>
       <section id="cartList"></section>
+      <section id="details-modal" class="hidden"></section>
 
       <button id="closeCartModal"></button>
       <button id="checkOut">Check Out</button>
@@ -565,5 +566,64 @@ test("renders one item count when one item is visible", async () => {
 
   expect(document.getElementById("numItems").textContent)
     .toBe("1 item found");
+});
+test("opens item details modal when Details button is clicked", async () => {
+  mockBrowseQueries(db);
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => cb(null));
+
+  const mod = await import("../scripts/browse.js");
+  await mod.loadBrowseItems();
+
+  // click Details button
+  document.querySelector(".item-details-btn").click();
+
+  const modal = document.getElementById("details-modal");
+
+  expect(modal.classList.contains("hidden")).toBe(false);
+  expect(modal.innerHTML).toContain("Burger");
+});
+test("renders vendor location in item details modal", async () => {
+  mockBrowseQueries(db, sampleItems, [
+    {
+      id: "vendor-1",
+      role: "vendor",
+      status: "approved",
+      shopName: "Shop1",
+      location: "Matrix"
+    }
+  ]);
+
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => cb(null));
+
+  const mod = await import("../scripts/browse.js");
+  await mod.loadBrowseItems();
+
+  document.querySelector(".item-details-btn").click();
+
+  expect(document.getElementById("details-modal").innerHTML)
+    .toContain("Matrix");
+});
+test("renders nutritional info in modal", async () => {
+  mockBrowseQueries(db, [
+    {
+      ...sampleItems[0],
+      calories: 500,
+      protein: 20,
+      carbs: 60
+    }
+  ], approvedVendors);
+
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => cb(null));
+
+  const mod = await import("../scripts/browse.js");
+  await mod.loadBrowseItems();
+
+  document.querySelector(".item-details-btn").click();
+
+  const html = document.getElementById("details-modal").innerHTML;
+
+  expect(html).toContain("500");
+  expect(html).toContain("20");
+  expect(html).toContain("60");
 });
 });
