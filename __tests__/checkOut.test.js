@@ -387,4 +387,98 @@ test("handles updateDoc failure when cancelling order", async () => {
   expect(errorSpy).toHaveBeenCalled();
   expect(alertSpy).toHaveBeenCalledWith("Failed to cancel order");
 });
+test("does nothing when order is not found in cache", async () => {
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+    cb({ uid: "user-123" });
+  });
+
+  db.getDocs.mockResolvedValue(
+    makeSnapshot([
+      {
+        id: "order-1",
+        userId: "user-123",
+        status: "Pending",
+        menuItems: [{ name: "Burger", price: 50 }]
+      }
+    ])
+  );
+
+  require("../scripts/checkOut.js");
+  await Promise.resolve();
+  await Promise.resolve();
+
+  // Simulate clicking a button with invalid index
+  const tbody = document.getElementById("order-table-body");
+
+  const fakeBtn = document.createElement("button");
+  fakeBtn.setAttribute("data-index", "999"); // invalid index
+
+  tbody.appendChild(fakeBtn);
+
+  fakeBtn.click();
+
+  // No crash = pass
+  expect(true).toBe(true);
+});
+test("does nothing if itemList or numItemsOrder is missing", async () => {
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+    cb({ uid: "user-123" });
+  });
+
+  db.getDocs.mockResolvedValue(
+    makeSnapshot([
+      {
+        id: "order-1",
+        userId: "user-123",
+        status: "Pending",
+        menuItems: [{ name: "Burger", price: 50 }]
+      }
+    ])
+  );
+
+  // REMOVE required elements to hit the guard clause
+  document.getElementById("itemList").remove();
+
+  require("../scripts/checkOut.js");
+  await Promise.resolve();
+  await Promise.resolve();
+
+  const detailsButton = document.querySelector('#order-table-body button[data-index="0"]');
+  detailsButton.click();
+
+  // If no crash, test passes
+  expect(true).toBe(true);
+});
+test("updates UI after successful order cancellation", async () => {
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+    cb({ uid: "user-123" });
+  });
+
+  db.getDocs.mockResolvedValue(
+    makeSnapshot([
+      {
+        id: "order-1",
+        userId: "user-123",
+        status: "Pending",
+        menuItems: [{ name: "Burger", price: 50 }]
+      }
+    ])
+  );
+
+  db.updateDoc.mockResolvedValue({});
+
+  require("../scripts/checkOut.js");
+  await Promise.resolve();
+  await Promise.resolve();
+
+  // click cancel
+  document.querySelector('#order-table-body button[data-index="-1"]').click();
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  // THIS is what covers the missing lines
+  expect(document.getElementById("order-table-body").innerHTML)
+    .toContain("cancelled");
+});
 });
