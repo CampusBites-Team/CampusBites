@@ -626,4 +626,40 @@ test("renders nutritional info in modal", async () => {
   expect(html).toContain("20");
   expect(html).toContain("60");
 });
+test("closes item details modal when close button is clicked", async () => {
+  mockBrowseQueries(db);
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => cb(null));
+
+  const mod = await import("../scripts/browse.js");
+  await mod.loadBrowseItems();
+
+  document.querySelector(".item-details-btn").click();
+
+  expect(document.getElementById("details-modal").classList.contains("hidden"))
+    .toBe(false);
+
+  document.getElementById("closeDetailsModal").click();
+
+  expect(document.getElementById("details-modal").classList.contains("hidden"))
+    .toBe(true);
+});
+test("adds item to cart from details modal", async () => {
+  mockBrowseQueries(db);
+  db.onAuthStateChanged.mockImplementation((_auth, cb) =>
+    cb({ uid: "customer-1" })
+  );
+
+  const mod = await import("../scripts/browse.js");
+  await mod.loadBrowseItems();
+
+  document.querySelector(".item-details-btn").click();
+  document.getElementById("detailsAddToCart").click();
+
+  const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+  expect(cart).toHaveLength(1);
+  expect(cart[0].name).toBe("Burger");
+  expect(document.getElementById("details-modal").classList.contains("hidden"))
+    .toBe(true);
+});
 });
