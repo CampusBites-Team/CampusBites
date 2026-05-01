@@ -149,7 +149,7 @@ describe("checkOut.js", () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    const detailsButton = document.querySelector("#order-table-body button");
+    const detailsButton = document.querySelector('#order-table-body button[data-index="0"]');
     detailsButton.click();
 
     expect(document.getElementById("modal-title").textContent).toBe("Items in Order");
@@ -193,7 +193,7 @@ describe("checkOut.js", () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    const detailsButton = document.querySelector("#order-table-body button");
+    const detailsButton = document.querySelector('#order-table-body button[data-index="0"]');
     detailsButton.click();
 
     expect(document.getElementById("numItemsOrder").textContent).toBe("1 item in order");

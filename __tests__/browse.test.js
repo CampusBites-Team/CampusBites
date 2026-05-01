@@ -126,6 +126,7 @@ describe("browse.js", () => {
       <p id="numItems"></p>
       <p id="numItemsCart"></p>
       <section id="cartWarning" class="hidden"></section>
+      <section id="PriceFilter"></section>
 
       <section id="menu"></section>
 
