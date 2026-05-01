@@ -301,4 +301,90 @@ test("alerts when order cannot be cancelled because it is in progress", async ()
     "Order cannot be cancelled, it is already in progress."
   );
 });
+test("cancels order when status is lowercase pending", async () => {
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+    cb({ uid: "user-123" });
+  });
+
+  db.getDocs.mockResolvedValue(
+    makeSnapshot([
+      {
+        id: "order-1",
+        userId: "user-123",
+        status: "pending",
+        menuItems: [{ name: "Burger", price: 50 }]
+      }
+    ])
+  );
+
+  db.updateDoc.mockResolvedValue({});
+
+  require("../scripts/checkOut.js");
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.querySelector('#order-table-body button[data-index="-1"]').click();
+
+  await Promise.resolve();
+
+  expect(db.updateDoc).toHaveBeenCalled();
+});
+test("alerts when order status is capital Cancelled", async () => {
+  const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
+
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+    cb({ uid: "user-123" });
+  });
+
+  db.getDocs.mockResolvedValue(
+    makeSnapshot([
+      {
+        id: "order-1",
+        userId: "user-123",
+        status: "Cancelled",
+        menuItems: [{ name: "Burger", price: 50 }]
+      }
+    ])
+  );
+
+  require("../scripts/checkOut.js");
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.querySelector('#order-table-body button[data-index="-1"]').click();
+
+  expect(alertSpy).toHaveBeenCalledWith("Order is already cancelled");
+});
+test("handles updateDoc failure when cancelling order", async () => {
+  const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
+  const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+    cb({ uid: "user-123" });
+  });
+
+  db.getDocs.mockResolvedValue(
+    makeSnapshot([
+      {
+        id: "order-1",
+        userId: "user-123",
+        status: "Pending",
+        menuItems: [{ name: "Burger", price: 50 }]
+      }
+    ])
+  );
+
+  db.updateDoc.mockRejectedValue(new Error("fail"));
+
+  require("../scripts/checkOut.js");
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.querySelector('#order-table-body button[data-index="-1"]').click();
+
+  await Promise.resolve();
+
+  expect(errorSpy).toHaveBeenCalled();
+  expect(alertSpy).toHaveBeenCalledWith("Failed to cancel order");
+});
 });
