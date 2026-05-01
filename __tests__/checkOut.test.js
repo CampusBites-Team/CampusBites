@@ -211,4 +211,94 @@ describe("checkOut.js", () => {
     expect(document.getElementById("order-table-body").innerHTML)
   .toContain("Please log in to view your orders.");
   });
+  test("cancels pending order when Cancel Order button is clicked", async () => {
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+    cb({ uid: "user-123" });
+  });
+
+  db.getDocs.mockResolvedValue(
+    makeSnapshot([
+      {
+        id: "order-1",
+        userId: "user-123",
+        status: "Pending",
+        menuItems: [{ name: "Burger", price: 50 }]
+      }
+    ])
+  );
+
+  db.updateDoc.mockResolvedValue({});
+
+  require("../scripts/checkOut.js");
+  await Promise.resolve();
+  await Promise.resolve();
+
+  const cancelButton = document.querySelector(
+    '#order-table-body button[data-index="-1"]'
+  );
+
+  cancelButton.click();
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(db.updateDoc).toHaveBeenCalledWith(
+    undefined,
+    { status: "cancelled" }
+  );
+});
+test("alerts when cancelled order is cancelled again", async () => {
+  const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
+
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+    cb({ uid: "user-123" });
+  });
+
+  db.getDocs.mockResolvedValue(
+    makeSnapshot([
+      {
+        id: "order-1",
+        userId: "user-123",
+        status: "cancelled",
+        menuItems: [{ name: "Burger", price: 50 }]
+      }
+    ])
+  );
+
+  require("../scripts/checkOut.js");
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.querySelector('#order-table-body button[data-index="-1"]').click();
+
+  expect(alertSpy).toHaveBeenCalledWith("Order is already cancelled");
+});
+test("alerts when order cannot be cancelled because it is in progress", async () => {
+  const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
+
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+    cb({ uid: "user-123" });
+  });
+
+  db.getDocs.mockResolvedValue(
+    makeSnapshot([
+      {
+        id: "order-1",
+        userId: "user-123",
+        status: "Preparing",
+        menuItems: [{ name: "Burger", price: 50 }]
+      }
+    ])
+  );
+
+  require("../scripts/checkOut.js");
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.querySelector('#order-table-body button[data-index="-1"]').click();
+
+  expect(alertSpy).toHaveBeenCalledWith(
+    "Order cannot be cancelled, it is already in progress."
+  );
+});
 });
