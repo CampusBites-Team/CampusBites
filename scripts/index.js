@@ -165,5 +165,23 @@ function getVendorRating(vendor) {
 
   return (3.8 + (total % 12) / 10).toFixed(1);
 }
+document.getElementById("nextVendorBtn")?.addEventListener("click", () => {
+  if (!vendors.length) return;
+
+  currentIndex = (currentIndex + 3) % vendors.length;
+  renderVendors();
+});
+
+document.getElementById("prevVendorBtn")?.addEventListener("click", () => {
+  if (!vendors.length) return;
+
+  currentIndex = currentIndex - 3;
+
+  if (currentIndex < 0) {
+    currentIndex = Math.max(vendors.length - 3, 0);
+  }
+
+  renderVendors();
+});
 
 loadFeaturedVendors();

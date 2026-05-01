@@ -266,9 +266,8 @@ describe("browse.js", () => {
 
     const mod = await import("../scripts/browse.js");
     await mod.loadBrowseItems();
-
-    document.querySelector('[data-item-id="1"]').click();
-    document.querySelector('[data-item-id="2"]').click();
+    document.querySelector('.add-cart-btn[data-item-id="1"]').click();
+    document.querySelector('.add-cart-btn[data-item-id="2"]').click();
 
     document.getElementById("checkOut").click();
 
@@ -349,9 +348,8 @@ describe("browse.js", () => {
 
     const mod = await import("../scripts/browse.js");
     await mod.loadBrowseItems();
-
-    document.querySelector('[data-item-id="1"]').click();
-    document.querySelector('[data-item-id="5"]').click();
+    document.querySelector('.add-cart-btn[data-item-id="1"]').click();
+    document.querySelector('.add-cart-btn[data-item-id="5"]').click();
 
     document.getElementById("checkOut").click();
 
