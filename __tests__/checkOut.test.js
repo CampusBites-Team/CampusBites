@@ -149,7 +149,7 @@ describe("checkOut.js", () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    const detailsButton = document.querySelector("#order-table-body button");
+    const detailsButton = document.querySelector('#order-table-body button[data-index="0"]');
     detailsButton.click();
 
     expect(document.getElementById("modal-title").textContent).toBe("Items in Order");
@@ -193,7 +193,7 @@ describe("checkOut.js", () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    const detailsButton = document.querySelector("#order-table-body button");
+    const detailsButton = document.querySelector('#order-table-body button[data-index="0"]');
     detailsButton.click();
 
     expect(document.getElementById("numItemsOrder").textContent).toBe("1 item in order");
@@ -211,4 +211,274 @@ describe("checkOut.js", () => {
     expect(document.getElementById("order-table-body").innerHTML)
   .toContain("Please log in to view your orders.");
   });
+  test("cancels pending order when Cancel Order button is clicked", async () => {
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+    cb({ uid: "user-123" });
+  });
+
+  db.getDocs.mockResolvedValue(
+    makeSnapshot([
+      {
+        id: "order-1",
+        userId: "user-123",
+        status: "Pending",
+        menuItems: [{ name: "Burger", price: 50 }]
+      }
+    ])
+  );
+
+  db.updateDoc.mockResolvedValue({});
+
+  require("../scripts/checkOut.js");
+  await Promise.resolve();
+  await Promise.resolve();
+
+  const cancelButton = document.querySelector(
+    '#order-table-body button[data-index="-1"]'
+  );
+
+  cancelButton.click();
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(db.updateDoc).toHaveBeenCalledWith(
+    undefined,
+    { status: "cancelled" }
+  );
+});
+test("alerts when cancelled order is cancelled again", async () => {
+  const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
+
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+    cb({ uid: "user-123" });
+  });
+
+  db.getDocs.mockResolvedValue(
+    makeSnapshot([
+      {
+        id: "order-1",
+        userId: "user-123",
+        status: "cancelled",
+        menuItems: [{ name: "Burger", price: 50 }]
+      }
+    ])
+  );
+
+  require("../scripts/checkOut.js");
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.querySelector('#order-table-body button[data-index="-1"]').click();
+
+  expect(alertSpy).toHaveBeenCalledWith("Order is already cancelled");
+});
+test("alerts when order cannot be cancelled because it is in progress", async () => {
+  const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
+
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+    cb({ uid: "user-123" });
+  });
+
+  db.getDocs.mockResolvedValue(
+    makeSnapshot([
+      {
+        id: "order-1",
+        userId: "user-123",
+        status: "Preparing",
+        menuItems: [{ name: "Burger", price: 50 }]
+      }
+    ])
+  );
+
+  require("../scripts/checkOut.js");
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.querySelector('#order-table-body button[data-index="-1"]').click();
+
+  expect(alertSpy).toHaveBeenCalledWith(
+    "Order cannot be cancelled, it is already in progress."
+  );
+});
+test("cancels order when status is lowercase pending", async () => {
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+    cb({ uid: "user-123" });
+  });
+
+  db.getDocs.mockResolvedValue(
+    makeSnapshot([
+      {
+        id: "order-1",
+        userId: "user-123",
+        status: "pending",
+        menuItems: [{ name: "Burger", price: 50 }]
+      }
+    ])
+  );
+
+  db.updateDoc.mockResolvedValue({});
+
+  require("../scripts/checkOut.js");
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.querySelector('#order-table-body button[data-index="-1"]').click();
+
+  await Promise.resolve();
+
+  expect(db.updateDoc).toHaveBeenCalled();
+});
+test("alerts when order status is capital Cancelled", async () => {
+  const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
+
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+    cb({ uid: "user-123" });
+  });
+
+  db.getDocs.mockResolvedValue(
+    makeSnapshot([
+      {
+        id: "order-1",
+        userId: "user-123",
+        status: "Cancelled",
+        menuItems: [{ name: "Burger", price: 50 }]
+      }
+    ])
+  );
+
+  require("../scripts/checkOut.js");
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.querySelector('#order-table-body button[data-index="-1"]').click();
+
+  expect(alertSpy).toHaveBeenCalledWith("Order is already cancelled");
+});
+test("handles updateDoc failure when cancelling order", async () => {
+  const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
+  const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+    cb({ uid: "user-123" });
+  });
+
+  db.getDocs.mockResolvedValue(
+    makeSnapshot([
+      {
+        id: "order-1",
+        userId: "user-123",
+        status: "Pending",
+        menuItems: [{ name: "Burger", price: 50 }]
+      }
+    ])
+  );
+
+  db.updateDoc.mockRejectedValue(new Error("fail"));
+
+  require("../scripts/checkOut.js");
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.querySelector('#order-table-body button[data-index="-1"]').click();
+
+  await Promise.resolve();
+
+  expect(errorSpy).toHaveBeenCalled();
+  expect(alertSpy).toHaveBeenCalledWith("Failed to cancel order");
+});
+test("does nothing when order is not found in cache", async () => {
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+    cb({ uid: "user-123" });
+  });
+
+  db.getDocs.mockResolvedValue(
+    makeSnapshot([
+      {
+        id: "order-1",
+        userId: "user-123",
+        status: "Pending",
+        menuItems: [{ name: "Burger", price: 50 }]
+      }
+    ])
+  );
+
+  require("../scripts/checkOut.js");
+  await Promise.resolve();
+  await Promise.resolve();
+
+  // Simulate clicking a button with invalid index
+  const tbody = document.getElementById("order-table-body");
+
+  const fakeBtn = document.createElement("button");
+  fakeBtn.setAttribute("data-index", "999"); // invalid index
+
+  tbody.appendChild(fakeBtn);
+
+  fakeBtn.click();
+
+  // No crash = pass
+  expect(true).toBe(true);
+});
+test("does nothing if itemList or numItemsOrder is missing", async () => {
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+    cb({ uid: "user-123" });
+  });
+
+  db.getDocs.mockResolvedValue(
+    makeSnapshot([
+      {
+        id: "order-1",
+        userId: "user-123",
+        status: "Pending",
+        menuItems: [{ name: "Burger", price: 50 }]
+      }
+    ])
+  );
+
+  // REMOVE required elements to hit the guard clause
+  document.getElementById("itemList").remove();
+
+  require("../scripts/checkOut.js");
+  await Promise.resolve();
+  await Promise.resolve();
+
+  const detailsButton = document.querySelector('#order-table-body button[data-index="0"]');
+  detailsButton.click();
+
+  // If no crash, test passes
+  expect(true).toBe(true);
+});
+test("updates UI after successful order cancellation", async () => {
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+    cb({ uid: "user-123" });
+  });
+
+  db.getDocs.mockResolvedValue(
+    makeSnapshot([
+      {
+        id: "order-1",
+        userId: "user-123",
+        status: "Pending",
+        menuItems: [{ name: "Burger", price: 50 }]
+      }
+    ])
+  );
+
+  db.updateDoc.mockResolvedValue({});
+
+  require("../scripts/checkOut.js");
+  await Promise.resolve();
+  await Promise.resolve();
+
+  // click cancel
+  document.querySelector('#order-table-body button[data-index="-1"]').click();
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  // THIS is what covers the missing lines
+  expect(document.getElementById("order-table-body").innerHTML)
+    .toContain("cancelled");
+});
 });

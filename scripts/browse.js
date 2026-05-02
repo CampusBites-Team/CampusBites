@@ -16,12 +16,13 @@ const vegetarian = document.getElementById("Vegetarian");
 const halal = document.getElementById("Halal");
 const gluten = document.getElementById("Gluten-Free");
 const menuList = document.getElementById("menu");
-
+let priceSlider = document.getElementById("PriceSlider");
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 let restrictions = [false, false, false, false];
 let vendor = "AllVendors";
 let category = "AllCategories";
 let done = false;
+let maxPrice2 = Number.MAX_SAFE_INTEGER;
 function renderStars(rating) {
   const rounded = Math.round(rating);
   let stars = "";
@@ -71,7 +72,7 @@ function addToCart(item) {
 
 function applyFilter(item) {
   if (!item.available) return false;
-
+  if(item.price > maxPrice2)return false;
   if (restrictions[0] && !(item.dietary || []).includes("Vegan")) return false;
   if (restrictions[1] && !(item.dietary || []).includes("Vegetarian")) return false;
   if (restrictions[3] && !(item.dietary || []).includes("Halal")) return false;
@@ -321,6 +322,23 @@ const loadMenuItems = async () => {
   }
 
   if (!done) {
+    let maxPrice = 0;
+  for(let i = 0; i < items.length; i++){
+    if(items[i].price > maxPrice){
+      maxPrice = items[i].price;
+    }
+  }
+  document.getElementById("PriceFilter").innerHTML = `
+  <label id = "PriceLabel" class="text-sm font-medium text-gray-700 mb-2 block">
+    Max Price: R${maxPrice}
+  </label>
+  <input id = "PriceSlider" type="range" min="0" max="${maxPrice}" value="${maxPrice}" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">`;
+  priceSlider = document.getElementById("PriceSlider");
+  priceSlider.addEventListener("click", () => {
+  document.getElementById("PriceLabel").textContent = `Max Price: ${priceSlider.value}`;
+  maxPrice2 = priceSlider.value;
+  loadMenuItems();
+  });
     menuList?.addEventListener("click", (e) => {
       const btn = e.target.closest("button");
       if (!btn) return;

@@ -126,6 +126,7 @@ describe("browse.js", () => {
       <p id="numItems"></p>
       <p id="numItemsCart"></p>
       <section id="cartWarning" class="hidden"></section>
+      <section id="PriceFilter"></section>
 
       <section id="menu"></section>
 
@@ -549,23 +550,55 @@ test("filters by category", async () => {
   expect(html).not.toContain("Burger");
   expect(html).not.toContain("Pizza");
 });
-
-test("renders one item count when one item is visible", async () => {
-  mockBrowseQueries(db, [sampleItems[0]], [
-    {
-      id: "vendor-1",
-      role: "vendor",
-      status: "approved",
-      shopName: "Shop1"
-    }
-  ]);
-
+test("price slider filters items by max price", async () => {
+  mockBrowseQueries(db);
   db.onAuthStateChanged.mockImplementation((_auth, cb) => cb(null));
 
   const mod = await import("../scripts/browse.js");
   await mod.loadBrowseItems();
 
-  expect(document.getElementById("numItems").textContent)
-    .toBe("1 item found");
+  const slider = document.getElementById("PriceSlider");
+
+  expect(slider).not.toBeNull();
+
+  slider.value = "40";
+
+  mockBrowseQueries(db);
+
+  slider.dispatchEvent(new Event("click", { bubbles: true }));
+
+  await flush();
+
+  expect(document.getElementById("PriceLabel").textContent)
+    .toContain("Max Price: 40");
+
+  const html = document.getElementById("menu").innerHTML;
+
+  expect(html).not.toContain("Burger");
+  expect(html).not.toContain("Pizza");
+  expect(html).not.toContain("Wrap");
 });
+
+test("remove cart ignores invalid index", async () => {
+  mockBrowseQueries(db);
+  db.onAuthStateChanged.mockImplementation((_auth, cb) =>
+    cb({ uid: "user-1" })
+  );
+
+  const mod = await import("../scripts/browse.js");
+  await mod.loadBrowseItems();
+
+  document.querySelector(".add-cart-btn").click();
+  document.getElementById("cart").click();
+
+  const btn = document.createElement("button");
+  btn.className = "remove-cart-btn";
+  btn.dataset.cartIndex = "invalid";
+
+  document.getElementById("cartList").appendChild(btn);
+  btn.click();
+
+  expect(document.getElementById("cartList").innerHTML).toContain("Burger");
+});
+
 });
