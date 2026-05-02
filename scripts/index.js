@@ -45,14 +45,14 @@ browseVendors?.addEventListener("click", () => {
   window.location.href = "browse.html";
 });
 
-let vendors = [];
-let currentIndex = 0;
+export let vendors = [];
+export let currentIndex = 0;
 
 function shuffleArray(array) {
   return array.sort(() => Math.random() - 0.5);
 }
 
-function renderVendors() {
+export function renderVendors() {
   if (!featuredVendors || vendors.length === 0) {
     featuredVendors.innerHTML = `
       <p class="text-center text-gray-500 col-span-3">
@@ -165,5 +165,23 @@ function getVendorRating(vendor) {
 
   return (3.8 + (total % 12) / 10).toFixed(1);
 }
+document.getElementById("nextVendorBtn")?.addEventListener("click", () => {
+  if (!vendors.length) return;
+
+  currentIndex = (currentIndex + 3) % vendors.length;
+  renderVendors();
+});
+
+document.getElementById("prevVendorBtn")?.addEventListener("click", () => {
+  if (!vendors.length) return;
+
+  currentIndex = currentIndex - 3;
+
+  if (currentIndex < 0) {
+    currentIndex = Math.max(vendors.length - 3, 0);
+  }
+
+  renderVendors();
+});
 
 loadFeaturedVendors();

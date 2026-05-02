@@ -95,6 +95,13 @@ openEditItem: async (id) => {
     document.getElementById('item-description').value = item.description;
     document.getElementById('item-price').value = item.price;
     document.getElementById('item-category').value = item.category;
+    const caloriesEl = document.getElementById('item-calories');
+    const proteinEl = document.getElementById('item-protein');
+    const carbsEl = document.getElementById('item-carbs');
+
+    if (caloriesEl) caloriesEl.value = item.calories || "";
+    if (proteinEl) proteinEl.value = item.protein || "";
+    if (carbsEl) carbsEl.value = item.carbs || "";
 
     // checkboxes reset
     document.querySelectorAll('.item-allergen').forEach(cb => {
@@ -133,9 +140,16 @@ saveItem: async (event) => {
       console.error("No user logged in");
       return;
     }
+
     const id = document.getElementById('edit-item-id').value;
     const file = document.getElementById('item-image').files[0];
+    const caloriesInput = document.getElementById('item-calories');
+    const proteinInput = document.getElementById('item-protein');
+    const carbsInput = document.getElementById('item-carbs');
 
+    const calories = parseFloat(caloriesInput?.value) || 0;
+    const protein = parseFloat(proteinInput?.value) || 0;
+    const carbs = parseFloat(carbsInput?.value) || 0;
     const name = document.getElementById('item-name').value;
     const description = document.getElementById('item-description').value;
     const priceInput = document.getElementById('item-price').value.trim();
@@ -185,6 +199,9 @@ saveItem: async (event) => {
         price,
         category,
         allergens,
+        calories,
+        protein,
+        carbs,
         dietary,
         available: true,
         createdAt: serverTimestamp()

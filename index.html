@@ -171,9 +171,28 @@
 <section class="py-20 bg-gray-50">
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <h2 class="text-3xl font-bold text-center mb-12">Featured Vendors</h2>
+    <h3 class="text-xl text-gray-600 text-center mb-6">
+      Discover popular campus vendors and their top dishes.
+    </h3>
 
-    <section id="featured-vendors" class="grid md:grid-cols-3 gap-6">
-      <!-- Vendors will load here dynamically -->
+    <section class="relative flex items-center gap-4">
+      <button
+        id="prevVendorBtn"
+        class="shrink-0 bg-gray-200 w-10 h-10 rounded-full hover:bg-gray-300 flex items-center justify-center"
+      >
+        ←
+      </button>
+
+      <section id="featured-vendors" class="flex-1 grid md:grid-cols-3 gap-6">
+        <!-- Vendors will load here dynamically -->
+      </section>
+
+      <button
+        id="nextVendorBtn"
+        class="shrink-0 bg-gray-200 text-white w-10 h-10 rounded-full hover:bg-gray-300 flex items-center justify-center"
+      >
+        →
+      </button>
     </section>
   </section>
 </section>

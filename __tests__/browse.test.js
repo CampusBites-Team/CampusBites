@@ -132,6 +132,7 @@ describe("browse.js", () => {
 
       <section id="item-edit-modal" class="hidden"></section>
       <section id="cartList"></section>
+      <section id="details-modal" class="hidden"></section>
 
       <button id="closeCartModal"></button>
       <button id="checkOut">Check Out</button>
@@ -267,9 +268,8 @@ describe("browse.js", () => {
 
     const mod = await import("../scripts/browse.js");
     await mod.loadBrowseItems();
-
-    document.querySelector('[data-item-id="1"]').click();
-    document.querySelector('[data-item-id="2"]').click();
+    document.querySelector('.add-cart-btn[data-item-id="1"]').click();
+    document.querySelector('.add-cart-btn[data-item-id="2"]').click();
 
     document.getElementById("checkOut").click();
 
@@ -350,9 +350,8 @@ describe("browse.js", () => {
 
     const mod = await import("../scripts/browse.js");
     await mod.loadBrowseItems();
-
-    document.querySelector('[data-item-id="1"]').click();
-    document.querySelector('[data-item-id="5"]').click();
+    document.querySelector('.add-cart-btn[data-item-id="1"]').click();
+    document.querySelector('.add-cart-btn[data-item-id="5"]').click();
 
     document.getElementById("checkOut").click();
 
@@ -599,6 +598,101 @@ test("remove cart ignores invalid index", async () => {
   btn.click();
 
   expect(document.getElementById("cartList").innerHTML).toContain("Burger");
+});
+test("opens item details modal when Details button is clicked", async () => {
+  mockBrowseQueries(db);
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => cb(null));
+
+  const mod = await import("../scripts/browse.js");
+  await mod.loadBrowseItems();
+
+  // click Details button
+  document.querySelector(".item-details-btn").click();
+
+  const modal = document.getElementById("details-modal");
+
+  expect(modal.classList.contains("hidden")).toBe(false);
+  expect(modal.innerHTML).toContain("Burger");
+});
+test("renders vendor location in item details modal", async () => {
+  mockBrowseQueries(db, sampleItems, [
+    {
+      id: "vendor-1",
+      role: "vendor",
+      status: "approved",
+      shopName: "Shop1",
+      location: "Matrix"
+    }
+  ]);
+
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => cb(null));
+
+  const mod = await import("../scripts/browse.js");
+  await mod.loadBrowseItems();
+
+  document.querySelector(".item-details-btn").click();
+
+  expect(document.getElementById("details-modal").innerHTML)
+    .toContain("Matrix");
+});
+test("renders nutritional info in modal", async () => {
+  mockBrowseQueries(db, [
+    {
+      ...sampleItems[0],
+      calories: 500,
+      protein: 20,
+      carbs: 60
+    }
+  ], approvedVendors);
+
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => cb(null));
+
+  const mod = await import("../scripts/browse.js");
+  await mod.loadBrowseItems();
+
+  document.querySelector(".item-details-btn").click();
+
+  const html = document.getElementById("details-modal").innerHTML;
+
+  expect(html).toContain("500");
+  expect(html).toContain("20");
+  expect(html).toContain("60");
+});
+test("closes item details modal when close button is clicked", async () => {
+  mockBrowseQueries(db);
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => cb(null));
+
+  const mod = await import("../scripts/browse.js");
+  await mod.loadBrowseItems();
+
+  document.querySelector(".item-details-btn").click();
+
+  expect(document.getElementById("details-modal").classList.contains("hidden"))
+    .toBe(false);
+
+  document.getElementById("closeDetailsModal").click();
+
+  expect(document.getElementById("details-modal").classList.contains("hidden"))
+    .toBe(true);
+});
+test("adds item to cart from details modal", async () => {
+  mockBrowseQueries(db);
+  db.onAuthStateChanged.mockImplementation((_auth, cb) =>
+    cb({ uid: "customer-1" })
+  );
+
+  const mod = await import("../scripts/browse.js");
+  await mod.loadBrowseItems();
+
+  document.querySelector(".item-details-btn").click();
+  document.getElementById("detailsAddToCart").click();
+
+  const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+  expect(cart).toHaveLength(1);
+  expect(cart[0].name).toBe("Burger");
+  expect(document.getElementById("details-modal").classList.contains("hidden"))
+    .toBe(true);
 });
 
 });
