@@ -277,4 +277,48 @@ describe("orders.js", () => {
 
     expect(document.getElementById("newOrders").innerHTML).toContain("Unknown Customer");
   });
+  test("formats created and updated timestamps in vendor orders", async () => {
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "vendor-1" }));
+
+  const fakeDate = new Date("2026-05-08T10:30:00");
+
+  db.getDoc
+    .mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({ role: "vendor", status: "approved" })
+    })
+    .mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({ fullName: "Test Customer" })
+    });
+
+  db.onSnapshot.mockImplementation((_q, cb) => {
+    cb({
+      docs: [
+        {
+          id: "order-1",
+          data: () => ({
+            vendorId: "vendor-1",
+            userId: "customer-1",
+            status: "Pending",
+            createdAt: { toDate: () => fakeDate },
+            updatedAt: { toDate: () => fakeDate },
+            menuItems: [{ name: "Burger", quantity: 1 }]
+          })
+        }
+      ]
+    });
+    return jest.fn();
+  });
+
+  jest.isolateModules(() => {
+    require("../scripts/orders.js");
+  });
+
+  await flush();
+
+  expect(document.body.innerHTML).toContain("Placed:");
+  expect(document.body.innerHTML).toContain("Updated:");
+  expect(document.body.innerHTML).not.toContain("Not available");
+});
 });

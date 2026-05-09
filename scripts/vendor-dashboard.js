@@ -8,7 +8,8 @@ import {
   onAuthStateChanged,
   collection,
   query,
-  where
+  where,
+  serverTimestamp
 } from "./database.js";
 
 // ---------------- AUTH GUARD ----------------
@@ -130,7 +131,10 @@ export function renderOrders(orders) {
 
 export async function updateOrderStatus(orderId, newStatus) {
   const orderRef = doc(db, "orders", orderId);
-  await updateDoc(orderRef, { status: newStatus });
+  await updateDoc(orderRef, {
+    status: newStatus,
+    updatedAt: serverTimestamp()
+  });
 }
 
 export function attachOrderStatusListeners() {

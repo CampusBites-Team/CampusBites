@@ -151,13 +151,14 @@ module.exports = async (req, res) => {
           vendorId: v.vendorId,
           vendorName: v.vendorName,
           menuItems: v.items,
-          status: "pending",
+          status: "Pending",
           paymentStatus: "paid",
           total: v.subtotal,
           m_payment_id,
           pf_payment_id: fields.pf_payment_id || null,
           paidAt: paidAtIso,
-          createdAt: now
+          createdAt: now,
+          updatedAt: now
         });
         orderIds.push(orderRef.id);
 

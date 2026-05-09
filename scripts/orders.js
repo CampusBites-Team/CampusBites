@@ -24,24 +24,46 @@ onAuthStateChanged(auth, async (user) => {
   listenToVendorOrders(user.uid, renderOrdersByStatus);
 });
 
+function formatTimestamp(timestamp) {
+  if (!timestamp?.toDate) return "Not available";
+
+  return timestamp.toDate().toLocaleString("en-ZA", {
+    dateStyle: "medium",
+    timeStyle: "short"
+  });
+}
+
 function buildOrderHTML(order, index) {
   const items = (order.menuItems || [])
     .map(item => `<p>- ${item.name} x${item.quantity ?? 1}</p>`)
     .join("");
 
   return `
-    <div class="bg-white p-4 rounded-xl shadow mb-4">
-      <h3 class="font-bold">Order ${index + 1}</h3>
-      <p class="text-sm text-gray-500">Customer: ${order.customerName || "Unknown Customer"}</p>
+    <article class="bg-white p-4 rounded-xl shadow mb-4">
+      <header>
+        <h3 class="font-bold">Order ${index + 1}</h3>
 
-      <div class="mt-2">
+        <p class="text-sm text-gray-500">
+          Customer: ${order.customerName || "Unknown Customer"}
+        </p>
+
+        <p class="text-sm text-gray-500">
+          Placed: ${formatTimestamp(order.createdAt)}
+        </p>
+
+        <p class="text-sm text-gray-500">
+          Updated: ${formatTimestamp(order.updatedAt)}
+        </p>
+      </header>
+
+      <section class="mt-2">
         ${items}
-      </div>
+      </section>
 
       <p class="mt-2 font-semibold">
         Status: ${order.status || "Pending"}
       </p>
-    </div>
+    </article>
   `;
 }
 

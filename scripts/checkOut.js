@@ -2,13 +2,13 @@ import {
   db,
   getDocs,
   doc,
-  deleteDoc,
   collection,
   auth,
   updateDoc,
   onAuthStateChanged,
   query,
-  where
+  where,
+  serverTimestamp
 } from "./database.js";
 
 let currentUser = null;
@@ -77,6 +77,16 @@ async function loadOrders() {
 // ----------------------
 // Render orders table
 // ----------------------
+
+function formatTimestamp(timestamp) {
+  if (!timestamp?.toDate) return "Not available";
+
+  return timestamp.toDate().toLocaleString("en-ZA", {
+    dateStyle: "medium",
+    timeStyle: "short"
+  });
+}
+
 function renderOrders(orders) {
   const tbody = document.getElementById("order-table-body");
   if (!tbody) return;
@@ -95,6 +105,10 @@ function renderOrders(orders) {
   let html = "";
 
   orders.forEach((order, index) => {
+    const formattedStatus =
+      (order.status || "Pending").charAt(0).toUpperCase() +
+      (order.status || "Pending").slice(1).toLowerCase();
+
     const itemsHtml = (order.menuItems || [])
       .map(
         (item) => `
@@ -137,9 +151,16 @@ function renderOrders(orders) {
         </td>
 
         <td class="px-6 py-4">
-          <span>${order.status || "pending"}</span>
-        </td>
-      </tr>
+          <span>${formattedStatus}</span>
+
+          <p class="text-sm text-gray-500 mt-2">
+          Placed: ${formatTimestamp(order.createdAt)}
+          </p>
+
+          <p class="text-sm text-gray-500">
+          Updated: ${formatTimestamp(order.updatedAt)}
+         </p>
+</td>
     `;
   });
 
@@ -157,6 +178,18 @@ function updateDetails(order) {
 
   const items = order.menuItems || [];
   let html = "";
+
+  html += `
+  <section class="bg-gray-50 p-4 rounded-xl mb-4">
+    <p class="text-sm text-gray-600">
+      Placed: ${formatTimestamp(order.createdAt)}
+    </p>
+
+    <p class="text-sm text-gray-600">
+      Updated: ${formatTimestamp(order.updatedAt)}
+    </p>
+  </section>
+`;
 
   items.forEach((item) => {
     html += `
@@ -228,14 +261,15 @@ function updateDetails(order) {
 async function updateOrderStatus(order, status) {
   try{
     await updateDoc(doc(db, "orders", order.id), {
-      status: status
+      status: status,
+      updatedAt: serverTimestamp()
     });
+
     order.status = status;
-    renderOrders(ordersCache);
+    await loadOrders();
   } catch(error){
     console.error(error);
     alert("Failed to cancel order");
-    
   }
   
 }
