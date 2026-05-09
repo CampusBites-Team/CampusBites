@@ -202,6 +202,7 @@ describe("browse.js", () => {
       <section id="details-modal" class="hidden"></section>
 
       <button id="closeCartModal"></button>
+      <button id="empty"></button>
       <button id="checkOut">Pay Now</button>
     `;
 
