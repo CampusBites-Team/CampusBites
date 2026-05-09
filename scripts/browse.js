@@ -117,7 +117,6 @@ function updateCart() {
     if (numItemsCart) {
       numItemsCart.textContent = "0 items in cart";
     }
-
     updateCartCount();
     return;
   }
@@ -502,6 +501,11 @@ const loadMenuItems = async () => {
         cart.splice(index, 1);
         saveCart();
         updateCart();
+        if(cart.length == 0){
+          document.getElementById("empty").classList.add("hidden");
+        } else {
+          document.getElementById("empty").classList.remove("hidden");
+        }
       }
     });
 
@@ -556,6 +560,11 @@ document.getElementById("cart")?.addEventListener("click", () => {
   cart = JSON.parse(localStorage.getItem("cart")) || [];
 
   document.getElementById("item-edit-modal")?.classList.remove("hidden");
+  if(cart.length == 0){
+    document.getElementById("empty").classList.add("hidden");
+  } else {
+    document.getElementById("empty").classList.remove("hidden");
+  }
   updateCart();
 });
 
@@ -584,7 +593,9 @@ document.getElementById("checkOut")?.addEventListener("click", () => {
 document.getElementById("empty")?.addEventListener("click", () => {
   cart = [];
   saveCart();
+  updateCartCount();
   updateCart();
+  document.getElementById("empty").classList.add("hidden");
 });
 
 onAuthStateChanged(auth, async (user) => {
