@@ -581,6 +581,12 @@ document.getElementById("checkOut")?.addEventListener("click", () => {
   payfast.payNow();
 });
 
+document.getElementById("empty")?.addEventListener("click", () => {
+  cart = [];
+  saveCart();
+  updateCart();
+});
+
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUser = user;
