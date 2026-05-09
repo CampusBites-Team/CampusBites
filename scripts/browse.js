@@ -64,6 +64,16 @@ function updateCartCount() {
 }
 
 function addToCart(item) {
+  let vendorNum = 0;
+  for(let i = 0; i < cart.length; i++){
+    if(cart[i].vendorName == item.vendorName){
+      vendorNum++;
+    }
+  }
+  if(vendorNum == 10){
+    alert("You can order at most 10 items from the same vendor");
+    return;
+  }
   cart.push(item);
   saveCart();
   updateCart();
