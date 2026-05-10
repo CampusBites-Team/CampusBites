@@ -212,7 +212,7 @@ saveItem: async (event) => {
             return;
         }
 
-        const storageRef = ref(storage, `menu_items/${Date.now()}_${file.name}`);
+        const storageRef = ref(storage, `menu_items/${currentUser.uid}/${Date.now()}_${file.name}`);
         await uploadBytes(storageRef, file);
         imageUrl = await getDownloadURL(storageRef);
     }
