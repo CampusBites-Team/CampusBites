@@ -62,34 +62,60 @@ describe('calculateRevenue', () => {
 });
 
 describe('getStatusButtons', () => {
-  test('renders all three status buttons', () => {
+  test('renders only the next status button for pending orders', () => {
     const html = getStatusButtons({
       id: 'order-1',
       status: 'Pending'
     });
 
-    expect(html).toContain('Pending');
-    expect(html).toContain('Preparing');
-    expect(html).toContain('Ready');
+    expect(html).toContain('Mark as Preparing');
+    expect(html).toContain('data-status="Preparing"');
     expect(html).toContain('data-order-id="order-1"');
+    expect(html).not.toContain('data-status="Pending"');
+    expect(html).not.toContain('data-status="Ready"');
   });
 
-  test('disables the current status button', () => {
+  test('renders ready as the next status for preparing orders', () => {
     const html = getStatusButtons({
       id: 'order-2',
+      status: 'Preparing'
+    });
+
+    expect(html).toContain('Mark as Ready');
+    expect(html).toContain('data-status="Ready"');
+    expect(html).toContain('data-order-id="order-2"');
+  });
+
+  test('renders collected as the next status for ready orders', () => {
+    const html = getStatusButtons({
+      id: 'order-3',
       status: 'Ready'
     });
 
-    expect(html).toContain('data-status="Ready"');
-    expect(html).toContain('disabled');
+    expect(html).toContain('Mark as Collected');
+    expect(html).toContain('data-status="Collected"');
+    expect(html).toContain('data-order-id="order-3"');
   });
 
-  test('defaults to pending when status is missing', () => {
+  test('defaults missing status to pending and shows preparing as next status', () => {
     const html = getStatusButtons({
-      id: 'order-3'
+      id: 'order-4'
     });
 
-    expect(html).toContain('data-status="Pending"');
+    expect(html).toContain('Mark as Preparing');
+    expect(html).toContain('data-status="Preparing"');
+    expect(html).toContain('data-order-id="order-4"');
+  });
+
+  test('does not render a status button for collected orders', () => {
+    const html = getStatusButtons({
+      id: 'order-5',
+      status: 'Collected'
+    });
+
+    expect(html).toContain('This order has been collected and can no longer be updated.');
+    expect(html).not.toContain('button');
+    expect(html).not.toContain('data-status=');
   });
 });
 
@@ -100,11 +126,11 @@ describe('renderOrders', () => {
     `;
   });
 
-  test('shows empty message when there are no orders', () => {
+  test('shows empty message when there are no current orders', () => {
     renderOrders([]);
 
     expect(document.getElementById('orders-list').innerHTML)
-      .toContain('No orders available yet.');
+      .toContain('No current orders available.');
   });
 
   test('renders order details correctly', () => {
@@ -119,11 +145,12 @@ describe('renderOrders', () => {
     const html = document.getElementById('orders-list').innerHTML;
 
     expect(html).toContain('Order 1');
-    expect(html).toContain('Status: pending');
+    expect(html).toContain('Status: Pending');
     expect(html).toContain('Total: R75');
+    expect(html).toContain('Mark as Preparing');
   });
 
-  test('renders multiple orders correctly', () => {
+  test('renders multiple current orders correctly', () => {
     renderOrders([
       { id: '1', status: 'pending', total: 10 },
       { id: '2', status: 'ready', total: 20 }
@@ -133,6 +160,19 @@ describe('renderOrders', () => {
 
     expect(html).toContain('Order 1');
     expect(html).toContain('Order 2');
+    expect(html).toContain('Status: Pending');
+    expect(html).toContain('Status: Ready');
+  });
+
+  test('does not render collected orders in current orders', () => {
+    renderOrders([
+      { id: '1', status: 'Collected', total: 10 }
+    ]);
+
+    const html = document.getElementById('orders-list').innerHTML;
+
+    expect(html).toContain('No current orders available.');
+    expect(html).not.toContain('Order 1');
   });
 
   test('does nothing if orders-list element does not exist', () => {
@@ -181,16 +221,17 @@ describe('updateOrderStatus', () => {
     dbModule.doc.mockReturnValue('order-ref');
     dbModule.updateDoc.mockResolvedValue();
 
-    await updateOrderStatus('order-1', 'ready');
+    await updateOrderStatus('order-1', 'Preparing');
 
     expect(dbModule.doc).toHaveBeenCalledWith(dbModule.db, 'orders', 'order-1');
-    expect(dbModule.updateDoc).toHaveBeenCalledWith('order-ref', { status: 'ready' });
+    expect(dbModule.updateDoc).toHaveBeenCalledWith('order-ref', { status: 'Preparing' });
   });
 });
 
 describe('attachOrderStatusListeners', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
     document.body.innerHTML = `
       <section id="orders-list"></section>
     `;
@@ -254,6 +295,28 @@ describe('attachOrderStatusListeners', () => {
 
     const html = document.getElementById('orders-list').innerHTML;
     expect(html).toContain('Status: Preparing');
+    expect(html).toContain('Mark as Ready');
+  });
+
+  test('removes order from current orders when marked as collected', async () => {
+    dbModule.doc.mockReturnValue('order-ref');
+    dbModule.updateDoc.mockResolvedValue();
+
+    renderOrders([
+      { id: 'order-1', status: 'Ready', total: 75 }
+    ]);
+
+    attachOrderStatusListeners();
+
+    const button = document.querySelector('[data-order-id="order-1"][data-status="Collected"]');
+    button.click();
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(dbModule.updateDoc).toHaveBeenCalledWith('order-ref', { status: 'Collected' });
+    expect(document.getElementById('orders-list').innerHTML)
+      .toContain('No current orders available.');
   });
 });
 
@@ -395,5 +458,6 @@ describe('initVendorDashboard', () => {
     await Promise.resolve();
 
     expect(document.getElementById('orders-list').innerHTML).toContain('Order 1');
+    expect(document.getElementById('orders-list').innerHTML).toContain('Status: Pending');
   });
 });

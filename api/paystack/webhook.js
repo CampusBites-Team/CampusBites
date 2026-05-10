@@ -11,6 +11,7 @@ function readRawBody(req) {
     if (Buffer.isBuffer(req.body)) {
       return resolve(req.body.toString("utf8"));
     }
+
     let data = "";
     req.setEncoding("utf8");
     req.on("data", (chunk) => { data += chunk; });
@@ -28,6 +29,7 @@ module.exports = async (req, res) => {
   }
 
   let raw;
+
   try {
     raw = await readRawBody(req);
   } catch (err) {
@@ -36,6 +38,7 @@ module.exports = async (req, res) => {
   }
 
   const signature = req.headers["x-paystack-signature"];
+
   if (!verifyWebhookSignature(raw, signature)) {
     console.warn("[paystack-webhook] signature mismatch", {
       received_signature: signature,
@@ -45,6 +48,7 @@ module.exports = async (req, res) => {
   }
 
   let event;
+
   try {
     event = JSON.parse(raw);
   } catch (err) {
@@ -58,7 +62,6 @@ module.exports = async (req, res) => {
     } else if (event.event === "refund.processed") {
       await handleRefundProcessed(event.data || {});
     } else {
-      // Other events (transfer.success, subaccount.created, etc.) — ack and move on.
       console.log("[paystack-webhook] ignoring event", event.event);
     }
   } catch (err) {
@@ -83,13 +86,17 @@ async function handleChargeSuccess(data) {
 
   await db.runTransaction(async (tx) => {
     const snap = await tx.get(pendingRef);
+
     if (!snap.exists) {
       throw new Error(`pending_payments/${reference} not found`);
     }
+
     const pending = snap.data();
+
     if (pending.status === "paid") {
       return;
     }
+
     if (Math.abs(Number(pending.total) - amountRand) > 0.01) {
       throw new Error(
         `amount mismatch: pending=${pending.total} paystack=${amountRand}`
@@ -103,12 +110,13 @@ async function handleChargeSuccess(data) {
 
     for (const v of pending.vendorBreakdown) {
       const orderRef = db.collection("orders").doc();
+
       tx.set(orderRef, {
         userId: pending.userId,
         vendorId: v.vendorId,
         vendorName: v.vendorName,
         menuItems: v.items,
-        status: "pending",
+        status: "Pending",
         paymentStatus: "paid",
         total: v.subtotal,
         paystackReference: reference,
@@ -116,9 +124,11 @@ async function handleChargeSuccess(data) {
         paidAt: paidAtIso,
         createdAt: now
       });
+
       orderIds.push(orderRef.id);
 
       const vendorLedgerRef = db.collection("wallet_ledger").doc();
+
       tx.set(vendorLedgerRef, {
         type: "credit",
         vendorId: v.vendorId,
@@ -132,6 +142,7 @@ async function handleChargeSuccess(data) {
     }
 
     const platformLedgerRef = db.collection("wallet_ledger").doc();
+
     tx.set(platformLedgerRef, {
       type: "credit",
       vendorId: null,
@@ -153,12 +164,11 @@ async function handleChargeSuccess(data) {
 }
 
 async function handleRefundProcessed(data) {
-  // Paystack's refund.processed payload nests the original transaction details
-  // under data.transaction, with the merchant reference at .reference.
   const reference =
     data.transaction?.reference ||
     data.transaction_reference ||
     data.reference;
+
   if (!reference) {
     console.warn("[paystack-webhook] refund.processed missing transaction reference");
     return;
@@ -184,6 +194,7 @@ async function handleRefundProcessed(data) {
 
   ordersSnap.forEach((orderDoc) => {
     const order = orderDoc.data();
+
     batch.update(orderDoc.ref, {
       status: "refunded",
       paymentStatus: "refunded",
@@ -191,6 +202,7 @@ async function handleRefundProcessed(data) {
     });
 
     const reversalRef = db.collection("wallet_ledger").doc();
+
     batch.set(reversalRef, {
       type: "debit",
       vendorId: order.vendorId,
@@ -205,12 +217,16 @@ async function handleRefundProcessed(data) {
   });
 
   const platformReversalRef = db.collection("wallet_ledger").doc();
+
   batch.set(platformReversalRef, {
     type: "debit",
     vendorId: null,
     wallet: "campus_bites",
     paystackReference: reference,
-    amount: refundAmountRand || ordersSnap.docs.reduce((s, d) => s + (d.data().total || 0), 0),
+    amount: refundAmountRand || ordersSnap.docs.reduce(
+      (sum, docSnap) => sum + (docSnap.data().total || 0),
+      0
+    ),
     status: "refunded",
     reason: "refund.processed",
     createdAt: now
