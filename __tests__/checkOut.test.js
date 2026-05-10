@@ -42,6 +42,7 @@ describe("checkOut.js", () => {
     document.body.innerHTML = `
       <section id="active-orders"></section>
       <section id="ready-orders"></section>
+      <section id="refund-orders"></section>
       <section id="order-history"></section>
 
       <h3 id="modal-title"></h3>
@@ -137,6 +138,54 @@ describe("checkOut.js", () => {
 
     expect(document.getElementById("ready-orders").innerHTML).toContain("Pizza");
     expect(document.getElementById("ready-orders").innerHTML).toContain("Ready");
+  });
+
+  test("renders refund pending orders in refund section", async () => {
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      cb({ uid: "user-123" });
+    });
+
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "order-1",
+          userId: "user-123",
+          status: "refund pending",
+          menuItems: [{ name: "Burger", price: 50 }]
+        }
+      ])
+    );
+
+    require("../scripts/checkOut.js");
+    await flush();
+
+    expect(document.getElementById("refund-orders").innerHTML).toContain("Burger");
+    expect(document.getElementById("refund-orders").innerHTML).toContain("Refund pending");
+    expect(document.getElementById("refund-orders").innerHTML).toContain("Refund processing");
+  });
+
+  test("renders refunded orders in refund section", async () => {
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      cb({ uid: "user-123" });
+    });
+
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "order-1",
+          userId: "user-123",
+          status: "refunded",
+          menuItems: [{ name: "Burger", price: 50 }]
+        }
+      ])
+    );
+
+    require("../scripts/checkOut.js");
+    await flush();
+
+    expect(document.getElementById("refund-orders").innerHTML).toContain("Burger");
+    expect(document.getElementById("refund-orders").innerHTML).toContain("Refunded");
+    expect(document.getElementById("refund-orders").innerHTML).toContain("Refund completed");
   });
 
   test("renders collected orders in order history section", async () => {
@@ -279,7 +328,7 @@ describe("checkOut.js", () => {
     expect(document.getElementById("numItemsOrder").textContent).toBe("1 item in order");
   });
 
-  test("does nothing when user is not logged in", async () => {
+  test("shows login message when user is not logged in", async () => {
     db.onAuthStateChanged.mockImplementation((_auth, cb) => {
       cb(null);
     });
@@ -288,6 +337,8 @@ describe("checkOut.js", () => {
     await flush();
 
     expect(db.getDocs).not.toHaveBeenCalled();
+    expect(document.getElementById("active-orders").innerHTML)
+      .toContain("Please log in to view your orders.");
   });
 
   test("cancels pending order when Cancel button is clicked", async () => {
@@ -615,6 +666,8 @@ describe("checkOut.js", () => {
     await flush();
 
     expect(errorSpy).toHaveBeenCalled();
+    expect(document.getElementById("active-orders").innerHTML)
+      .toContain("Failed to load orders.");
   });
 
   test("formats created and updated timestamps in checkout orders", async () => {
@@ -718,6 +771,7 @@ describe("checkOut.js", () => {
     document.querySelector('.cancel-order-btn[data-order-id="order-1"]').click();
 
     await flush();
+    await flush();
 
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/paystack/refund",
@@ -735,7 +789,7 @@ describe("checkOut.js", () => {
       "Refund initiated. It usually clears within a few minutes."
     );
 
-    expect(document.getElementById("order-history").innerHTML)
+    expect(document.getElementById("refund-orders").innerHTML)
       .toContain("Refund pending");
   });
 
@@ -774,6 +828,7 @@ describe("checkOut.js", () => {
 
     document.querySelector('.cancel-order-btn[data-order-id="order-1"]').click();
 
+    await flush();
     await flush();
 
     expect(errorSpy).toHaveBeenCalled();
