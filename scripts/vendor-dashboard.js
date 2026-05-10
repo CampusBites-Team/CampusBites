@@ -53,7 +53,7 @@ export function initVendorDashboard(locationObj = window.location, alertFn = ale
 
 // ---------------- UTILS ----------------
 export const calculateRevenue = (orders) => {
-  return orders.reduce((sum, o) => sum + (o.total || 0), 0);
+  return orders.reduce((sum, order) => sum + (order.total || 0), 0);
 };
 
 export function normaliseStatus(status) {
@@ -100,6 +100,20 @@ export async function fetchVendorOrders(vendorId) {
   return orders;
 }
 
+export function renderQuickStats(orders) {
+  const pendingCount = document.getElementById("pending-count");
+  const preparingCount = document.getElementById("preparing-count");
+  const readyCount = document.getElementById("ready-count");
+  const collectedCount = document.getElementById("collected-count");
+
+  if (!pendingCount || !preparingCount || !readyCount || !collectedCount) return;
+
+  pendingCount.textContent = orders.filter((order) => formatStatus(order.status) === "Pending").length;
+  preparingCount.textContent = orders.filter((order) => formatStatus(order.status) === "Preparing").length;
+  readyCount.textContent = orders.filter((order) => formatStatus(order.status) === "Ready").length;
+  collectedCount.textContent = orders.filter((order) => formatStatus(order.status) === "Collected").length;
+}
+
 export function getStatusButtons(order) {
   const currentStatus = formatStatus(order.status);
   const nextStatus = getNextStatus(currentStatus);
@@ -119,13 +133,15 @@ export function getStatusButtons(order) {
       data-order-id="${order.id}"
       data-status="${nextStatus}"
     >
-      Mark as ${nextStatus}
+      ${nextStatus}
     </button>
   `;
 }
 
 export function renderOrders(orders) {
   const ordersList = document.getElementById("orders-list");
+
+  renderQuickStats(orders);
 
   if (!ordersList) return;
 
@@ -186,6 +202,16 @@ export function attachOrderStatusListeners() {
 
     if (newStatus === "Collected") {
       updatedOrderElement.remove();
+
+      const collectedCount = document.getElementById("collected-count");
+      if (collectedCount) {
+        collectedCount.textContent = String(Number(collectedCount.textContent || 0) + 1);
+      }
+
+      const readyCount = document.getElementById("ready-count");
+      if (readyCount) {
+        readyCount.textContent = String(Math.max(Number(readyCount.textContent || 0) - 1, 0));
+      }
 
       if (!ordersList.querySelector("article")) {
         ordersList.innerHTML = `<p class="text-gray-500">No current orders available.</p>`;
