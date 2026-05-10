@@ -87,84 +87,135 @@ function formatTimestamp(timestamp) {
   });
 }
 
+function buildOrderCard(order, orderNumber) {
+  const rawStatus = order.status || "Pending";
+  const status = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1).toLowerCase();
+
+  let statusColor = "bg-yellow-100 text-yellow-700";
+
+  if (["Preparing", "In progress"].includes(status)) {
+    statusColor = "bg-blue-100 text-blue-700";
+  }
+
+  if (status === "Ready") {
+    statusColor = "bg-green-100 text-green-700";
+  }
+
+  if (["Collected", "Cancelled", "Refunded", "Refund pending"].includes(status)) {
+    statusColor = "bg-gray-200 text-gray-700";
+  }
+
+  const itemsHtml = (order.menuItems || [])
+    .map((item) => `
+      <section class="flex items-center gap-3 py-2 border-b border-gray-100">
+        <img
+          src="${item.image || "assets/default.jpg"}"
+          alt="${item.name || "Menu item"}"
+          class="w-12 h-12 rounded-lg object-cover"
+        >
+
+        <section class="flex-1">
+          <p class="font-medium text-sm">${item.name || "Unnamed item"}</p>
+          <p class="text-xs text-gray-500">Qty: ${item.quantity ?? 1}</p>
+        </section>
+      </section>
+    `)
+    .join("");
+
+  return `
+    <article class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 hover:shadow-md transition">
+      <header class="flex justify-between items-start mb-4">
+        <section>
+          <h3 class="text-lg font-bold text-gray-900">Order ${orderNumber}</h3>
+          <p class="text-sm text-gray-500">Placed: ${formatTimestamp(order.createdAt)}</p>
+        </section>
+
+        <span class="px-3 py-1 rounded-full text-xs font-semibold ${statusColor}">
+          ${status}
+        </span>
+      </header>
+
+      <section class="space-y-2 mb-4 max-h-52 overflow-y-auto">
+        ${itemsHtml}
+      </section>
+
+      <p class="text-sm text-gray-500">
+        Updated: ${formatTimestamp(order.updatedAt)}
+      </p>
+
+      <section class="flex gap-2 mt-5">
+        ${
+          status === "Pending"
+            ? `
+              <button
+                type="button"
+                data-order-id="${order.id}"
+                class="cancel-order-btn flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700"
+              >
+                Cancel
+              </button>
+            `
+            : ""
+        }
+
+        <button
+          type="button"
+          data-order-id="${order.id}"
+          class="details-order-btn flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700"
+        >
+          Details
+        </button>
+      </section>
+    </article>
+  `;
+}
+
 function renderOrders(orders) {
-  const tbody = document.getElementById("order-table-body");
-  if (!tbody) return;
+  const activeOrdersContainer = document.getElementById("active-orders");
+  const readyOrdersContainer = document.getElementById("ready-orders");
+  const historyOrdersContainer = document.getElementById("order-history");
+
+  if (!activeOrdersContainer || !readyOrdersContainer || !historyOrdersContainer) return;
 
   if (!orders.length) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="3" class="px-6 py-4 text-center text-gray-500">
-          No orders found.
-        </td>
-      </tr>
-    `;
+    activeOrdersContainer.innerHTML = `<p class="text-sm text-gray-500 text-center py-8">No orders found.</p>`;
+    readyOrdersContainer.innerHTML = "";
+    historyOrdersContainer.innerHTML = "";
     return;
   }
 
-  let html = "";
-
-  orders.forEach((order, index) => {
-    const formattedStatus =
-      (order.status || "Pending").charAt(0).toUpperCase() +
-      (order.status || "Pending").slice(1).toLowerCase();
-
-    const itemsHtml = (order.menuItems || [])
-      .map(
-        (item) => `
-          <article class="flex flex-col items-center text-sm">
-            <img
-              src="${item.image || "assets/default.jpg"}"
-              alt="${item.name || "Menu item"}"
-              class="w-12 h-12 object-cover rounded-lg mb-2"
-            >
-            <span>${item.name || "Unnamed item"}</span>
-          </article>
-        `
-      )
-      .join("");
-
-    html += `
-      <tr>
-        <td class="px-6 py-4">
-          <section class="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 max-w-[400px] md:max-w-[600px] place-items-center">
-            ${itemsHtml}
-          </section>
-        </td>
-        <td class="px-6 py-4">
-          <button
-            type="button"
-            data-index="${-(index + 1)}"
-            class="bg-indigo-600 text-white py-3 px-3 rounded-lg hover:bg-indigo-700"
-          >
-            Cancel Order
-          </button>
-        </td>
-        <td class="px-6 py-4">
-          <button
-            type="button"
-            data-index="${index}"
-            class="bg-indigo-600 text-white py-3 px-3 rounded-lg hover:bg-indigo-700"
-          >
-            Details
-          </button>
-        </td>
-
-        <td class="px-6 py-4">
-          <span>${formattedStatus}</span>
-
-          <p class="text-sm text-gray-500 mt-2">
-          Placed: ${formatTimestamp(order.createdAt)}
-          </p>
-
-          <p class="text-sm text-gray-500">
-          Updated: ${formatTimestamp(order.updatedAt)}
-         </p>
-</td>
-    `;
+  const activeOrders = orders.filter(order => {
+    const status = (order.status || "Pending").toLowerCase();
+    return status === "pending" || status === "preparing" || status === "in progress";
   });
 
-  tbody.innerHTML = html;
+  const readyOrders = orders.filter(order => {
+    return (order.status || "").toLowerCase() === "ready";
+  });
+
+  const historyOrders = orders.filter(order => {
+    const status = (order.status || "").toLowerCase();
+    return (
+      status === "collected" ||
+      status === "cancelled" ||
+      status === "refunded" ||
+      status === "refund pending"
+    );
+  });
+
+  activeOrdersContainer.innerHTML = activeOrders.length
+    ? activeOrders.map(order => buildOrderCard(order, orders.indexOf(order) + 1)).join("")
+    : `<p class="text-sm text-gray-500 text-center py-8">No active orders.</p>`;
+
+  readyOrdersContainer.innerHTML = readyOrders.length
+    ? readyOrders.map(order => buildOrderCard(order, orders.indexOf(order) + 1)).join("")
+    : `<p class="text-sm text-gray-500 text-center py-8">No ready orders.</p>`;
+
+  historyOrdersContainer.innerHTML = historyOrders.length
+    ? historyOrders.map(order => buildOrderCard(order, orders.indexOf(order) + 1)).join("")
+    : `<p class="text-sm text-gray-500 text-center py-8">No order history yet.</p>`;
+
+  globalThis.lucide?.createIcons?.();
 }
 
 // ----------------------
@@ -306,42 +357,46 @@ async function refundPaidOrder(order) {
 // ----------------------
 // Table click handler
 // ----------------------
-document.getElementById("order-table-body")?.addEventListener("click", (e) => {
-  const button = e.target.closest("button[data-index]");
-  if (!button) return;
+document.body.addEventListener("click", (e) => {
+  const detailsBtn = e.target.closest(".details-order-btn");
+  const cancelBtn = e.target.closest(".cancel-order-btn");
 
-  const index = Number(button.dataset.index);
-  if(index >= 0){
-    const order = ordersCache[index];
+  if (detailsBtn) {
+    const orderId = detailsBtn.dataset.orderId;
+    const order = ordersCache.find(order => order.id === orderId);
+
     if (!order) return;
 
     const modalTitle = document.getElementById("modal-title");
     const modal = document.getElementById("item-details-modal");
 
     if (modalTitle) modalTitle.textContent = "Items in Order";
-    modal?.classList.remove("hidden");
 
+    modal?.classList.remove("hidden");
     updateDetails(order);
-  } else {
-    const order = ordersCache[-(index + 1)];
+    return;
+  }
+
+  if (cancelBtn) {
+    const orderId = cancelBtn.dataset.orderId;
+    const order = ordersCache.find(order => order.id === orderId);
+
     if (!order) return;
-    //alert(order.status)
-    if(order.status == "Pending" || order.status == "pending"){
+
+    const status = (order.status || "Pending").toLowerCase();
+
+    if (status === "pending") {
       if (order.paymentStatus === "paid" && order.paystackReference) {
         refundPaidOrder(order);
       } else {
         updateOrderStatus(order, "cancelled");
       }
-    } else if(order.status == "cancelled" || order.status == "Cancelled") {
+    } else if (status === "cancelled") {
       alert("Order is already cancelled");
-    } else if(order.status == "refunded" || order.status == "refund pending") {
+    } else if (status === "refunded" || status === "refund pending") {
       alert("Order has already been refunded.");
     } else {
       alert("Order cannot be cancelled, it is already in progress.");
     }
-    
-    
-    
   }
-  
 });
