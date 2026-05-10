@@ -655,7 +655,7 @@ function attachEventListeners() {
       return;
     }
 
-    payfast.payNow();
+    paystack.payNow();
   });
 
   listenersAttached = true;
@@ -682,7 +682,7 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-const payfast = {
+const paystack = {
   payNow: async () => {
     if (!currentUser) {
       console.error("No user logged in");
@@ -704,7 +704,7 @@ const payfast = {
     }
 
     try {
-      const res = await fetch("/api/payfast/create-payment", {
+      const res = await fetch("/api/paystack/create-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -718,28 +718,18 @@ const payfast = {
         throw new Error(err.error || `Payment init failed (${res.status})`);
       }
 
-      const { action, fields } = await res.json();
-
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = action;
-      form.style.display = "none";
-
-      for (const [key, value] of Object.entries(fields)) {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = key;
-        input.value = value;
-        form.appendChild(input);
+      const { authorization_url, reference } = await res.json();
+      if (!authorization_url) {
+        throw new Error("Payment provider did not return a redirect URL");
       }
 
-      document.body.appendChild(form);
+      try { sessionStorage.setItem("cb_paystack_reference", reference); } catch {}
 
       cart = [];
       saveCart();
       updateCartCount();
 
-      form.submit();
+      window.location.assign(authorization_url);
     } catch (error) {
       console.error("Error starting payment:", error);
       alert("Could not start payment: " + error.message);

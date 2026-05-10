@@ -139,6 +139,95 @@
                 <input type="file" id="logoInput"  accept=".png,.jpg,.jpeg,image/png,image/jpeg" />
               </section>
               </section>
+              <section id="bank-name-container" class="hidden">
+                <label for="bank-name" class="block text-sm font-medium text-gray-700 mb-1">
+                  Bank
+                </label>
+                <section class="relative">
+                  <i data-lucide="landmark" class="absolute left-3 top-3 h-5 w-5 text-gray-400"></i>
+                  <select
+                    id="bank-name"
+                    class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  >
+                    <option value="">Select your bank</option>
+                    <option value="absa">ABSA</option>
+                    <option value="capitec">Capitec</option>
+                    <option value="discovery">Discovery Bank</option>
+                    <option value="fnb">FNB</option>
+                    <option value="investec">Investec</option>
+                    <option value="nedbank">Nedbank</option>
+                    <option value="standard_bank">Standard Bank</option>
+                    <option value="tymebank">TymeBank</option>
+                    <option value="african_bank">African Bank</option>
+                    <option value="bidvest">Bidvest Bank</option>
+                  </select>
+                </section>
+              </section>
+              <section id="account-holder-container" class="hidden">
+                <label for="account-holder" class="block text-sm font-medium text-gray-700 mb-1">
+                  Account Holder Name
+                </label>
+                <section class="relative">
+                  <i data-lucide="user-round" class="absolute left-3 top-3 h-5 w-5 text-gray-400"></i>
+                  <input
+                    type="text"
+                    id="account-holder"
+                    class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder="Name as it appears on the account"
+                  />
+                </section>
+              </section>
+              <section id="account-number-container" class="hidden">
+                <label for="account-number" class="block text-sm font-medium text-gray-700 mb-1">
+                  Account Number
+                </label>
+                <section class="relative">
+                  <i data-lucide="credit-card" class="absolute left-3 top-3 h-5 w-5 text-gray-400"></i>
+                  <input
+                    type="text"
+                    id="account-number"
+                    inputmode="numeric"
+                    pattern="[0-9]{10}"
+                    autocomplete="off"
+                    class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder="10 digits"
+                  />
+                </section>
+              </section>
+              <section id="branch-code-container" class="hidden">
+                <label for="branch-code" class="block text-sm font-medium text-gray-700 mb-1">
+                  Universal Branch Code
+                </label>
+                <section class="relative">
+                  <i data-lucide="hash" class="absolute left-3 top-3 h-5 w-5 text-gray-400"></i>
+                  <input
+                    type="text"
+                    id="branch-code"
+                    inputmode="numeric"
+                    pattern="[0-9]{6}"
+                    maxlength="6"
+                    class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder="6-digit branch code"
+                  />
+                </section>
+              </section>
+              <section id="account-type-container" class="hidden">
+                <label for="account-type" class="block text-sm font-medium text-gray-700 mb-1">
+                  Account Type
+                </label>
+                <section class="relative">
+                  <i data-lucide="wallet" class="absolute left-3 top-3 h-5 w-5 text-gray-400"></i>
+                  <select
+                    id="account-type"
+                    class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  >
+                    <option value="">Select account type</option>
+                    <option value="cheque">Cheque / Current</option>
+                    <option value="savings">Savings</option>
+                    <option value="transmission">Transmission</option>
+                  </select>
+                </section>
+              </section>
               <button
                 type="submit"
                 class="w-full mt-4 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition"

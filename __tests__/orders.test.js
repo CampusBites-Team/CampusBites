@@ -31,9 +31,9 @@ describe("orders.js", () => {
     jest.clearAllMocks();
 
     document.body.innerHTML = `
-      <div id="newOrders"></div>
-      <div id="inProgress"></div>
-      <div id="completedOrders"></div>
+      <section id="newOrders"></section>
+      <section id="inProgress"></section>
+      <section id="completedOrders"></section>
     `;
 
     global.lucide = { createIcons: jest.fn() };

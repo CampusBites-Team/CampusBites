@@ -1,13 +1,12 @@
 const crypto = require("crypto");
 const { getDb } = require("../_lib/firebase-admin");
-const { buildSignature } = require("../_lib/payfast");
+const { paystackFetch, toCents } = require("../_lib/paystack");
 
 function badRequest(res, message) {
-  res.status(400).json({ error: message });
+  return res.status(400).json({ error: message });
 }
 
-function generatePaymentId() {
-  // Short URL-safe id (PayFast m_payment_id has a 100-char limit; we keep it small)
+function generateReference() {
   return "cb_" + crypto.randomBytes(12).toString("hex");
 }
 
@@ -15,7 +14,7 @@ module.exports = async (req, res) => {
   try {
     return await handler(req, res);
   } catch (err) {
-    console.error("create-payment error:", err);
+    console.error("create-payment error:", err.paystackBody || err);
     return res.status(500).json({ error: err.message || "Internal error" });
   }
 };
@@ -41,15 +40,16 @@ async function handler(req, res) {
 
   const db = getDb();
 
-  // Verify user exists and is a customer
   const userSnap = await db.collection("users").doc(userId).get();
   if (!userSnap.exists) return badRequest(res, "User not found");
   const userData = userSnap.data() || {};
   if (userData.role && userData.role !== "customer") {
     return badRequest(res, "Only customers can place orders");
   }
+  if (!userData.email) {
+    return badRequest(res, "User has no email on file");
+  }
 
-  // Re-fetch every menu item from Firestore (server-side pricing is the source of truth)
   const itemRefs = ids.map((id) => db.collection("menu_items").doc(id));
   const itemSnaps = await db.getAll(...itemRefs);
 
@@ -65,7 +65,6 @@ async function handler(req, res) {
     enrichedItems.push({ id: snap.id, ...data });
   }
 
-  // Group items by vendor
   const grouped = {};
   for (const item of enrichedItems) {
     const vid = item.vendorId;
@@ -91,6 +90,20 @@ async function handler(req, res) {
     grouped[vid].subtotal += item.price;
   }
 
+  const vendorIds = Object.keys(grouped);
+  const vendorSnaps = await db.getAll(...vendorIds.map((vid) => db.collection("users").doc(vid)));
+
+  for (let i = 0; i < vendorSnaps.length; i++) {
+    const vSnap = vendorSnaps[i];
+    const g = grouped[vendorIds[i]];
+    if (!vSnap.exists) return badRequest(res, `Vendor ${g.vendorName || g.vendorId} not found`);
+    const vData = vSnap.data() || {};
+    if (!vData.paystackSubaccountCode) {
+      return badRequest(res, `Vendor ${vData.shopName || g.vendorName || g.vendorId} is not set up for payouts yet`);
+    }
+    g.paystackSubaccountCode = vData.paystackSubaccountCode;
+  }
+
   const vendorBreakdown = Object.values(grouped).map((g) => ({
     ...g,
     subtotal: Math.round(g.subtotal * 100) / 100
@@ -99,10 +112,14 @@ async function handler(req, res) {
 
   if (total <= 0) return badRequest(res, "Cart total must be positive");
 
-  const m_payment_id = generatePaymentId();
+  const reference = generateReference();
+  const callbackUrl = process.env.PAYSTACK_CALLBACK_URL;
+  if (!callbackUrl) {
+    return res.status(500).json({ error: "Server misconfigured: PAYSTACK_CALLBACK_URL missing" });
+  }
 
-  await db.collection("pending_payments").doc(m_payment_id).set({
-    m_payment_id,
+  await db.collection("pending_payments").doc(reference).set({
+    reference,
     userId,
     vendorBreakdown,
     total,
@@ -110,47 +127,51 @@ async function handler(req, res) {
     createdAt: new Date().toISOString()
   });
 
-  // Build PayFast field set in the order PayFast documents (we control this order
-  // for signature generation). Every present field is included in the signature.
-  const merchantId = process.env.PAYFAST_MERCHANT_ID;
-  const merchantKey = process.env.PAYFAST_MERCHANT_KEY;
-  const passphrase = process.env.PAYFAST_PASSPHRASE || "";
-  const host = process.env.PAYFAST_HOST || "https://sandbox.payfast.co.za";
+  const split = {
+    type: "flat",
+    bearer_type: "all-proportional",
+    subaccounts: vendorBreakdown.map((v) => ({
+      subaccount: v.paystackSubaccountCode,
+      share: toCents(v.subtotal)
+    }))
+  };
 
-  if (!merchantId || !merchantKey) {
-    return res.status(500).json({ error: "Server misconfigured: PayFast credentials missing" });
+  const initBody = {
+    email: userData.email,
+    amount: toCents(total),
+    reference,
+    callback_url: callbackUrl,
+    metadata: {
+      userId,
+      reference,
+      vendorCount: vendorBreakdown.length
+    },
+    split
+  };
+
+  let initResult;
+  try {
+    initResult = await paystackFetch("/transaction/initialize", {
+      method: "POST",
+      body: initBody
+    });
+  } catch (err) {
+    await db.collection("pending_payments").doc(reference).set({
+      status: "failed",
+      failedReason: err.message,
+      failedAt: new Date().toISOString()
+    }, { merge: true });
+    throw err;
   }
 
-  const itemName = vendorBreakdown.length === 1
-    ? `CampusBites order - ${vendorBreakdown[0].vendorName}`
-    : `CampusBites order (${vendorBreakdown.length} vendors)`;
-
-  const orderedFields = [
-    ["merchant_id", merchantId],
-    ["merchant_key", merchantKey],
-    ["return_url", process.env.PAYFAST_RETURN_URL],
-    ["cancel_url", process.env.PAYFAST_CANCEL_URL],
-    ["notify_url", process.env.PAYFAST_NOTIFY_URL],
-    ["name_first", userData.fullName ? String(userData.fullName).split(" ")[0] : ""],
-    ["name_last", userData.fullName ? String(userData.fullName).split(" ").slice(1).join(" ") : ""],
-    ["email_address", userData.email || ""],
-    ["m_payment_id", m_payment_id],
-    ["amount", total.toFixed(2)],
-    ["item_name", itemName.slice(0, 100)],
-    ["custom_str1", userId]
-  ];
-
-  const signature = buildSignature(orderedFields, passphrase);
-
-  const fields = {};
-  for (const [k, v] of orderedFields) {
-    if (v !== undefined && v !== null && String(v).length > 0) fields[k] = String(v);
+  const { authorization_url, access_code } = initResult.data || {};
+  if (!authorization_url) {
+    throw new Error("Paystack response missing authorization_url");
   }
-  fields.signature = signature;
 
   return res.status(200).json({
-    action: `${host.replace(/\/$/, "")}/eng/process`,
-    fields,
-    m_payment_id
+    authorization_url,
+    access_code,
+    reference
   });
 }

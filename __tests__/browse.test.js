@@ -552,25 +552,17 @@ describe("browse.js", () => {
     expect(alertSpy).toHaveBeenCalledWith("You must be logged in to proceed to checkout");
   });
 
-  test("posts cart items to PayFast and submits returned form", async () => {
+  test("posts cart items to Paystack and redirects to authorization_url", async () => {
     mockBrowseQueries(db);
     db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "customer-1" }));
 
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
-        action: "https://sandbox.payfast.co.za/eng/process",
-        fields: {
-          merchant_id: "10000100",
-          amount: "130.00",
-          signature: "abc"
-        }
+        authorization_url: "https://checkout.paystack.com/abc123",
+        reference: "cb_test123"
       })
     });
-
-    const submitSpy = jest
-      .spyOn(HTMLFormElement.prototype, "submit")
-      .mockImplementation(() => {});
 
     await bootBrowse();
 
@@ -580,8 +572,9 @@ describe("browse.js", () => {
 
     await flush();
 
+    expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(global.fetch).toHaveBeenCalledWith(
-      "/api/payfast/create-payment",
+      "/api/paystack/create-payment",
       expect.objectContaining({
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -592,12 +585,62 @@ describe("browse.js", () => {
       })
     );
 
-    expect(document.querySelector('form[action="https://sandbox.payfast.co.za/eng/process"]')).toBeTruthy();
-    expect(submitSpy).toHaveBeenCalled();
+    expect(sessionStorage.getItem("cb_paystack_reference")).toBe("cb_test123");
     expect(JSON.parse(localStorage.getItem("cart") || "[]")).toEqual([]);
   });
 
-  test("handles PayFast failure", async () => {
+  test("sends all cart entries to Paystack even when items share a vendor", async () => {
+    mockBrowseQueries(
+      db,
+      [
+        sampleItems[0],
+        {
+          id: "5",
+          name: "Fries",
+          vendorName: "Shop1",
+          vendorId: "vendor-1",
+          price: 20,
+          description: "Crispy",
+          category: "Sides",
+          available: true,
+          status: "approved",
+          dietary: [],
+          allergens: []
+        }
+      ],
+      [approvedVendors[0]]
+    );
+
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "customer-1" }));
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        authorization_url: "https://checkout.paystack.com/xyz",
+        reference: "cb_test456"
+      })
+    });
+
+    await bootBrowse();
+
+    document.querySelector('.add-cart-btn[data-item-id="1"]').click();
+    document.querySelector('.add-cart-btn[data-item-id="5"]').click();
+    document.getElementById("checkOut").click();
+
+    await flush();
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/paystack/create-payment",
+      expect.objectContaining({
+        body: JSON.stringify({
+          userId: "customer-1",
+          cart: [{ menuItemId: "1" }, { menuItemId: "5" }]
+        })
+      })
+    );
+  });
+
+  test("handles Paystack failure", async () => {
     mockBrowseQueries(db);
     db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "customer-1" }));
 

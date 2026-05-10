@@ -16,9 +16,9 @@ describe("role select UI logic", () => {
         <option value="vendor">Vendor</option>
       </select>
 
-      <div id="shop-name-container" class="hidden"></div>
-      <div id="shop-location-container" class="hidden"></div>
-      <div id="shop-logo-container" class="hidden"></div>
+      <section id="shop-name-container" class="hidden"></section>
+      <section id="shop-location-container" class="hidden"></section>
+      <section id="shop-logo-container" class="hidden"></section>
 
       <input id="shop-name" />
       <input id="shop-location" />

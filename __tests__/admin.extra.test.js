@@ -1,4 +1,5 @@
 jest.mock('../scripts/database.js', () => ({
+  auth: { currentUser: { getIdToken: jest.fn().mockResolvedValue('test-token') } },
   db: {},
   getDocs: jest.fn(),
   collection: jest.fn((...args) => args),
@@ -115,10 +116,43 @@ test('renders revenue correctly', async () => {
 test('approveVendor updates', async () => {
   updateDoc.mockResolvedValue();
   getDocs.mockResolvedValue(makeSnapshot([]));
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ subaccount_code: 'ACCT_test' })
+  });
 
   await adminActions.approveVendor('abc');
 
+  expect(global.fetch).toHaveBeenCalledWith(
+    '/api/paystack/create-subaccount',
+    expect.objectContaining({
+      method: 'POST',
+      headers: expect.objectContaining({ Authorization: 'Bearer test-token' }),
+      body: JSON.stringify({ vendorId: 'abc' })
+    })
+  );
   expect(updateDoc).toHaveBeenCalled();
+
+  delete global.fetch;
+});
+
+test('approveVendor aborts when subaccount creation fails', async () => {
+  updateDoc.mockResolvedValue();
+  getDocs.mockResolvedValue(makeSnapshot([]));
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: false,
+    status: 400,
+    json: async () => ({ error: 'Bank details incomplete' })
+  });
+  jest.spyOn(window, 'alert').mockImplementation(() => {});
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+
+  await adminActions.approveVendor('abc');
+
+  expect(updateDoc).not.toHaveBeenCalled();
+  expect(window.alert).toHaveBeenCalledWith(expect.stringContaining('Bank details incomplete'));
+
+  delete global.fetch;
 });
 
 test('suspendVendor updates', async () => {

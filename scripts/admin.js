@@ -1,4 +1,5 @@
 import {
+  auth,
   db,
   getDocs,
   collection,
@@ -172,6 +173,27 @@ export const loadVendors = async () => {
 export const adminActions = {
   approveVendor: async (vendorId) => {
     try {
+      const caller = auth.currentUser;
+      if (!caller) {
+        alert("You must be signed in as admin to approve vendors.");
+        return;
+      }
+      const idToken = await caller.getIdToken();
+
+      const res = await fetch("/api/paystack/create-subaccount", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`
+        },
+        body: JSON.stringify({ vendorId })
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Subaccount creation failed (${res.status})`);
+      }
+
       await updateDoc(doc(db, "users", vendorId), {
         status: "approved"
       });
@@ -179,6 +201,7 @@ export const adminActions = {
       loadVendors();
     } catch (error) {
       console.error("Error approving vendor:", error);
+      alert("Could not approve vendor: " + error.message);
     }
   },
 

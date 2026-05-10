@@ -57,7 +57,7 @@ describe("login form flow", () => {
   });
 
   test("initLoginForm does nothing if form is missing", () => {
-    document.body.innerHTML = `<div>No form</div>`;
+    document.body.innerHTML = `<section>No form</section>`;
     expect(() => initLoginForm()).not.toThrow();
   });
 

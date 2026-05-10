@@ -45,8 +45,8 @@ describe("checkOut.js", () => {
       </table>
 
       <h3 id="modal-title"></h3>
-      <div id="item-details-modal" class="hidden"></div>
-      <div id="itemList"></div>
+      <section id="item-details-modal" class="hidden"></section>
+      <section id="itemList"></section>
       <p id="numItemsOrder"></p>
     `;
 
@@ -560,37 +560,208 @@ describe("checkOut.js", () => {
     expect(document.getElementById("order-table-body").innerHTML)
       .toContain("Failed to load orders.");
   });
+
   test("formats created and updated timestamps in checkout orders", async () => {
-  db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-    cb({ uid: "user-123" });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      cb({ uid: "user-123" });
+    });
+
+    const fakeDate = new Date("2026-05-08T10:30:00");
+
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "order-1",
+          userId: "user-123",
+          status: "Pending",
+          createdAt: {
+            toDate: () => fakeDate
+          },
+          updatedAt: {
+            toDate: () => fakeDate
+          },
+          menuItems: [{ name: "Burger", price: 50 }]
+        }
+      ])
+    );
+
+    require("../scripts/checkOut.js");
+    await flush();
+
+    const html = document.getElementById("order-table-body").innerHTML;
+
+    expect(html).toContain("Placed:");
+    expect(html).toContain("Updated:");
+    expect(html).not.toContain("Not available");
   });
 
-  const fakeDate = new Date("2026-05-08T10:30:00");
+  test("alerts when order has already been refunded", async () => {
+    const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
 
-  db.getDocs.mockResolvedValue(
-    makeSnapshot([
-      {
-        id: "order-1",
-        userId: "user-123",
-        status: "Pending",
-        createdAt: {
-          toDate: () => fakeDate
-        },
-        updatedAt: {
-          toDate: () => fakeDate
-        },
-        menuItems: [{ name: "Burger", price: 50 }]
-      }
-    ])
-  );
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      cb({ uid: "user-123" });
+    });
 
-  require("../scripts/checkOut.js");
-  await flush();
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "order-1",
+          userId: "user-123",
+          status: "refunded",
+          menuItems: [{ name: "Burger", price: 50 }]
+        }
+      ])
+    );
 
-  const html = document.getElementById("order-table-body").innerHTML;
+    require("../scripts/checkOut.js");
+    await Promise.resolve();
+    await Promise.resolve();
 
-  expect(html).toContain("Placed:");
-  expect(html).toContain("Updated:");
-  expect(html).not.toContain("Not available");
-});
+    document.querySelector('#order-table-body button[data-index="-1"]').click();
+
+    expect(alertSpy).toHaveBeenCalledWith("Order has already been refunded.");
+  });
+
+  test("initiates Paystack refund for paid pending order", async () => {
+    const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({})
+    });
+    global.fetch = fetchMock;
+
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      cb({
+        uid: "user-123",
+        getIdToken: jest.fn().mockResolvedValue("id-token-abc")
+      });
+    });
+
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "order-1",
+          userId: "user-123",
+          status: "Pending",
+          paymentStatus: "paid",
+          paystackReference: "ref-1",
+          menuItems: [{ name: "Burger", price: 50 }]
+        }
+      ])
+    );
+
+    require("../scripts/checkOut.js");
+    await Promise.resolve();
+    await Promise.resolve();
+
+    document.querySelector('#order-table-body button[data-index="-1"]').click();
+
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/paystack/refund",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({
+          "Content-Type": "application/json",
+          Authorization: "Bearer id-token-abc"
+        }),
+        body: JSON.stringify({ orderId: "order-1" })
+      })
+    );
+    expect(alertSpy).toHaveBeenCalledWith(
+      "Refund initiated. It usually clears within a few minutes."
+    );
+    expect(document.getElementById("order-table-body").innerHTML)
+      .toContain("Refund pending");
+  });
+
+  test("alerts when Paystack refund request fails", async () => {
+    const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ error: "boom" })
+    });
+
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      cb({
+        uid: "user-123",
+        getIdToken: jest.fn().mockResolvedValue("id-token-abc")
+      });
+    });
+
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "order-1",
+          userId: "user-123",
+          status: "Pending",
+          paymentStatus: "paid",
+          paystackReference: "ref-1",
+          menuItems: [{ name: "Burger", price: 50 }]
+        }
+      ])
+    );
+
+    require("../scripts/checkOut.js");
+    await Promise.resolve();
+    await Promise.resolve();
+
+    document.querySelector('#order-table-body button[data-index="-1"]').click();
+
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(errorSpy).toHaveBeenCalled();
+    expect(alertSpy).toHaveBeenCalledWith("Could not initiate refund: boom");
+  });
+
+  test("refund alerts when user is no longer signed in", async () => {
+    const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
+    let authCb;
+
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      authCb = cb;
+      cb({
+        uid: "user-123",
+        getIdToken: jest.fn().mockResolvedValue("id-token-abc")
+      });
+    });
+
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "order-1",
+          userId: "user-123",
+          status: "Pending",
+          paymentStatus: "paid",
+          paystackReference: "ref-1",
+          menuItems: [{ name: "Burger", price: 50 }]
+        }
+      ])
+    );
+
+    require("../scripts/checkOut.js");
+    await Promise.resolve();
+    await Promise.resolve();
+
+    authCb(null);
+
+    const tbody = document.getElementById("order-table-body");
+    const btn = document.createElement("button");
+    btn.setAttribute("data-index", "-1");
+    tbody.appendChild(btn);
+    btn.click();
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      "You must be signed in to cancel an order."
+    );
+  });
 });

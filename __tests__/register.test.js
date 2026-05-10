@@ -30,9 +30,9 @@ document.body.innerHTML = `
   <input id="shop-name" value="" />
   <input id="shop-location" value="" />
   <input id="logoInput" type="file" />
-  <div id="shop-name-container" class="hidden"></div>
-  <div id="shop-location-container" class="hidden"></div>
-  <div id="shop-logo-container" class="hidden"></div>
+  <section id="shop-name-container" class="hidden"></section>
+  <section id="shop-location-container" class="hidden"></section>
+  <section id="shop-logo-container" class="hidden"></section>
   <button id="googleRegister"></button>
   <button id="facebookRegister"></button>
   <button id="twitterRegister"></button>

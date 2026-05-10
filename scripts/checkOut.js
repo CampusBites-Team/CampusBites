@@ -112,14 +112,14 @@ function renderOrders(orders) {
     const itemsHtml = (order.menuItems || [])
       .map(
         (item) => `
-          <div class="flex flex-col items-center text-sm">
+          <article class="flex flex-col items-center text-sm">
             <img
               src="${item.image || "assets/default.jpg"}"
               alt="${item.name || "Menu item"}"
               class="w-12 h-12 object-cover rounded-lg mb-2"
             >
             <span>${item.name || "Unnamed item"}</span>
-          </div>
+          </article>
         `
       )
       .join("");
@@ -127,9 +127,9 @@ function renderOrders(orders) {
     html += `
       <tr>
         <td class="px-6 py-4">
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 max-w-[400px] md:max-w-[600px] place-items-center">
+          <section class="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 max-w-[400px] md:max-w-[600px] place-items-center">
             ${itemsHtml}
-          </div>
+          </section>
         </td>
         <td class="px-6 py-4">
           <button
@@ -270,8 +270,37 @@ async function updateOrderStatus(order, status) {
   } catch(error){
     console.error(error);
     alert("Failed to cancel order");
+
   }
-  
+
+}
+
+async function refundPaidOrder(order) {
+  if (!currentUser) {
+    alert("You must be signed in to cancel an order.");
+    return;
+  }
+  try {
+    const idToken = await currentUser.getIdToken();
+    const res = await fetch("/api/paystack/refund", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`
+      },
+      body: JSON.stringify({ orderId: order.id })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Refund failed (${res.status})`);
+    }
+    order.status = "refund pending";
+    renderOrders(ordersCache);
+    alert("Refund initiated. It usually clears within a few minutes.");
+  } catch (error) {
+    console.error("Refund failed:", error);
+    alert("Could not initiate refund: " + error.message);
+  }
 }
 
 // ----------------------
@@ -298,14 +327,15 @@ document.getElementById("order-table-body")?.addEventListener("click", (e) => {
     if (!order) return;
     //alert(order.status)
     if(order.status == "Pending" || order.status == "pending"){
-      updateOrderStatus(order, "cancelled");
-      
-      
-      
-      
-      
+      if (order.paymentStatus === "paid" && order.paystackReference) {
+        refundPaidOrder(order);
+      } else {
+        updateOrderStatus(order, "cancelled");
+      }
     } else if(order.status == "cancelled" || order.status == "Cancelled") {
       alert("Order is already cancelled");
+    } else if(order.status == "refunded" || order.status == "refund pending") {
+      alert("Order has already been refunded.");
     } else {
       alert("Order cannot be cancelled, it is already in progress.");
     }

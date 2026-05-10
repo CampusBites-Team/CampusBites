@@ -7,6 +7,19 @@ import {
   onAuthStateChanged
 } from "./database.js";
 
+const BANK_LABELS = {
+  absa: "ABSA",
+  capitec: "Capitec",
+  discovery: "Discovery Bank",
+  fnb: "FNB",
+  investec: "Investec",
+  nedbank: "Nedbank",
+  standard_bank: "Standard Bank",
+  tymebank: "TymeBank",
+  african_bank: "African Bank",
+  bidvest: "Bidvest Bank"
+};
+
 function formatVendorDetails(shopName, location) {
   if (!shopName && !location) {
     return "No vendor details set yet.";
@@ -40,6 +53,74 @@ function fillOperatingHours(userData) {
 
   document.getElementById("savedOperatingHours").textContent =
     formatOperatingHours(userData.openingTime, userData.closingTime);
+}
+
+function formatBankingDetails(bankDetails) {
+  if (!bankDetails || !bankDetails.bankName) return "No banking details set yet.";
+  const bankLabel = BANK_LABELS[bankDetails.bankName] || bankDetails.bankName;
+  const num = bankDetails.accountNumber || "";
+  const masked = num.length > 4
+    ? `${"•".repeat(num.length - 4)}${num.slice(-4)}`
+    : num;
+  return `${bankLabel} • ${masked}`;
+}
+
+function fillBankingDetails(userData) {
+  const b = userData.bankDetails || {};
+  document.getElementById("settings-bank-name").value = b.bankName || "";
+  document.getElementById("settings-account-holder").value = b.accountHolder || "";
+  document.getElementById("settings-account-number").value = b.accountNumber || "";
+  document.getElementById("settings-branch-code").value = b.branchCode || "";
+  document.getElementById("settings-account-type").value = b.accountType || "";
+  document.getElementById("savedBankingDetails").textContent =
+    formatBankingDetails(userData.bankDetails);
+}
+
+function attachBankingDetailsForm(vendorId, userData) {
+  const form = document.getElementById("bankingDetailsForm");
+  if (!form || form.dataset.listenerAttached === "true") return;
+  form.dataset.listenerAttached = "true";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const bankName = document.getElementById("settings-bank-name").value;
+    const accountHolder = document.getElementById("settings-account-holder").value.trim();
+    const accountNumber = document.getElementById("settings-account-number").value.trim();
+    const branchCode = document.getElementById("settings-branch-code").value.trim();
+    const accountType = document.getElementById("settings-account-type").value;
+
+    if (!bankName) return alert("Please select a bank.");
+    if (!accountHolder) return alert("Please enter the account holder name.");
+    if (!/^\d{6,12}$/.test(accountNumber)) return alert("Account number must be 6 to 12 digits.");
+    if (!/^\d{6}$/.test(branchCode)) return alert("Branch code must be exactly 6 digits.");
+    if (!accountType) return alert("Please select an account type.");
+
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const res = await fetch("/api/paystack/update-bank-details", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`
+        },
+        body: JSON.stringify({
+          bankDetails: { bankName, accountHolder, accountNumber, branchCode, accountType }
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Request failed (${res.status})`);
+      }
+
+      userData.bankDetails = { bankName, accountHolder, accountNumber, branchCode, accountType };
+      fillBankingDetails(userData);
+      alert("Banking details updated successfully.");
+    } catch (err) {
+      alert("Could not update banking details: " + err.message);
+    }
+  });
 }
 
 function attachVendorDetailsForm(vendorId, userData) {
@@ -157,9 +238,11 @@ export function initVendorSettings(locationObj = window.location) {
 
     fillVendorDetails(userData);
     fillOperatingHours(userData);
+    fillBankingDetails(userData);
 
     attachVendorDetailsForm(user.uid, userData);
     attachOperatingHoursForm(user.uid, userData);
+    attachBankingDetailsForm(user.uid, userData);
   });
 }
 

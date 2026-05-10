@@ -4,10 +4,7 @@ import {
   doc,
   getDoc,
   getDocs,
-  updateDoc,
   collection,
-  query,
-  where,
   onAuthStateChanged
 } from "./database.js";
 
@@ -22,11 +19,10 @@ async function loadPayouts() {
   const ledgerCol = collection(db, "wallet_ledger");
   const snap = await getDocs(ledgerCol);
 
-  let pendingTotal = 0;
-  let paidOutTotal = 0;
+  let settledTotal = 0;
+  let refundedTotal = 0;
   let campusReceived = 0;
 
-  // Group vendor "pending_payout" credits by vendorId
   const groups = new Map();
 
   snap.forEach((d) => {
@@ -34,17 +30,17 @@ async function loadPayouts() {
     const amount = Number(e.amount) || 0;
 
     if (e.wallet === "campus_bites" || e.vendorId == null) {
-      campusReceived += amount;
+      if (e.status === "received") campusReceived += amount;
       return;
     }
 
-    if (e.status === "paid_out") {
-      paidOutTotal += amount;
+    if (e.status === "refunded") {
+      refundedTotal += amount;
       return;
     }
 
-    if (e.status === "pending_payout") {
-      pendingTotal += amount;
+    if (e.status === "settled") {
+      settledTotal += amount;
       const key = e.vendorId;
       if (!groups.has(key)) {
         groups.set(key, { vendorId: key, vendorName: e.vendorName || "(unknown)", entries: [], total: 0 });
@@ -55,12 +51,12 @@ async function loadPayouts() {
     }
   });
 
-  document.getElementById("summary-pending").textContent = fmt(pendingTotal);
-  document.getElementById("summary-paid-out").textContent = fmt(paidOutTotal);
+  document.getElementById("summary-settled").textContent = fmt(settledTotal);
+  document.getElementById("summary-refunded").textContent = fmt(refundedTotal);
   document.getElementById("summary-campus").textContent = fmt(campusReceived);
 
   if (groups.size === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-gray-400">No pending payouts.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-gray-400">No settled payouts yet.</td></tr>`;
     return;
   }
 
@@ -74,66 +70,16 @@ async function loadPayouts() {
         </td>
         <td class="px-6 py-4 text-gray-700">${g.entries.length}</td>
         <td class="px-6 py-4 font-semibold text-indigo-600">${fmt(g.total)}</td>
-        <td class="px-6 py-4 text-right">
-          <button
-            class="mark-paid-btn bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-2 rounded-lg disabled:opacity-50"
-            data-vendor-id="${g.vendorId}"
-          >
-            Mark as paid
-          </button>
+        <td class="px-6 py-4">
+          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            Settled
+          </span>
         </td>
       </tr>
     `).join("");
 
   tbody.innerHTML = rows;
-
-  // Stash entry ids per vendor on the buttons for the click handler
-  for (const g of groups.values()) {
-    const btn = tbody.querySelector(`button[data-vendor-id="${g.vendorId}"]`);
-    if (btn) btn.dataset.entryIds = g.entries.map((e) => e.id).join(",");
-  }
 }
-
-async function markVendorPaid(vendorId, entryIds) {
-  if (!confirm(`Mark ${entryIds.length} ledger entries as paid out for vendor ${vendorId}?`)) {
-    return false;
-  }
-
-  const paidOutAt = new Date().toISOString();
-  await Promise.all(entryIds.map((id) =>
-    updateDoc(doc(db, "wallet_ledger", id), {
-      status: "paid_out",
-      paidOutAt
-    })
-  ));
-  return true;
-}
-
-document.addEventListener("click", async (e) => {
-  const btn = e.target.closest(".mark-paid-btn");
-  if (!btn) return;
-  if (currentRole !== "admin") {
-    alert("You must be signed in as admin to mark payouts.");
-    return;
-  }
-
-  const vendorId = btn.dataset.vendorId;
-  const entryIds = (btn.dataset.entryIds || "").split(",").filter(Boolean);
-  if (!entryIds.length) return;
-
-  btn.disabled = true;
-  btn.textContent = "Marking...";
-  try {
-    const did = await markVendorPaid(vendorId, entryIds);
-    if (did) await loadPayouts();
-    else { btn.disabled = false; btn.textContent = "Mark as paid"; }
-  } catch (err) {
-    console.error("markVendorPaid failed", err);
-    alert("Failed to mark as paid: " + err.message);
-    btn.disabled = false;
-    btn.textContent = "Mark as paid";
-  }
-});
 
 onAuthStateChanged(auth, async (user) => {
   const warn = document.getElementById("auth-warning");

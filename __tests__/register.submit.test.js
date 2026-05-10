@@ -73,10 +73,24 @@ describe("register submit flow", () => {
       <input id="shop-name" value="" />
       <input id="shop-location" value="" />
       <input id="logoInput" type="file" />
+      <input id="bank-name" value="" />
+      <input id="account-holder" value="" />
+      <input id="account-number" value="" />
+      <input id="branch-code" value="" />
+      <select id="account-type">
+        <option value="">Select</option>
+        <option value="cheque">Cheque</option>
+        <option value="savings">Savings</option>
+      </select>
 
       <section id="shop-name-container" class="hidden"></section>
       <section id="shop-location-container" class="hidden"></section>
       <section id="shop-logo-container" class="hidden"></section>
+      <section id="bank-name-container" class="hidden"></section>
+      <section id="account-holder-container" class="hidden"></section>
+      <section id="account-number-container" class="hidden"></section>
+      <section id="branch-code-container" class="hidden"></section>
+      <section id="account-type-container" class="hidden"></section>
 
       <button id="googleRegister" type="button"></button>
       <button id="facebookRegister" type="button"></button>
@@ -246,6 +260,11 @@ describe("register submit flow", () => {
     document.getElementById("registerRole").value = "vendor";
     document.getElementById("shop-name").value = "Campus Bites";
     document.getElementById("shop-location").value = "Matrix";
+    document.getElementById("bank-name").value = "FNB";
+    document.getElementById("account-holder").value = "Jane Doe";
+    document.getElementById("account-number").value = "12345678";
+    document.getElementById("branch-code").value = "250655";
+    document.getElementById("account-type").value = "cheque";
 
     const logoInput = document.getElementById("logoInput");
     const file = new File(["fake"], "logo.png", { type: "image/png" });

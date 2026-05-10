@@ -25,9 +25,9 @@
   <main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
     <article id="status-card" class="bg-white rounded-2xl shadow-sm p-10 text-center">
       <section id="loading-state">
-        <div class="mx-auto w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-6"></div>
+        <output role="status" aria-label="Loading" class="block mx-auto w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-6"></output>
         <h1 class="text-2xl font-bold text-gray-900 mb-2">Confirming your payment...</h1>
-        <p class="text-gray-600">Hang tight — PayFast is letting us know your transaction has cleared.</p>
+        <p class="text-gray-600">Hang tight — Paystack is letting us know your transaction has cleared.</p>
         <p class="text-sm text-gray-400 mt-6" id="payment-id-line"></p>
       </section>
 
@@ -41,7 +41,7 @@
       <section id="error-state" class="hidden">
         <i data-lucide="alert-triangle" class="w-16 h-16 text-orange-500 mx-auto mb-4"></i>
         <h1 class="text-2xl font-bold text-gray-900 mb-2">Still confirming...</h1>
-        <p class="text-gray-600 mb-6">PayFast hasn't notified us yet. This usually takes under a minute. You can check your orders shortly — if the payment cleared, the order will appear there.</p>
+        <p class="text-gray-600 mb-6">Paystack hasn't notified us yet. This usually takes under a minute. You can check your orders shortly — if the payment cleared, the order will appear there.</p>
         <a href="checkOut.html" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">Go to my orders</a>
       </section>
     </article>
@@ -54,14 +54,15 @@
     lucide.createIcons();
 
     const params = new URLSearchParams(window.location.search);
-    const fromQuery = params.get("m_payment_id");
+    // Paystack appends ?reference=<ref>&trxref=<ref> on the callback URL.
+    const fromQuery = params.get("reference") || params.get("trxref");
     const fromSession = (() => {
-      try { return sessionStorage.getItem("cb_pending_payment_id"); } catch { return null; }
+      try { return sessionStorage.getItem("cb_paystack_reference"); } catch { return null; }
     })();
-    const m_payment_id = fromQuery || fromSession;
+    const reference = fromQuery || fromSession;
 
-    if (m_payment_id) {
-      document.getElementById("payment-id-line").textContent = `Reference: ${m_payment_id}`;
+    if (reference) {
+      document.getElementById("payment-id-line").textContent = `Reference: ${reference}`;
     }
 
     function show(stateId) {
@@ -71,15 +72,15 @@
       lucide.createIcons();
     }
 
-    if (!m_payment_id) {
+    if (!reference) {
       show("error-state");
     } else {
-      const ref = doc(db, "pending_payments", m_payment_id);
+      const ref = doc(db, "pending_payments", reference);
       const unsub = onSnapshot(ref, (snap) => {
         if (!snap.exists()) return;
         const data = snap.data();
         if (data.status === "paid") {
-          try { sessionStorage.removeItem("cb_pending_payment_id"); } catch {}
+          try { sessionStorage.removeItem("cb_paystack_reference"); } catch {}
           show("success-state");
           unsub();
           setTimeout(() => { window.location.href = "checkOut.html"; }, 1500);

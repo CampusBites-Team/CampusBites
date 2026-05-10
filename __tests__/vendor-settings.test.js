@@ -1,5 +1,5 @@
 jest.mock("../scripts/database.js", () => ({
-  auth: {},
+  auth: { currentUser: { getIdToken: jest.fn().mockResolvedValue("mock-token") } },
   db: {},
   doc: jest.fn(),
   getDoc: jest.fn(),
@@ -39,9 +39,20 @@ describe("vendor-settings.js", () => {
         <p id="savedOperatingHours"></p>
         <button type="submit">Save Hours</button>
       </form>
+
+      <form id="bankingDetailsForm">
+        <input id="settings-bank-name" />
+        <input id="settings-account-holder" />
+        <input id="settings-account-number" />
+        <input id="settings-branch-code" />
+        <input id="settings-account-type" />
+        <p id="savedBankingDetails"></p>
+        <button type="submit">Save Banking</button>
+      </form>
     `;
 
     global.alert = jest.fn();
+    global.fetch = jest.fn();
   });
 
   test("loads vendor details and operating hours", async () => {
@@ -331,5 +342,191 @@ describe("vendor-settings.js", () => {
 
     expect(global.alert).toHaveBeenCalledWith("Your account is suspended");
     expect(suspendedLocation.href).toBe("login.html");
+  });
+
+  test("displays saved banking details on load", async () => {
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        role: "vendor",
+        status: "approved",
+        bankDetails: {
+          bankName: "fnb",
+          accountHolder: "Bob Smith",
+          accountNumber: "12345678",
+          branchCode: "250655",
+          accountType: "cheque"
+        }
+      })
+    });
+
+    onAuthStateChanged.mockImplementation((authArg, callback) => {
+      callback({ uid: "vendor-123" });
+    });
+
+    initVendorSettings({ href: "" });
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(document.getElementById("settings-bank-name").value).toBe("fnb");
+    expect(document.getElementById("settings-account-holder").value).toBe("Bob Smith");
+    expect(document.getElementById("settings-account-number").value).toBe("12345678");
+    expect(document.getElementById("settings-branch-code").value).toBe("250655");
+    expect(document.getElementById("settings-account-type").value).toBe("cheque");
+    expect(document.getElementById("savedBankingDetails").textContent).toBe("FNB • ••••5678");
+  });
+
+  test("shows placeholder when no banking details are set", async () => {
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({ role: "vendor", status: "approved" })
+    });
+
+    onAuthStateChanged.mockImplementation((authArg, callback) => {
+      callback({ uid: "vendor-123" });
+    });
+
+    initVendorSettings({ href: "" });
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(document.getElementById("savedBankingDetails").textContent).toBe("No banking details set yet.");
+  });
+
+  test("saves banking details successfully", async () => {
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({ role: "vendor", status: "approved" })
+    });
+
+    onAuthStateChanged.mockImplementation((authArg, callback) => {
+      callback({ uid: "vendor-123" });
+    });
+
+    global.fetch.mockResolvedValue({ ok: true });
+
+    initVendorSettings({ href: "" });
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    document.getElementById("settings-bank-name").value = "absa";
+    document.getElementById("settings-account-holder").value = "Jane Doe";
+    document.getElementById("settings-account-number").value = "123456789";
+    document.getElementById("settings-branch-code").value = "632005";
+    document.getElementById("settings-account-type").value = "savings";
+
+    document.getElementById("bankingDetailsForm").dispatchEvent(
+      new Event("submit", { bubbles: true, cancelable: true })
+    );
+
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/paystack/update-bank-details",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          bankDetails: {
+            bankName: "absa",
+            accountHolder: "Jane Doe",
+            accountNumber: "123456789",
+            branchCode: "632005",
+            accountType: "savings"
+          }
+        })
+      })
+    );
+
+    expect(global.alert).toHaveBeenCalledWith("Banking details updated successfully.");
+  });
+
+  test("validates banking details fields", async () => {
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({ role: "vendor", status: "approved" })
+    });
+
+    onAuthStateChanged.mockImplementation((authArg, callback) => {
+      callback({ uid: "vendor-123" });
+    });
+
+    initVendorSettings({ href: "" });
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const submit = () =>
+      document.getElementById("bankingDetailsForm").dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true })
+      );
+
+    document.getElementById("settings-bank-name").value = "";
+    submit();
+    expect(global.alert).toHaveBeenCalledWith("Please select a bank.");
+
+    document.getElementById("settings-bank-name").value = "fnb";
+    document.getElementById("settings-account-holder").value = "";
+    submit();
+    expect(global.alert).toHaveBeenCalledWith("Please enter the account holder name.");
+
+    document.getElementById("settings-account-holder").value = "Jane";
+    document.getElementById("settings-account-number").value = "123";
+    submit();
+    expect(global.alert).toHaveBeenCalledWith("Account number must be 6 to 12 digits.");
+
+    document.getElementById("settings-account-number").value = "123456";
+    document.getElementById("settings-branch-code").value = "123";
+    submit();
+    expect(global.alert).toHaveBeenCalledWith("Branch code must be exactly 6 digits.");
+
+    document.getElementById("settings-branch-code").value = "632005";
+    document.getElementById("settings-account-type").value = "";
+    submit();
+    expect(global.alert).toHaveBeenCalledWith("Please select an account type.");
+  });
+
+  test("handles API error when saving banking details", async () => {
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({ role: "vendor", status: "approved" })
+    });
+
+    onAuthStateChanged.mockImplementation((authArg, callback) => {
+      callback({ uid: "vendor-123" });
+    });
+
+    global.fetch.mockResolvedValue({
+      ok: false,
+      json: jest.fn().mockResolvedValue({ error: "Bank validation failed" })
+    });
+
+    initVendorSettings({ href: "" });
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    document.getElementById("settings-bank-name").value = "absa";
+    document.getElementById("settings-account-holder").value = "Jane Doe";
+    document.getElementById("settings-account-number").value = "123456789";
+    document.getElementById("settings-branch-code").value = "632005";
+    document.getElementById("settings-account-type").value = "savings";
+
+    document.getElementById("bankingDetailsForm").dispatchEvent(
+      new Event("submit", { bubbles: true, cancelable: true })
+    );
+
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(global.alert).toHaveBeenCalledWith(
+      "Could not update banking details: Bank validation failed"
+    );
   });
 });

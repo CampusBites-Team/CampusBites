@@ -62,7 +62,7 @@ describe("menuManagement.js", () => {
       <input id="item-carbs" />
       <input id="item-image" type="file" />
 
-      <div id="item-edit-modal" class="hidden"></div>
+      <section id="item-edit-modal" class="hidden"></section>
       <h2 id="modal-title"></h2>
 
       <button id="add-item-btn"></button>
