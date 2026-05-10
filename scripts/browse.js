@@ -71,21 +71,37 @@ function saveCart() {
 
 function updateCartCount() {
   const cartCount = document.getElementById("cartCount");
-  if (cartCount) cartCount.textContent = cart.length;
+  let total = 0;
+  for(let i = 0; i < cart.length; i++){
+    total += cart[i].num;
+  }
+  if (cartCount) cartCount.textContent = total;
 }
 
 function addToCart(item) {
   let vendorNum = 0;
+  
   for(let i = 0; i < cart.length; i++){
-    if(cart[i].vendorName == item.vendorName){
-      vendorNum++;
+    if(cart[i].item.vendorName == item.vendorName){
+      vendorNum += cart[i].num;
     }
   }
+  
   if(vendorNum == 10){
     alert("You can order at most 10 items from the same vendor");
     return;
   }
-  cart.push(item);
+  let already = false;
+  for(let i = 0; i < cart.length; i++){
+    if(cart[i].item.vendorName == item.vendorName){
+      cart[i].num++;
+      already = true;
+      break;
+    }
+  }
+  if(!already){
+    cart.push({item: item, num: 1});
+  }
   saveCart();
   updateCart();
   updateCartCount();
@@ -360,21 +376,21 @@ function updateCart() {
   }
 
   container.innerHTML = cart.map((item, index) => `
-    <article class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+    <article class="relative bg-white p-4 rounded-xl shadow-sm border border-gray-100">
       <img 
-        src="${item.image || item.imageUrl || "assets/default_vendor.jpg"}"
-        alt="${item.name || "Menu item"}"
+        src="${item.item.image || item.item.imageUrl || "assets/default_vendor.jpg"}"
+        alt="${item.item.name || "Menu item"}"
         class="w-full h-48 object-cover rounded-lg mb-4"
       >
 
       <section class="flex justify-between items-start mb-2">
         <section>
-          <h3 class="text-lg font-semibold">${item.name || "Unnamed Item"}</h3>
-          <p class="text-sm text-gray-500">${item.vendorName || "Vendor"}</p>
+          <h3 class="text-lg font-semibold">${item.item.name || "Unnamed Item"}</h3>
+          <p class="text-sm text-gray-500">${item.item.vendorName || "Vendor"}</p>
         </section>
 
         <span class="font-bold text-indigo-600">
-          R${Number(item.price || 0).toFixed(2)}
+          R${Number(item.item.price || 0).toFixed(2)}
         </span>
       </section>
 
@@ -391,7 +407,11 @@ function updateCart() {
           Remove
         </button>
       </section>
+      <span id="${item.item.id}" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                ${item.num}
+        </span>
     </article>
+    
   `).join("");
 
   if (numItemsCart) {
@@ -633,7 +653,12 @@ function attachEventListeners() {
     const index = Number(btn.dataset.cartIndex);
 
     if (!Number.isNaN(index)) {
-      cart.splice(index, 1);
+      if(cart[index].num <= 1){
+        cart.splice(index, 1);
+      } else {
+        cart[index].num -= 1;
+      }
+      
       saveCart();
       updateCart();
       if(cart.length == 0){
