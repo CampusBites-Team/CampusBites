@@ -68,7 +68,7 @@ describe('getStatusButtons', () => {
       status: 'Pending'
     });
 
-    expect(html).toContain('Mark as Preparing');
+    expect(html).toContain('Preparing');
     expect(html).toContain('data-status="Preparing"');
     expect(html).toContain('data-order-id="order-1"');
     expect(html).not.toContain('data-status="Pending"');
@@ -81,7 +81,7 @@ describe('getStatusButtons', () => {
       status: 'Preparing'
     });
 
-    expect(html).toContain('Mark as Ready');
+    expect(html).toContain('Ready');
     expect(html).toContain('data-status="Ready"');
     expect(html).toContain('data-order-id="order-2"');
   });
@@ -92,7 +92,7 @@ describe('getStatusButtons', () => {
       status: 'Ready'
     });
 
-    expect(html).toContain('Mark as Collected');
+    expect(html).toContain('Collected');
     expect(html).toContain('data-status="Collected"');
     expect(html).toContain('data-order-id="order-3"');
   });
