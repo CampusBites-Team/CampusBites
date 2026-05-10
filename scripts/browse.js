@@ -75,6 +75,16 @@ function updateCartCount() {
 }
 
 function addToCart(item) {
+  let vendorNum = 0;
+  for(let i = 0; i < cart.length; i++){
+    if(cart[i].vendorName == item.vendorName){
+      vendorNum++;
+    }
+  }
+  if(vendorNum == 10){
+    alert("You can order at most 10 items from the same vendor");
+    return;
+  }
   cart.push(item);
   saveCart();
   updateCart();
@@ -325,6 +335,7 @@ function renderMenuItems() {
   globalThis.lucide?.createIcons?.();
 }
 
+
 function updateCart() {
   const container = document.getElementById("cartList");
   const numItemsCart = document.getElementById("numItemsCart");
@@ -348,47 +359,64 @@ function updateCart() {
     updateCartCount();
     return;
   }
-
-  container.innerHTML = cart.map((item, index) => `
-    <article class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+  let html = ``;
+  let doneItems = [];
+  for(let i = 0; i < cart.length; i++){
+    if(!doneItems.includes(cart[i].id)){
+      let num = 0;
+      for(let j = 0; j < cart.length; j++){
+        if(cart[i].id == cart[j].id){
+          num++;
+        }
+      }
+      html += `
+    <article class="relative bg-white p-4 rounded-xl shadow-sm border border-gray-100">
       <img 
-        src="${item.image || item.imageUrl || "assets/default_vendor.jpg"}"
-        alt="${item.name || "Menu item"}"
+        src="${cart[i].image || cart[i].imageUrl || "assets/default_vendor.jpg"}"
+        alt="${cart[i].name || "Menu item"}"
         class="w-full h-48 object-cover rounded-lg mb-4"
       >
 
       <section class="flex justify-between items-start mb-2">
         <section>
-          <h3 class="text-lg font-semibold">${item.name || "Unnamed Item"}</h3>
-          <p class="text-sm text-gray-500">${item.vendorName || "Vendor"}</p>
+          <h3 class="text-lg font-semibold">${cart[i].name || "Unnamed Item"}</h3>
+          <p class="text-sm text-gray-500">${cart[i].vendorName || "Vendor"}</p>
         </section>
 
         <span class="font-bold text-indigo-600">
-          R${Number(item.price || 0).toFixed(2)}
+          R${Number(cart[i].price || 0).toFixed(2)}
         </span>
       </section>
 
       <p class="text-sm text-gray-600 mb-3 line-clamp-2">
-        ${item.description || "No description available."}
+        ${cart[i].description || "No description available."}
       </p>
 
       <section class="flex gap-2">
         <button 
-          data-cart-index="${index}" 
+          data-cart-index="${i}" 
           class="remove-cart-btn flex-1 bg-red-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-red-700"
         >
           <i data-lucide="minus" class="w-4 h-4"></i>
           Remove
         </button>
       </section>
+      <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                ${num}
+        </span>
     </article>
-  `).join("");
+    
+  `;
+  doneItems.push(cart[i].id);
+    }
+  }
+  container.innerHTML = html;
 
   if (numItemsCart) {
     numItemsCart.textContent =
       cart.length === 1 ? "1 item in cart" : `${cart.length} items in cart`;
   }
-
+  
   updateCartCount();
   globalThis.lucide?.createIcons?.();
 }
@@ -626,13 +654,28 @@ function attachEventListeners() {
       cart.splice(index, 1);
       saveCart();
       updateCart();
+      if(cart.length == 0){
+        document.getElementById("empty").classList.add("hidden");
+      }
     }
+  });
+
+  document.getElementById("empty")?.addEventListener("click", () => {
+    cart = [];
+    saveCart();
+    updateCart();
+    document.getElementById("empty").classList.add("hidden");
   });
 
   document.getElementById("cart")?.addEventListener("click", () => {
     cart = JSON.parse(localStorage.getItem("cart")) || [];
 
     document.getElementById("item-edit-modal")?.classList.remove("hidden");
+    if(cart.length == 0){
+          document.getElementById("empty").classList.add("hidden");
+    } else {
+          document.getElementById("empty").classList.remove("hidden");
+    }
     updateCart();
   });
 
@@ -744,3 +787,4 @@ const paystack = {
 
 export const loadBrowseItems = loadMenuItems;
 export { loadMenuItems };
+export { addToCart };

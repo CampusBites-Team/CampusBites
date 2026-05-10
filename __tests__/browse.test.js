@@ -202,6 +202,7 @@ describe("browse.js", () => {
       <section id="details-modal" class="hidden"></section>
 
       <button id="closeCartModal"></button>
+      <button id="empty"></button>
       <button id="checkOut">Pay Now</button>
     `;
 
@@ -1028,4 +1029,87 @@ test("payfast logs error when called without logged in user", async () => {
 
   expect(alertSpy).toHaveBeenCalledWith("You must be logged in to proceed to checkout");
 });
+test("prevents adding more than 10 items from same vendor", async () => {
+  mockBrowseQueries(db);
+
+  await bootBrowse();
+
+  const browseModule = await import("../scripts/browse.js");
+
+  const item = {
+    id: "1",
+    name: "Burger",
+    vendorName: "Shop1",
+    price: 50
+  };
+
+  for (let i = 0; i < 10; i++) {
+    browseModule.addToCart(item);
+  }
+
+  browseModule.addToCart(item);
+
+  expect(alertSpy).toHaveBeenCalledWith(
+    "You can order at most 10 items from the same vendor"
+  );
+
+  const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+  expect(cart).toHaveLength(10);
+});
+
+test("allows adding items from different vendors", async () => {
+  mockBrowseQueries(db);
+  await bootBrowse();
+
+  const browseModule = await import("../scripts/browse.js");
+
+  for (let i = 0; i < 3; i++) {
+    browseModule.addToCart({
+      id: `item-${i}`,
+      name: `Food ${i}`,
+      vendorName: `Vendor ${i}`,
+      price: 20
+    });
+  }
+
+  const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+  expect(cart).toHaveLength(3);
+  expect(alertSpy).not.toHaveBeenCalledWith(
+    "You can order at most 10 items from the same vendor"
+  );
+});
+
+test("empty cart button clears cart", async () => {
+  mockBrowseQueries(db);
+
+  await bootBrowse();
+
+  const browseModule = await import("../scripts/browse.js");
+
+  browseModule.addToCart({
+    id: "1",
+    name: "Burger",
+    vendorName: "Shop1",
+    price: 50
+  });
+
+  document.getElementById("cart").click();
+
+  const emptyBtn = document.getElementById("empty");
+
+  emptyBtn.classList.remove("hidden");
+
+  emptyBtn.click();
+
+  await flush();
+
+  expect(JSON.parse(localStorage.getItem("cart") || "[]"))
+    .toEqual([]);
+
+  expect(document.getElementById("cartList").innerHTML)
+    .toContain("Your cart is empty.");
+});
+
 });
