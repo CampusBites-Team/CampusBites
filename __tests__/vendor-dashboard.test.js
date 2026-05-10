@@ -102,7 +102,7 @@ describe('getStatusButtons', () => {
       id: 'order-4'
     });
 
-    expect(html).toContain('Mark as Preparing');
+    expect(html).toContain('Preparing');
     expect(html).toContain('data-status="Preparing"');
     expect(html).toContain('data-order-id="order-4"');
   });
@@ -147,7 +147,7 @@ describe('renderOrders', () => {
     expect(html).toContain('Order 1');
     expect(html).toContain('Status: Pending');
     expect(html).toContain('Total: R75');
-    expect(html).toContain('Mark as Preparing');
+    expect(html).toContain('Preparing');
   });
 
   test('renders multiple current orders correctly', () => {
@@ -295,7 +295,7 @@ describe('attachOrderStatusListeners', () => {
 
     const html = document.getElementById('orders-list').innerHTML;
     expect(html).toContain('Status: Preparing');
-    expect(html).toContain('Mark as Ready');
+    expect(html).toContain('Ready');
   });
 
   test('removes order from current orders when marked as collected', async () => {
