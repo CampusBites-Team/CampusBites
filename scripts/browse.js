@@ -797,3 +797,4 @@ const payfast = {
 
 export const loadBrowseItems = loadMenuItems;
 export { loadMenuItems };
+export { addToCart };
