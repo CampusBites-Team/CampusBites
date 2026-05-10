@@ -71,37 +71,21 @@ function saveCart() {
 
 function updateCartCount() {
   const cartCount = document.getElementById("cartCount");
-  let total = 0;
-  for(let i = 0; i < cart.length; i++){
-    total += cart[i].num;
-  }
-  if (cartCount) cartCount.textContent = total;
+  if (cartCount) cartCount.textContent = cart.length;
 }
 
 function addToCart(item) {
   let vendorNum = 0;
-  
   for(let i = 0; i < cart.length; i++){
-    if(cart[i].item.vendorName == item.vendorName){
-      vendorNum += cart[i].num;
+    if(cart[i].vendorName == item.vendorName){
+      vendorNum++;
     }
   }
-  
   if(vendorNum == 10){
     alert("You can order at most 10 items from the same vendor");
     return;
   }
-  let already = false;
-  for(let i = 0; i < cart.length; i++){
-    if(cart[i].item.vendorName == item.vendorName){
-      cart[i].num++;
-      already = true;
-      break;
-    }
-  }
-  if(!already){
-    cart.push({item: item, num: 1});
-  }
+  cart.push(item);
   saveCart();
   updateCart();
   updateCartCount();
@@ -351,6 +335,7 @@ function renderMenuItems() {
   globalThis.lucide?.createIcons?.();
 }
 
+
 function updateCart() {
   const container = document.getElementById("cartList");
   const numItemsCart = document.getElementById("numItemsCart");
@@ -374,45 +359,58 @@ function updateCart() {
     updateCartCount();
     return;
   }
-
-  container.innerHTML = cart.map((item, index) => `
+  let html = ``;
+  let doneItems = [];
+  for(let i = 0; i < cart.length; i++){
+    if(!doneItems.includes(cart[i].id)){
+      let num = 0;
+      for(let j = 0; j < cart.length; j++){
+        if(cart[i].id == cart[j].id){
+          num++;
+        }
+      }
+      html += `
     <article class="relative bg-white p-4 rounded-xl shadow-sm border border-gray-100">
       <img 
-        src="${item.item.image || item.item.imageUrl || "assets/default_vendor.jpg"}"
-        alt="${item.item.name || "Menu item"}"
+        src="${cart[i].image || cart[i].imageUrl || "assets/default_vendor.jpg"}"
+        alt="${cart[i].name || "Menu item"}"
         class="w-full h-48 object-cover rounded-lg mb-4"
       >
 
       <section class="flex justify-between items-start mb-2">
         <section>
-          <h3 class="text-lg font-semibold">${item.item.name || "Unnamed Item"}</h3>
-          <p class="text-sm text-gray-500">${item.item.vendorName || "Vendor"}</p>
+          <h3 class="text-lg font-semibold">${cart[i].name || "Unnamed Item"}</h3>
+          <p class="text-sm text-gray-500">${cart[i].vendorName || "Vendor"}</p>
         </section>
 
         <span class="font-bold text-indigo-600">
-          R${Number(item.item.price || 0).toFixed(2)}
+          R${Number(cart[i].price || 0).toFixed(2)}
         </span>
       </section>
 
       <p class="text-sm text-gray-600 mb-3 line-clamp-2">
-        ${item.description || "No description available."}
+        ${cart[i].description || "No description available."}
       </p>
 
       <section class="flex gap-2">
         <button 
-          data-cart-index="${index}" 
+          data-cart-index="${i}" 
           class="remove-cart-btn flex-1 bg-red-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-red-700"
         >
           <i data-lucide="minus" class="w-4 h-4"></i>
           Remove
         </button>
       </section>
-      <span id="${item.item.id}" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
-                ${item.num}
+      <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                ${num}
         </span>
     </article>
     
-  `).join("");
+  `;
+  doneItems.push(cart[i].id);
+    }
+  }
+  container.innerHTML = html;
 
   if (numItemsCart) {
     numItemsCart.textContent =
@@ -653,12 +651,7 @@ function attachEventListeners() {
     const index = Number(btn.dataset.cartIndex);
 
     if (!Number.isNaN(index)) {
-      if(cart[index].num <= 1){
-        cart.splice(index, 1);
-      } else {
-        cart[index].num -= 1;
-      }
-      
+      cart.splice(index, 1);
       saveCart();
       updateCart();
       if(cart.length == 0){

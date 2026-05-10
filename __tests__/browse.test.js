@@ -665,7 +665,7 @@ describe("browse.js", () => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
     expect(cart).toHaveLength(1);
-    expect(cart[0].item.name).toBe("Burger");
+    expect(cart[0].name).toBe("Burger");
     expect(document.getElementById("details-modal").classList.contains("hidden")).toBe(true);
   });
 
