@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Management</title>
-     <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <body>
-     <nav class="bg-white border-b border-gray-200 shadow-sm">
+  <nav class="bg-white border-b border-gray-200 shadow-sm">
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
       <header class="flex items-center gap-2">
         <i data-lucide="utensils" class="w-7 h-7 text-indigo-600"></i>
@@ -20,83 +21,72 @@
         <a href="vendor-dashboard.html" class="text-gray-700 hover:text-indigo-600">Dashboard</a>
         <a href="menu-management.html" class="text-gray-700 hover:text-indigo-600">Menu</a>
       </section>
-    <a href="login.html" id="logoutBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition hidden">Log Out</a>
+
+      <a href="login.html" id="logoutBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition hidden">
+        Log Out
+      </a>
     </section>
   </nav>
 
-    <section class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <main class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <header class="flex justify-between items-center mb-8">
-        <section>
-            <h2 class="text-2xl font-bold">Order Management</h2>
-            <p class="text-gray-600">View and Update orders</p>
-        </section>
-
-        
+      <section>
+        <h2 class="text-2xl font-bold">Order Management</h2>
+        <p class="text-gray-600">Drag orders forward through the workflow.</p>
+      </section>
     </header>
 
     <section class="py-12 bg-gray-50 rounded-2xl shadow">
-  <section class="max-w-full mx-auto px-4">
+      <section class="max-w-full mx-auto px-4">
 
-    <header class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <header class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+          <article class="bg-white p-6 rounded-2xl shadow">
+            <i data-lucide="rocket" class="w-8 h-8 text-blue-500 mb-4"></i>
+            <h3 class="text-xl font-semibold mb-2">Pending</h3>
+            <p class="text-gray-600">Newly placed orders start here.</p>
+          </article>
 
-      <!-- Column 1 -->
-      <article class="bg-white p-6 rounded-2xl shadow">
-        <i data-lucide="rocket" class="w-8 h-8 text-blue-500 mb-4"></i>
-        <h3 class="text-xl font-semibold mb-2">New Orders</h3>
-        <p class="text-gray-600">
-          Your app runs quickly and smoothly with optimized performance.
-        </p>
-      </article>
+          <article class="bg-white p-6 rounded-2xl shadow">
+            <i data-lucide="shield" class="w-8 h-8 text-green-500 mb-4"></i>
+            <h3 class="text-xl font-semibold mb-2">Preparing</h3>
+            <p class="text-gray-600">Drag Pending orders here when preparation starts.</p>
+          </article>
 
-      <!-- Column 2 -->
-      <article class="bg-white p-6 rounded-2xl shadow">
-        <i data-lucide="shield" class="w-8 h-8 text-green-500 mb-4"></i>
-        <h3 class="text-xl font-semibold mb-2">In Progress</h3>
-        <p class="text-gray-600">
-          Built with security in mind to protect your data.
-        </p>
-      </article>
+          <article class="bg-white p-6 rounded-2xl shadow">
+            <i data-lucide="badge-check" class="w-8 h-8 text-yellow-500 mb-4"></i>
+            <h3 class="text-xl font-semibold mb-2">Ready</h3>
+            <p class="text-gray-600">Drag Preparing orders here when ready for collection.</p>
+          </article>
 
-      <!-- Column 3 -->
-      <article class="bg-white p-6 rounded-2xl shadow">
-        <i data-lucide="users" class="w-8 h-8 text-purple-500 mb-4"></i>
-        <h3 class="text-xl font-semibold mb-2">Completed orders</h3>
-        <p class="text-gray-600">
-          Designed for a smooth and intuitive experience.
-        </p>
-      </article>
+          <article class="bg-white p-6 rounded-2xl shadow">
+            <i data-lucide="users" class="w-8 h-8 text-purple-500 mb-4"></i>
+            <h3 class="text-xl font-semibold mb-2">Collected</h3>
+            <p class="text-gray-600">Drag Ready orders here once collected.</p>
+          </article>
+        </header>
 
-    </header>
+        <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 mt-2">
+          <section id="newOrders" aria-label="Pending orders" class="bg-white p-6 rounded-2xl shadow min-h-64">
+            <i data-lucide="rocket" class="w-8 h-8 text-blue-500 mb-4"></i>
+          </section>
 
-     <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-2">
+          <section id="preparingOrders" aria-label="Preparing orders" class="bg-white p-6 rounded-2xl shadow min-h-64">
+            <i data-lucide="shield" class="w-8 h-8 text-green-500 mb-4"></i>
+          </section>
 
-      <!-- Column 1 -->
-      <section id="newOrders" aria-label="New orders" class="bg-white p-6 rounded-2xl shadow">
-        <i data-lucide="rocket" class="w-8 h-8 text-blue-500 mb-4"></i>
+          <section id="readyOrders" aria-label="Ready orders" class="bg-white p-6 rounded-2xl shadow min-h-64">
+            <i data-lucide="badge-check" class="w-8 h-8 text-yellow-500 mb-4"></i>
+          </section>
 
-      </section>
-
-      <!-- Column 2 -->
-      <section id="inProgress" aria-label="In progress orders" class="bg-white p-6 rounded-2xl shadow">
-        <i data-lucide="shield" class="w-8 h-8 text-green-500 mb-4"></i>
-
-      </section>
-
-      <!-- Column 3 -->
-      <section id="completedOrders" aria-label="Completed orders" class="bg-white p-6 rounded-2xl shadow">
-        <i data-lucide="users" class="w-8 h-8 text-purple-500 mb-4"></i>
+          <section id="completedOrders" aria-label="Collected orders" class="bg-white p-6 rounded-2xl shadow min-h-64">
+            <i data-lucide="users" class="w-8 h-8 text-purple-500 mb-4"></i>
+          </section>
+        </section>
 
       </section>
-
     </section>
+  </main>
 
-  </section>
-</section>
-
-</section>
-<script type="module" src="scripts/orders.js">
-  lucide.createIcons();
-</script>
-    
+  <script type="module" src="scripts/orders.js"></script>
 </body>
 </html>

@@ -13,7 +13,9 @@ jest.mock("../scripts/database.js", () => ({
   where: jest.fn(),
   query: jest.fn(),
   onAuthStateChanged: jest.fn(),
-  onSnapshot: jest.fn()
+  onSnapshot: jest.fn(),
+  updateDoc: jest.fn(),
+  serverTimestamp: jest.fn(() => "mock-timestamp")
 }));
 
 const flush = async () => {
@@ -32,7 +34,8 @@ describe("orders.js", () => {
 
     document.body.innerHTML = `
       <section id="newOrders"></section>
-      <section id="inProgress"></section>
+      <section id="preparingOrders"></section>
+      <section id="readyOrders"></section>
       <section id="completedOrders"></section>
     `;
 
@@ -108,6 +111,7 @@ describe("orders.js", () => {
     await flush();
 
     const html = document.getElementById("newOrders").innerHTML;
+
     expect(html).toContain("Order 1");
     expect(html).toContain("Alice Smith");
     expect(html).toContain("Burger");
@@ -115,7 +119,7 @@ describe("orders.js", () => {
     expect(html).toContain("Pending");
   });
 
-  test("renders Preparing and Ready orders into inProgress", async () => {
+  test("renders Preparing orders into preparingOrders and Ready orders into readyOrders", async () => {
     db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "vendor-1" }));
 
     db.getDoc
@@ -164,13 +168,16 @@ describe("orders.js", () => {
 
     await flush();
 
-    const html = document.getElementById("inProgress").innerHTML;
-    expect(html).toContain("Bob Jones");
-    expect(html).toContain("Cara Lee");
-    expect(html).toContain("Preparing");
-    expect(html).toContain("Ready");
-    expect(html).toContain("Pizza");
-    expect(html).toContain("Juice");
+    const preparingHtml = document.getElementById("preparingOrders").innerHTML;
+    const readyHtml = document.getElementById("readyOrders").innerHTML;
+
+    expect(preparingHtml).toContain("Bob Jones");
+    expect(preparingHtml).toContain("Preparing");
+    expect(preparingHtml).toContain("Pizza");
+
+    expect(readyHtml).toContain("Cara Lee");
+    expect(readyHtml).toContain("Ready");
+    expect(readyHtml).toContain("Juice");
   });
 
   test("renders collected orders into completedOrders", async () => {
@@ -210,6 +217,7 @@ describe("orders.js", () => {
     await flush();
 
     const html = document.getElementById("completedOrders").innerHTML;
+
     expect(html).toContain("David King");
     expect(html).toContain("Collected");
     expect(html).toContain("Wrap");
@@ -235,7 +243,8 @@ describe("orders.js", () => {
     await flush();
 
     expect(document.getElementById("newOrders").innerHTML).toContain("No pending orders.");
-    expect(document.getElementById("inProgress").innerHTML).toContain("No orders in progress.");
+    expect(document.getElementById("preparingOrders").innerHTML).toContain("No preparing orders.");
+    expect(document.getElementById("readyOrders").innerHTML).toContain("No ready orders.");
     expect(document.getElementById("completedOrders").innerHTML).toContain("No collected orders.");
   });
 
@@ -277,48 +286,111 @@ describe("orders.js", () => {
 
     expect(document.getElementById("newOrders").innerHTML).toContain("Unknown Customer");
   });
+
   test("formats created and updated timestamps in vendor orders", async () => {
-  db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "vendor-1" }));
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "vendor-1" }));
 
-  const fakeDate = new Date("2026-05-08T10:30:00");
+    const fakeDate = new Date("2026-05-08T10:30:00");
 
-  db.getDoc
-    .mockResolvedValueOnce({
-      exists: () => true,
-      data: () => ({ role: "vendor", status: "approved" })
-    })
-    .mockResolvedValueOnce({
-      exists: () => true,
-      data: () => ({ fullName: "Test Customer" })
+    db.getDoc
+      .mockResolvedValueOnce({
+        exists: () => true,
+        data: () => ({ role: "vendor", status: "approved" })
+      })
+      .mockResolvedValueOnce({
+        exists: () => true,
+        data: () => ({ fullName: "Test Customer" })
+      });
+
+    db.onSnapshot.mockImplementation((_q, cb) => {
+      cb({
+        docs: [
+          {
+            id: "order-1",
+            data: () => ({
+              vendorId: "vendor-1",
+              userId: "customer-1",
+              status: "Pending",
+              createdAt: { toDate: () => fakeDate },
+              updatedAt: { toDate: () => fakeDate },
+              menuItems: [{ name: "Burger", quantity: 1 }]
+            })
+          }
+        ]
+      });
+      return jest.fn();
     });
 
-  db.onSnapshot.mockImplementation((_q, cb) => {
-    cb({
-      docs: [
-        {
-          id: "order-1",
-          data: () => ({
-            vendorId: "vendor-1",
-            userId: "customer-1",
-            status: "Pending",
-            createdAt: { toDate: () => fakeDate },
-            updatedAt: { toDate: () => fakeDate },
-            menuItems: [{ name: "Burger", quantity: 1 }]
-          })
-        }
-      ]
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
     });
-    return jest.fn();
+
+    await flush();
+
+    expect(document.body.innerHTML).toContain("Placed:");
+    expect(document.body.innerHTML).toContain("Updated:");
+    expect(document.body.innerHTML).not.toContain("Not available");
   });
 
-  jest.isolateModules(() => {
-    require("../scripts/orders.js");
+  test("allows pending orders to move only to preparing through drag and drop", async () => {
+    db.updateDoc.mockResolvedValue({});
+
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    await flush();
+
+    const { getNextDropStatus, updateOrderStatus } = require("../scripts/orders.js");
+
+    expect(getNextDropStatus("Pending", "preparingOrders")).toBe("Preparing");
+    expect(getNextDropStatus("Pending", "readyOrders")).toBe(null);
+    expect(getNextDropStatus("Pending", "completedOrders")).toBe(null);
+
+    await updateOrderStatus("order-1", "Preparing");
+
+    expect(db.updateDoc).toHaveBeenCalledWith(
+  [{}, "orders", "order-1"],
+  {
+    status: "Preparing",
+    updatedAt: "mock-timestamp"
+  }
+);
   });
 
-  await flush();
+  test("allows preparing orders to move only to ready", () => {
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
 
-  expect(document.body.innerHTML).toContain("Placed:");
-  expect(document.body.innerHTML).toContain("Updated:");
-  expect(document.body.innerHTML).not.toContain("Not available");
-});
+    const { getNextDropStatus } = require("../scripts/orders.js");
+
+    expect(getNextDropStatus("Preparing", "readyOrders")).toBe("Ready");
+    expect(getNextDropStatus("Preparing", "newOrders")).toBe(null);
+    expect(getNextDropStatus("Preparing", "completedOrders")).toBe(null);
+  });
+
+  test("allows ready orders to move only to collected", () => {
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const { getNextDropStatus } = require("../scripts/orders.js");
+
+    expect(getNextDropStatus("Ready", "completedOrders")).toBe("Collected");
+    expect(getNextDropStatus("Ready", "newOrders")).toBe(null);
+    expect(getNextDropStatus("Ready", "preparingOrders")).toBe(null);
+  });
+
+  test("does not allow collected orders to move backwards", () => {
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const { getNextDropStatus } = require("../scripts/orders.js");
+
+    expect(getNextDropStatus("Collected", "newOrders")).toBe(null);
+    expect(getNextDropStatus("Collected", "preparingOrders")).toBe(null);
+    expect(getNextDropStatus("Collected", "readyOrders")).toBe(null);
+  });
 });
