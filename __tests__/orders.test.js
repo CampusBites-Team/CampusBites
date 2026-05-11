@@ -393,4 +393,142 @@ describe("orders.js", () => {
     expect(getNextDropStatus("Collected", "preparingOrders")).toBe(null);
     expect(getNextDropStatus("Collected", "readyOrders")).toBe(null);
   });
+
+    test("formats unknown statuses as Pending", () => {
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const { formatStatus } = require("../scripts/orders.js");
+
+    expect(formatStatus(undefined)).toBe("Pending");
+    expect(formatStatus("")).toBe("Pending");
+    expect(formatStatus("something weird")).toBe("Pending");
+  });
+
+  test("renders collected orders as not draggable", () => {
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const { buildOrderHTML } = require("../scripts/orders.js");
+
+    const html = buildOrderHTML(
+      {
+        id: "order-1",
+        status: "Collected",
+        customerName: "Test Customer",
+        menuItems: [{ name: "Burger", quantity: 1 }]
+      },
+      0
+    );
+
+    expect(html).toContain('draggable="false"');
+    expect(html).toContain('data-order-status="Collected"');
+  });
+
+  test("attaches drag listeners only once", () => {
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const { attachDragAndDropListeners } = require("../scripts/orders.js");
+
+    attachDragAndDropListeners();
+    attachDragAndDropListeners();
+
+    expect(document.getElementById("newOrders").dataset.dragListenerAttached).toBe("true");
+    expect(document.getElementById("preparingOrders").dataset.dragListenerAttached).toBe("true");
+    expect(document.getElementById("readyOrders").dataset.dragListenerAttached).toBe("true");
+    expect(document.getElementById("completedOrders").dataset.dragListenerAttached).toBe("true");
+  });
+
+  test("drag and drop updates order status when drop is valid", async () => {
+    db.updateDoc.mockResolvedValue({});
+
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const { attachDragAndDropListeners } = require("../scripts/orders.js");
+
+    document.getElementById("newOrders").innerHTML = `
+      <article
+        draggable="true"
+        data-order-id="order-1"
+        data-order-status="Pending"
+      >
+        Order 1
+      </article>
+    `;
+
+    attachDragAndDropListeners();
+
+    const card = document.querySelector("article[data-order-id]");
+    const preparingColumn = document.getElementById("preparingOrders");
+
+    const dataStore = {};
+
+    const dragStartEvent = new Event("dragstart", { bubbles: true });
+    Object.defineProperty(dragStartEvent, "dataTransfer", {
+      value: {
+        setData: jest.fn((key, value) => {
+          dataStore[key] = value;
+        }),
+        getData: jest.fn((key) => dataStore[key])
+      }
+    });
+
+    card.dispatchEvent(dragStartEvent);
+
+    const dropEvent = new Event("drop", { bubbles: true });
+    Object.defineProperty(dropEvent, "dataTransfer", {
+      value: {
+        getData: jest.fn((key) => dataStore[key])
+      }
+    });
+
+    preparingColumn.dispatchEvent(dropEvent);
+
+    await flush();
+
+    expect(db.updateDoc).toHaveBeenCalledWith(
+      [{}, "orders", "order-1"],
+      {
+        status: "Preparing",
+        updatedAt: "mock-timestamp"
+      }
+    );
+  });
+
+  test("drag and drop does not update order status when drop is invalid", async () => {
+    db.updateDoc.mockResolvedValue({});
+
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const { attachDragAndDropListeners } = require("../scripts/orders.js");
+
+    attachDragAndDropListeners();
+
+    const completedColumn = document.getElementById("completedOrders");
+
+    const dropEvent = new Event("drop", { bubbles: true });
+    Object.defineProperty(dropEvent, "dataTransfer", {
+      value: {
+        getData: jest.fn((key) => {
+          if (key === "orderId") return "order-1";
+          if (key === "orderStatus") return "Pending";
+          return "";
+        })
+      }
+    });
+
+    completedColumn.dispatchEvent(dropEvent);
+
+    await flush();
+
+    expect(db.updateDoc).not.toHaveBeenCalled();
+  });
 });
