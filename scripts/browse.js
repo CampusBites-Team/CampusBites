@@ -544,7 +544,8 @@ async function loadMenuItems() {
   const approvedVendorIds = new Set(approvedVendors.map(vendorData => vendorData.id));
 
   allVisibleItems = items
-    .filter(item => approvedVendorIds.has(item.vendorId))
+    .filter(item => approvedVendorIds.has(item.vendorId)  &&
+    item.status === "approved")
     .map(item => {
       const vendorData = vendorMap[item.vendorId];
 
