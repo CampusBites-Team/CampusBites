@@ -64,6 +64,7 @@ describe("getStatusButtons", () => {
       status: "Pending",
     });
 
+    expect(html).toContain('Preparing');
     expect(html).toContain("Preparing");
     expect(html).toContain('data-status="Preparing"');
     expect(html).toContain('data-order-id="order-1"');
@@ -77,6 +78,7 @@ describe("getStatusButtons", () => {
       status: "Preparing",
     });
 
+    expect(html).toContain('Ready');
     expect(html).toContain("Ready");
     expect(html).toContain('data-status="Ready"');
     expect(html).toContain('data-order-id="order-2"');
@@ -88,6 +90,7 @@ describe("getStatusButtons", () => {
       status: "Ready",
     });
 
+    expect(html).toContain('Collected');
     expect(html).toContain("Collected");
     expect(html).toContain('data-status="Collected"');
     expect(html).toContain('data-order-id="order-3"');
@@ -98,6 +101,7 @@ describe("getStatusButtons", () => {
       id: "order-4",
     });
 
+    expect(html).toContain('Preparing');
     expect(html).toContain("Preparing");
     expect(html).toContain('data-status="Preparing"');
     expect(html).toContain('data-order-id="order-4"');
@@ -143,6 +147,10 @@ describe("renderOrders", () => {
 
     const html = document.getElementById("orders-list").innerHTML;
 
+    expect(html).toContain('Order 1');
+    expect(html).toContain('Status: Pending');
+    expect(html).toContain('Total: R75');
+    expect(html).toContain('Preparing');
     expect(html).toContain("Order 1");
     expect(html).toContain("Status: Pending");
     expect(html).toContain("Total: R75");
@@ -335,6 +343,13 @@ describe("attachOrderStatusListeners", () => {
       status: "Preparing",
     });
 
+    const html = document.getElementById('orders-list').innerHTML;
+    expect(html).toContain('Status: Preparing');
+    expect(html).toContain('Ready');
+  });
+
+  test('removes order from current orders when marked as collected', async () => {
+    dbModule.doc.mockReturnValue('order-ref');
     const html = document.getElementById("orders-list").innerHTML;
     expect(html).toContain("Status: Preparing");
     expect(html).toContain("Ready");
