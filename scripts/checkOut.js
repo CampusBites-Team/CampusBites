@@ -457,9 +457,19 @@ async function refundPaidOrder(order) {
       throw new Error(err.error || `Refund failed (${res.status})`);
     }
 
+    await updateDoc(doc(db, "orders", order.id), {
+      status: "refund pending",
+      refundStatus: "pending",
+      updatedAt: serverTimestamp()
+    });
+
     ordersCache = ordersCache.map((cachedOrder) =>
       cachedOrder.id === order.id
-        ? { ...cachedOrder, status: "refund pending" }
+        ? {
+            ...cachedOrder,
+            status: "refund pending",
+            refundStatus: "pending"
+          }
         : cachedOrder
     );
 
@@ -471,6 +481,7 @@ async function refundPaidOrder(order) {
     alert("Could not initiate refund: " + error.message);
   }
 }
+
 
 // ----------------------
 // Card click handler
