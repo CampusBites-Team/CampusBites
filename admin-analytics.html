@@ -13,31 +13,27 @@
     <meta name="apple-mobile-web-app-title" content="CampusBites">
 </head>
 <body>
-    <nav class="fixed bg-white w-full z-50 glass-effect border-b border-gray-200">
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
-            <header class="flex items-center gap-2 cursor-pointer">
-                <i data-lucide="utensils" class="w-8 h-8 text-indigo-600"></i>
-                <span class="text-xl font-bold text-gray-900">CampusBites</span>
-            </header>
+    <nav class="bg-white border-b border-gray-200 shadow-sm">
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+        <a href="index.html" class="flex items-center gap-2">
+        <i data-lucide="utensils" class="w-7 h-7 text-indigo-600"></i>
+        <span class="text-xl font-bold text-gray-900">CampusBites</span>
+        </a>
 
-            <section class="md:flex space-x-8">
-                <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
-                <a id="AdmindashboardLink" href="admin-dashboard.html" class="text-gray-700 hover:text-indigo-600">Dashboard</a>
-                <a href="vendor-management.html" class="text-gray-700 hover:text-indigo-600">Vendors</a>
-                <a href="admin-analytics.html" class="text-gray-700 hover:text-indigo-600">Analytics</a>
-                <a href="admin-menuManagement.html" class="text-gray-700 hover:text-indigo-600">Menu Management</a>
-                <a href="admin-payouts.html" class="text-gray-700 hover:text-indigo-600">Payouts</a>
-            </section>
-
-            <section class="flex items-center gap-4">
-                <a href="login.html" id="loginLink" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
-                    Sign in
-                </a>
-                <button id="logoutBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition hidden">
-                    Logout
-                </button>
-            </section>
+        <section id="navLinks" class="flex items-center gap-6 mx-auto">
+        <!-- Populated by navbar.js -->
         </section>
+
+        <section class="flex items-center gap-4">
+        <a href="login.html" id="loginLink" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition hidden">
+            Sign in
+        </a>
+
+        <button id="logoutBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition hidden">
+            Logout
+        </button>
+        </section>
+    </section>
     </nav>
 
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
@@ -131,6 +127,7 @@
         </section>
     </section>
 <script src="scripts/pwa.js"></script>
+<script type="module" src="./scripts/navbar.js"></script>
 <script type="module">
   import { initAuthUI, logout } from "./scripts/auth.js";
   import { analytics, initAnalyticsPage, populateVendorFilter } from "./scripts/adminAnalytics.js";

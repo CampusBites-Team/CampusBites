@@ -15,29 +15,28 @@
 
 <body class="min-h-screen bg-gray-100">
 
-  <nav class="bg-white border-b border-gray-200 shadow-sm">
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-      <header class="flex items-center gap-2">
-        <i data-lucide="utensils" class="w-7 h-7 text-indigo-600"></i>
-        <span class="text-xl font-bold text-gray-900">CampusBites</span>
-      </header>
+<nav class="bg-white border-b border-gray-200 shadow-sm">
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+    <a href="index.html" class="flex items-center gap-2">
+      <i data-lucide="utensils" class="w-7 h-7 text-indigo-600"></i>
+      <span class="text-xl font-bold text-gray-900">CampusBites</span>
+    </a>
 
-      <section class="flex items-center gap-6 mx-auto">
-        <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
-        <a href="customer-profile.html" class="text-gray-700 hover:text-indigo-600">My Account</a>
-        <a id="RecommendationLink" href="recommendations.html" class="text-gray-700 hover:text-indigo-600 hidden">For You</a>
-        <a id="CheckOutLink" href="checkOut.html" class="text-gray-700 hover:text-indigo-600 hidden">Orders</a>
-      </section>
-
-      <a
-        href="login.html"
-        id="logoutBtn"
-        class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300"
-      >
-        Log Out
-      </a>
+    <section id="navLinks" class="flex items-center gap-6 mx-auto">
+      <!-- Populated by navbar.js -->
     </section>
-  </nav>
+
+    <section class="flex items-center gap-4">
+      <a href="login.html" id="loginLink" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition hidden">
+        Sign in
+      </a>
+
+      <button id="logoutBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition hidden">
+        Logout
+      </button>
+    </section>
+  </section>
+</nav>
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
@@ -171,7 +170,7 @@
 
   </main>
   <script src="scripts/pwa.js"></script>
-
+  <script type="module" src="./scripts/navbar.js"></script>
   <script type="module">
     import { initAuthUI, logout } from "./scripts/auth.js";
 

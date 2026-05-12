@@ -90,7 +90,8 @@ describe("vendor-profile.js", () => {
             description: "Beef burger",
             price: 45,
             image: "burger-url",
-            available: true
+            available: true,
+            status: "approved"
           })
         },
         {
@@ -101,7 +102,8 @@ describe("vendor-profile.js", () => {
             description: "Unavailable",
             price: 30,
             image: "pizza-url",
-            available: false
+            available: false,
+            status: "approved"
           })
         }
       ]

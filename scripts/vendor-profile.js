@@ -83,7 +83,7 @@ async function fetchVendorMenuItems(vendorId) {
 function renderVendorMenu(items) {
   const vendorMenu = document.getElementById("vendorMenu");
 
-  const availableItems = items.filter((item) => item.available);
+  const availableItems = items.filter((item) => item.available && item.status === "approved");
 
   if (!availableItems.length) {
     vendorMenu.innerHTML = `<p class="text-gray-500">No available menu items yet.</p>`;

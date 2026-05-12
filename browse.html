@@ -13,37 +13,28 @@
 
 <body class="bg-gray-100">
 
-  <nav class="fixed bg-white w-full z-50 border-b border-gray-200 shadow-sm">
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
+<nav class="bg-white border-b border-gray-200 shadow-sm">
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+    <a href="index.html" class="flex items-center gap-2">
+      <i data-lucide="utensils" class="w-7 h-7 text-indigo-600"></i>
+      <span class="text-xl font-bold text-gray-900">CampusBites</span>
+    </a>
 
-      <header class="flex items-center gap-2 cursor-pointer">
-        <i data-lucide="utensils" class="w-8 h-8 text-indigo-600"></i>
-        <span class="text-xl font-bold text-gray-900">CampusBites</span>
-      </header>
-
-      <section class="md:flex space-x-8">
-        <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
-        <a href="browse.html" class="text-gray-700 hover:text-indigo-600">Browse</a>
-        <a id="CustomerdashboardLink" href="customer-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
-        <a id="RecommendationLink" href="recommendations.html" class="text-gray-700 hover:text-indigo-600 hidden">For You</a>
-        <a id="VendordashboardLink" href="vendor-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
-        <a id="AdmindashboardLink" href="admin-dashboard.html" class="text-gray-700 hover:text-indigo-600 hidden">Dashboard</a>
-        <a id="CustomerProfileLink" href="customer-profile.html" class="text-gray-700 hover:text-indigo-600 hidden">My Account</a>
-        <a id="CheckOutLink" href="checkOut.html" class="text-gray-700 hover:text-indigo-600 hidden">Orders</a>
-      </section>
-
-      <section class="flex items-center gap-4">
-        <a href="login.html" id="loginLink" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
-          Sign in
-        </a>
-
-        <button id="logoutBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition hidden">
-          Logout
-        </button>
-      </section>
-
+    <section id="navLinks" class="flex items-center gap-6 mx-auto">
+      <!-- Populated by navbar.js -->
     </section>
-  </nav>
+
+    <section class="flex items-center gap-4">
+      <a href="login.html" id="loginLink" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition hidden">
+        Sign in
+      </a>
+
+      <button id="logoutBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition hidden">
+        Logout
+      </button>
+    </section>
+  </section>
+</nav>
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
 
@@ -197,6 +188,7 @@
     <section id="details-modal" class="hidden"></section>
 
     <script src="scripts/pwa.js"></script>
+    <script type="module" src="./scripts/navbar.js"></script>
 
   <script type="module">
     import { initAuthUI, logout } from "./scripts/auth.js";
