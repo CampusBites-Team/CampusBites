@@ -6,6 +6,11 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="CampusBites">
 </head>
 <body>
     <nav class="fixed bg-white w-full z-50 glass-effect border-b border-gray-200">
@@ -125,7 +130,7 @@
             </section>
         </section>
     </section>
-
+<script src="scripts/pwa.js"></script>
 <script type="module">
   import { initAuthUI, logout } from "./scripts/auth.js";
   import { analytics, initAnalyticsPage, populateVendorFilter } from "./scripts/adminAnalytics.js";
