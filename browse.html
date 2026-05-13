@@ -24,15 +24,21 @@
       <!-- Populated by navbar.js -->
     </section>
 
-    <section class="flex items-center gap-4">
-      <a href="login.html" id="loginLink" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition hidden">
-        Sign in
-      </a>
+    <section id="profileMenuContainer" class="relative hidden">
+        <button id="profileMenuBtn" class="flex items-center gap-2">
+            <img
+            id="profileAvatar"
+             src="assets/default-icon.png"
+            alt="Profile"
+            class="w-10 h-10 rounded-full object-cover border-2 border-indigo-500"
+            />
+        </button>
 
-      <button id="logoutBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition hidden">
-        Logout
-      </button>
-    </section>
+        <section
+            id="profileDropdown"
+            class="hidden absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50"
+        ></section>
+        </section>
   </section>
 </nav>
 

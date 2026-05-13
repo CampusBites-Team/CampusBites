@@ -20,20 +20,22 @@ const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 describe("navbar.js", () => {
   let database;
 
-    function setPath(pathname) {
-  window.history.pushState({}, "", pathname);
-}
+  function setPath(pathname) {
+    window.history.pushState({}, "", pathname);
+  }
 
   function setupDom() {
     document.body.innerHTML = `
       <nav>
         <section id="navLinks"></section>
 
-        <a id="loginLink" class="hidden" href="login.html">Sign in</a>
+        <section id="profileMenuContainer" class="relative hidden">
+          <button id="profileMenuBtn" type="button">
+            <img id="profileAvatar" />
+          </button>
 
-        <button id="logoutBtn" class="hidden">
-          Logout
-        </button>
+          <section id="profileDropdown" class="hidden"></section>
+        </section>
       </nav>
     `;
   }
@@ -71,6 +73,7 @@ describe("navbar.js", () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
+
     await flush();
 
     const navHtml = document.getElementById("navLinks").innerHTML;
@@ -79,11 +82,15 @@ describe("navbar.js", () => {
     expect(navHtml).toContain("Browse");
     expect(navHtml).not.toContain("Dashboard");
 
-    expect(document.getElementById("loginLink").classList.contains("hidden"))
-      .toBe(false);
+    expect(
+      document
+        .getElementById("profileMenuContainer")
+        .classList.contains("hidden")
+    ).toBe(false);
 
-    expect(document.getElementById("logoutBtn").classList.contains("hidden"))
-      .toBe(true);
+    expect(
+      document.getElementById("profileDropdown").innerHTML
+    ).toContain("Sign in");
   });
 
   test("renders customer links when user role is customer", async () => {
@@ -101,6 +108,7 @@ describe("navbar.js", () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
+
     await flush();
 
     const navHtml = document.getElementById("navLinks").innerHTML;
@@ -112,11 +120,15 @@ describe("navbar.js", () => {
     expect(navHtml).toContain("For You");
     expect(navHtml).toContain("Dashboard");
 
-    expect(document.getElementById("loginLink").classList.contains("hidden"))
-      .toBe(true);
+    expect(
+      document
+        .getElementById("profileMenuContainer")
+        .classList.contains("hidden")
+    ).toBe(false);
 
-    expect(document.getElementById("logoutBtn").classList.contains("hidden"))
-      .toBe(false);
+    expect(
+      document.getElementById("profileDropdown").innerHTML
+    ).toContain("Logout");
   });
 
   test("renders vendor links when user role is vendor", async () => {
@@ -134,6 +146,7 @@ describe("navbar.js", () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
+
     await flush();
 
     const navHtml = document.getElementById("navLinks").innerHTML;
@@ -160,6 +173,7 @@ describe("navbar.js", () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
+
     await flush();
 
     const navHtml = document.getElementById("navLinks").innerHTML;
@@ -171,33 +185,7 @@ describe("navbar.js", () => {
     expect(navHtml).toContain("Pay Outs");
   });
 
-  test("hides auth buttons on pages that should not show auth controls", async () => {
-    setPath("/orders.html");
-
-    database.onAuthStateChanged.mockImplementation((auth, callback) => {
-      callback({ uid: "customer123" });
-    });
-
-    database.getDoc.mockResolvedValueOnce({
-      exists: () => true,
-      data: () => ({
-        role: "customer"
-      })
-    });
-
-    await import("../scripts/navbar.js");
-
-    document.dispatchEvent(new Event("DOMContentLoaded"));
-    await flush();
-
-    expect(document.getElementById("loginLink").classList.contains("hidden"))
-      .toBe(true);
-
-    expect(document.getElementById("logoutBtn").classList.contains("hidden"))
-      .toBe(true);
-  });
-
-  test("shows logout on dashboard pages when user is logged in", async () => {
+  test("shows profile menu on dashboard pages", async () => {
     setPath("/vendor-dashboard.html");
 
     database.onAuthStateChanged.mockImplementation((auth, callback) => {
@@ -214,10 +202,18 @@ describe("navbar.js", () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
+
     await flush();
 
-    expect(document.getElementById("logoutBtn").classList.contains("hidden"))
-      .toBe(false);
+    expect(
+      document
+        .getElementById("profileMenuContainer")
+        .classList.contains("hidden")
+    ).toBe(false);
+
+    expect(
+      document.getElementById("profileDropdown").innerHTML
+    ).toContain("Logout");
   });
 
   test("falls back to guest links when user document does not exist", async () => {
@@ -233,6 +229,7 @@ describe("navbar.js", () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
+
     await flush();
 
     const navHtml = document.getElementById("navLinks").innerHTML;
@@ -252,6 +249,7 @@ describe("navbar.js", () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
+
     await flush();
 
     const navHtml = document.getElementById("navLinks").innerHTML;
@@ -280,9 +278,10 @@ describe("navbar.js", () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
+
     await flush();
 
-    document.getElementById("logoutBtn").click();
+    document.getElementById("dropdownLogoutBtn").click();
 
     await flush();
 
@@ -290,7 +289,9 @@ describe("navbar.js", () => {
   });
 
   test("handles logout failure", async () => {
-    database.auth.signOut.mockRejectedValueOnce(new Error("logout failed"));
+    database.auth.signOut.mockRejectedValueOnce(
+      new Error("logout failed")
+    );
 
     database.onAuthStateChanged.mockImplementation((auth, callback) => {
       callback({ uid: "customer123" });
@@ -306,9 +307,10 @@ describe("navbar.js", () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
+
     await flush();
 
-    document.getElementById("logoutBtn").click();
+    document.getElementById("dropdownLogoutBtn").click();
 
     await flush();
 
@@ -320,19 +322,23 @@ describe("navbar.js", () => {
 
   test("does nothing if navLinks element is missing", async () => {
     document.body.innerHTML = `
-      <a id="loginLink" class="hidden"></a>
-      <button id="logoutBtn" class="hidden"></button>
+      <section id="profileMenuContainer">
+        <button id="profileMenuBtn"></button>
+        <img id="profileAvatar" />
+        <section id="profileDropdown"></section>
+      </section>
     `;
 
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
+
     await flush();
 
     expect(document.getElementById("navLinks")).toBeNull();
   });
 
-  test("does nothing if auth buttons are missing", async () => {
+  test("does nothing if profile elements are missing", async () => {
     document.body.innerHTML = `
       <section id="navLinks"></section>
     `;
@@ -340,8 +346,11 @@ describe("navbar.js", () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
+
     await flush();
 
-    expect(document.getElementById("navLinks").innerHTML).toContain("Home");
+    expect(
+      document.getElementById("navLinks").innerHTML
+    ).toContain("Home");
   });
 });
