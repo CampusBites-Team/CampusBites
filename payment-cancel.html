@@ -6,6 +6,11 @@
   <title>CampusBites - Payment Cancelled</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="CampusBites">
 </head>
 <body class="min-h-screen bg-gray-100">
 
@@ -30,7 +35,7 @@
       <a href="browse.html" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">Back to browse</a>
     </article>
   </main>
-
+  <script src="scripts/pwa.js"></script>
   <script>
     lucide.createIcons();
     try { sessionStorage.removeItem("cb_paystack_reference"); } catch {}

@@ -3,6 +3,11 @@
 <head>
     <title>CampusBites - Admin Menu Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="CampusBites">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -59,6 +64,7 @@
     </section>
 
     </section>
+    <script src="scripts/pwa.js"></script>
     <script type="module" src="./scripts/admin-menuManagement.js">
         import { initAuthUI, logout } from "./scripts/auth.js";
     </script>

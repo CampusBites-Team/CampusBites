@@ -7,6 +7,11 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="CampusBites">
 </head>
 
 <body class="min-h-screen bg-gray-100">
@@ -135,6 +140,7 @@
       </p>
     </section>
   </main>
+  <script src="scripts/pwa.js"></script>
 
   <script type="module">
     import { initAuthUI, logout } from "./scripts/auth.js";
