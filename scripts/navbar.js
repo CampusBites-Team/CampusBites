@@ -14,31 +14,22 @@ const NAV_LINKS = {
   ],
   customer: [
     { label: "Home", href: "index.html" },
-    { label: "Browse", href: "browse.html" },
+    { label: "Menu", href: "browse.html" },
     { label: "Dashboard", href: "customer-dashboard.html" },
-    { label: "Profile", href: "customer-profile.html" },
-    { label: "For You", href: "recommendations.html" },
     { label: "Orders", href: "customer-orders.html" }
   ],
   vendor: [
     { label: "Home", href: "index.html" },
     { label: "Browse", href: "browse.html" },
     { label: "Dashboard", href: "vendor-dashboard.html" },
-    { label: "Menu", href: "menu-management.html" },
-    { label: "Orders", href: "vendor-orders.html" },
-    { label: "Analytics", href: "vendor-analytics.html" },
-    { label: "Store Settings", href: "vendor-settings.html" }
+    { label: "Orders", href: "vendor-orders.html" }
   ],
   admin: [
     { label: "Home", href: "index.html" },
-    { label: "Browse", href: "browse.html" },
     { label: "Dashboard", href: "admin-dashboard.html" },
     { label: "Vendors", href: "vendor-management.html" },
-    { label: "Menu Management", href: "admin-menuManagement.html" },
-    { label: "Analytics", href: "admin-analytics.html" },
-    { label: "Pay Outs", href: "admin-payouts.html" }
-
-  ]
+    { label: "Menu Management", href: "admin-menuManagement.html" } 
+   ]
 };
 const PROFILE_LINKS = {
   guest: [
@@ -50,21 +41,17 @@ const PROFILE_LINKS = {
     { label: "Home", href: "index.html" },
     { label: "Profile", href: "customer-profile.html" },
     { label: "For You", href: "recommendations.html" },
-    { label: "Dashboard", href: "customer-dashboard.html" }
-
-
   ],
   vendor: [
     { label: "Home", href: "index.html" },
-    { label: "Dashboard", href: "vendor-dashboard.html" },
-    { label: "Orders", href: "vendor-orders.html" },
+    { label: "Menu", href: "menu-management.html" },
+    { label: "Analytics", href: "vendor-analytics.html" },
     { label: "Store Settings", href: "vendor-settings.html" }
   ],
   admin: [
     { label: "Home", href: "index.html" },
-    { label: "Dashboard", href: "admin-dashboard.html" },
+    { label: "Browse", href: "browse.html" },
     { label: "Vendors", href: "vendor-management.html" },
-    { label: "Menu Management", href: "admin-menuManagement.html" },
     { label: "Analytics", href: "admin-analytics.html" },
     { label: "Pay Outs", href: "admin-payouts.html" }
 
@@ -84,6 +71,7 @@ const AUTH_BUTTON_PAGES = [
   "vendor-management.html",
   "vendor-settings.html",
   "customer-profile.html",
+  "customer-orders.html",
   "recommendations.html",
   "vendor-analytics.html",
   "vendor-profile.html"

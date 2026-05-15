@@ -36,6 +36,8 @@ describe("navbar.js", () => {
 
           <section id="profileDropdown" class="hidden"></section>
         </section>
+
+        <button id="logoutBtn" class="hidden">Logout</button>
       </nav>
     `;
   }
@@ -69,28 +71,23 @@ describe("navbar.js", () => {
     jest.restoreAllMocks();
   });
 
-  test("renders guest links when user is not logged in", async () => {
+  test("renders guest links and sign in option when user is not logged in", async () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
-
     await flush();
 
     const navHtml = document.getElementById("navLinks").innerHTML;
+    const dropdownHtml = document.getElementById("profileDropdown").innerHTML;
 
     expect(navHtml).toContain("Home");
     expect(navHtml).toContain("Browse");
     expect(navHtml).not.toContain("Dashboard");
 
-    expect(
-      document
-        .getElementById("profileMenuContainer")
-        .classList.contains("hidden")
-    ).toBe(false);
+    expect(document.getElementById("profileMenuContainer").classList.contains("hidden"))
+      .toBe(false);
 
-    expect(
-      document.getElementById("profileDropdown").innerHTML
-    ).toContain("Sign in");
+    expect(dropdownHtml).toContain("Sign in");
   });
 
   test("renders customer links when user role is customer", async () => {
@@ -108,27 +105,19 @@ describe("navbar.js", () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
-
     await flush();
 
     const navHtml = document.getElementById("navLinks").innerHTML;
+    const dropdownHtml = document.getElementById("profileDropdown").innerHTML;
 
     expect(navHtml).toContain("Home");
-    expect(navHtml).toContain("Browse");
-    expect(navHtml).toContain("Orders");
-    expect(navHtml).toContain("Profile");
-    expect(navHtml).toContain("For You");
+    expect(navHtml).toContain("Menu");
     expect(navHtml).toContain("Dashboard");
+    expect(navHtml).toContain("Orders");
 
-    expect(
-      document
-        .getElementById("profileMenuContainer")
-        .classList.contains("hidden")
-    ).toBe(false);
-
-    expect(
-      document.getElementById("profileDropdown").innerHTML
-    ).toContain("Logout");
+    expect(dropdownHtml).toContain("Profile");
+    expect(dropdownHtml).toContain("For You");
+    expect(dropdownHtml).toContain("Logout");
   });
 
   test("renders vendor links when user role is vendor", async () => {
@@ -146,16 +135,20 @@ describe("navbar.js", () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
-
     await flush();
 
     const navHtml = document.getElementById("navLinks").innerHTML;
+    const dropdownHtml = document.getElementById("profileDropdown").innerHTML;
 
+    expect(navHtml).toContain("Home");
+    expect(navHtml).toContain("Browse");
     expect(navHtml).toContain("Dashboard");
-    expect(navHtml).toContain("Menu");
     expect(navHtml).toContain("Orders");
-    expect(navHtml).toContain("Analytics");
-    expect(navHtml).toContain("Store Settings");
+
+    expect(dropdownHtml).toContain("Menu");
+    expect(dropdownHtml).toContain("Analytics");
+    expect(dropdownHtml).toContain("Store Settings");
+    expect(dropdownHtml).toContain("Logout");
   });
 
   test("renders admin links when user role is admin", async () => {
@@ -173,16 +166,43 @@ describe("navbar.js", () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
-
     await flush();
 
     const navHtml = document.getElementById("navLinks").innerHTML;
+    const dropdownHtml = document.getElementById("profileDropdown").innerHTML;
 
+    expect(navHtml).toContain("Home");
     expect(navHtml).toContain("Dashboard");
     expect(navHtml).toContain("Vendors");
     expect(navHtml).toContain("Menu Management");
-    expect(navHtml).toContain("Analytics");
-    expect(navHtml).toContain("Pay Outs");
+
+    expect(dropdownHtml).toContain("Browse");
+    expect(dropdownHtml).toContain("Analytics");
+    expect(dropdownHtml).toContain("Pay Outs");
+    expect(dropdownHtml).toContain("Logout");
+  });
+
+  test("hides profile menu on pages not listed for auth controls", async () => {
+    setPath("/menu-management.html");
+
+    database.onAuthStateChanged.mockImplementation((auth, callback) => {
+      callback({ uid: "vendor123" });
+    });
+
+    database.getDoc.mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        role: "vendor"
+      })
+    });
+
+    await import("../scripts/navbar.js");
+
+    document.dispatchEvent(new Event("DOMContentLoaded"));
+    await flush();
+
+    expect(document.getElementById("profileMenuContainer").classList.contains("hidden"))
+      .toBe(true);
   });
 
   test("shows profile menu on dashboard pages", async () => {
@@ -202,18 +222,13 @@ describe("navbar.js", () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
-
     await flush();
 
-    expect(
-      document
-        .getElementById("profileMenuContainer")
-        .classList.contains("hidden")
-    ).toBe(false);
+    expect(document.getElementById("profileMenuContainer").classList.contains("hidden"))
+      .toBe(false);
 
-    expect(
-      document.getElementById("profileDropdown").innerHTML
-    ).toContain("Logout");
+    expect(document.getElementById("profileDropdown").innerHTML)
+      .toContain("Logout");
   });
 
   test("falls back to guest links when user document does not exist", async () => {
@@ -229,7 +244,6 @@ describe("navbar.js", () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
-
     await flush();
 
     const navHtml = document.getElementById("navLinks").innerHTML;
@@ -249,7 +263,6 @@ describe("navbar.js", () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
-
     await flush();
 
     const navHtml = document.getElementById("navLinks").innerHTML;
@@ -263,7 +276,7 @@ describe("navbar.js", () => {
     );
   });
 
-  test("logs user out", async () => {
+  test("toggles dropdown when profile button is clicked", async () => {
     database.onAuthStateChanged.mockImplementation((auth, callback) => {
       callback({ uid: "customer123" });
     });
@@ -278,7 +291,155 @@ describe("navbar.js", () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
+    await flush();
 
+    const dropdown = document.getElementById("profileDropdown");
+    const button = document.getElementById("profileMenuBtn");
+
+    expect(dropdown.classList.contains("hidden")).toBe(true);
+
+    button.dispatchEvent(new MouseEvent("click", { bubbles: false }));
+    expect(dropdown.classList.contains("hidden")).toBe(false);
+
+    button.dispatchEvent(new MouseEvent("click", { bubbles: false }));
+    expect(dropdown.classList.contains("hidden")).toBe(true);
+  });
+
+test("closes dropdown when clicking outside", async () => {
+  database.onAuthStateChanged.mockImplementation((auth, callback) => {
+    callback({ uid: "customer123" });
+  });
+
+  database.getDoc.mockResolvedValueOnce({
+    exists: () => true,
+    data: () => ({
+      role: "customer"
+    })
+  });
+
+  await import("../scripts/navbar.js");
+
+  document.dispatchEvent(new Event("DOMContentLoaded"));
+  await flush();
+
+  const dropdown = document.getElementById("profileDropdown");
+
+  dropdown.classList.remove("hidden");
+
+  expect(dropdown.classList.contains("hidden")).toBe(false);
+
+  document.body.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+  expect(dropdown.classList.contains("hidden")).toBe(true);
+});
+
+  test("renders default avatar when user has no image", async () => {
+    database.onAuthStateChanged.mockImplementation((auth, callback) => {
+      callback({ uid: "customer123" });
+    });
+
+    database.getDoc.mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        role: "customer"
+      })
+    });
+
+    await import("../scripts/navbar.js");
+
+    document.dispatchEvent(new Event("DOMContentLoaded"));
+    await flush();
+
+    expect(document.getElementById("profileAvatar").src)
+      .toContain("default-icon.png");
+  });
+
+  test("renders user image when available", async () => {
+    database.onAuthStateChanged.mockImplementation((auth, callback) => {
+      callback({
+        uid: "customer123",
+        photoURL: "https://example.com/photo.png"
+      });
+    });
+
+    database.getDoc.mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        role: "customer",
+        image: "https://example.com/custom.png"
+      })
+    });
+
+    await import("../scripts/navbar.js");
+
+    document.dispatchEvent(new Event("DOMContentLoaded"));
+    await flush();
+
+    expect(document.getElementById("profileAvatar").src)
+      .toContain("custom.png");
+  });
+
+  test("uses user photoURL when userData has no image or logo", async () => {
+    database.onAuthStateChanged.mockImplementation((auth, callback) => {
+      callback({
+        uid: "customer123",
+        photoURL: "https://example.com/photo.png"
+      });
+    });
+
+    database.getDoc.mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        role: "customer"
+      })
+    });
+
+    await import("../scripts/navbar.js");
+
+    document.dispatchEvent(new Event("DOMContentLoaded"));
+    await flush();
+
+    expect(document.getElementById("profileAvatar").src)
+      .toContain("photo.png");
+  });
+
+  test("uses vendor logo when available", async () => {
+    database.onAuthStateChanged.mockImplementation((auth, callback) => {
+      callback({ uid: "vendor123" });
+    });
+
+    database.getDoc.mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        role: "vendor",
+        logo: "https://example.com/logo.png"
+      })
+    });
+
+    await import("../scripts/navbar.js");
+
+    document.dispatchEvent(new Event("DOMContentLoaded"));
+    await flush();
+
+    expect(document.getElementById("profileAvatar").src)
+      .toContain("logo.png");
+  });
+
+  test("logs user out from dropdown", async () => {
+    database.onAuthStateChanged.mockImplementation((auth, callback) => {
+      callback({ uid: "customer123" });
+    });
+
+    database.getDoc.mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        role: "customer"
+      })
+    });
+
+    await import("../scripts/navbar.js");
+
+    document.dispatchEvent(new Event("DOMContentLoaded"));
     await flush();
 
     document.getElementById("dropdownLogoutBtn").click();
@@ -288,7 +449,7 @@ describe("navbar.js", () => {
     expect(database.auth.signOut).toHaveBeenCalled();
   });
 
-  test("handles logout failure", async () => {
+  test("handles dropdown logout failure", async () => {
     database.auth.signOut.mockRejectedValueOnce(
       new Error("logout failed")
     );
@@ -307,10 +468,53 @@ describe("navbar.js", () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
-
     await flush();
 
     document.getElementById("dropdownLogoutBtn").click();
+
+    await flush();
+
+    expect(console.error).toHaveBeenCalledWith(
+      "Logout failed:",
+      expect.any(Error)
+    );
+  });
+
+  test("logs user out from old logout button if present", async () => {
+    database.onAuthStateChanged.mockImplementation((auth, callback) => {
+      callback({ uid: "customer123" });
+    });
+
+    database.getDoc.mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        role: "customer"
+      })
+    });
+
+    await import("../scripts/navbar.js");
+
+    document.dispatchEvent(new Event("DOMContentLoaded"));
+    await flush();
+
+    document.getElementById("logoutBtn").click();
+
+    await flush();
+
+    expect(database.auth.signOut).toHaveBeenCalled();
+  });
+
+  test("handles old logout button failure", async () => {
+    database.auth.signOut.mockRejectedValueOnce(
+      new Error("logout failed")
+    );
+
+    await import("../scripts/navbar.js");
+
+    document.dispatchEvent(new Event("DOMContentLoaded"));
+    await flush();
+
+    document.getElementById("logoutBtn").click();
 
     await flush();
 
@@ -332,7 +536,6 @@ describe("navbar.js", () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
-
     await flush();
 
     expect(document.getElementById("navLinks")).toBeNull();
@@ -346,11 +549,9 @@ describe("navbar.js", () => {
     await import("../scripts/navbar.js");
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
-
     await flush();
 
-    expect(
-      document.getElementById("navLinks").innerHTML
-    ).toContain("Home");
+    expect(document.getElementById("navLinks").innerHTML)
+      .toContain("Home");
   });
 });
