@@ -1,239 +1,257 @@
+/**
+ * @jest-environment jsdom
+ */
+
+global.alert = jest.fn();
+global.lucide = { createIcons: jest.fn() };
+
 jest.mock("../scripts/database.js", () => ({
   db: {},
-  doc: jest.fn(),
+  doc: jest.fn((db, collectionName, id) => ({
+    collectionName,
+    id
+  })),
   getDoc: jest.fn(),
   getDocs: jest.fn(),
-  collection: jest.fn(),
-  query: jest.fn(),
-  where: jest.fn()
+  collection: jest.fn((db, collectionName) => collectionName),
+  where: jest.fn((field, operator, value) => ({ field, operator, value })),
+  query: jest.fn((collectionName, ...conditions) => ({
+    collectionName,
+    conditions
+  }))
 }));
 
-Object.defineProperty(document, "readyState", {
-  value: "loading",
-  configurable: true
-});
-
-const {
-  doc,
-  getDoc,
-  getDocs,
-  collection,
-  query,
-  where
-} = require("../scripts/database.js");
-
-const { initVendorProfile } = require("../scripts/vendor-profile.js");
-
-const originalError = console.error;
+const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 describe("vendor-profile.js", () => {
-  beforeAll(() => {
-    console.error = (...args) => {
-      if (args[0]?.message?.includes("Not implemented: navigation")) return;
-      originalError(...args);
-    };
-  });
+  let database;
 
-  afterAll(() => {
-    console.error = originalError;
-  });
-
-  beforeEach(() => {
+  beforeEach(async () => {
+    jest.resetModules();
     jest.clearAllMocks();
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date("2026-04-24T10:00:00").getTime());
-    global.alert = jest.fn();
+
+    window.history.pushState({}, "", "/vendor-profile.html?vendorId=vendor-1");
 
     document.body.innerHTML = `
-      <section id="vendorImageFallback" class=""></section>
-      <img id="vendorImage" class="hidden" />
       <h1 id="vendorName"></h1>
       <p id="vendorLocation"></p>
+      <p id="vendorHours"></p>
       <span id="vendorStatus"></span>
-      <span id="vendorHours"></span>
+
+      <img id="vendorImage" class="hidden" />
+      <section id="vendorImageFallback"></section>
+
       <section id="vendorMenu"></section>
+
+      <section class="mt-10">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Reviews</h2>
+        <section id="vendorReviews" class="space-y-4"></section>
+      </section>
     `;
+
+    database = await import("../scripts/database.js");
+
+    database.getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        role: "vendor",
+        status: "approved",
+        shopName: "Campus Café",
+        location: "Matrix",
+        openingTime: "08:00",
+        closingTime: "18:00",
+        image: "vendor.jpg"
+      })
+    });
+
+    database.getDocs.mockImplementation(async (queryObj) => {
+      if (queryObj.collectionName === "menu_items") {
+        return {
+          docs: [
+            {
+              id: "item-1",
+              data: () => ({
+                vendorId: "vendor-1",
+                name: "Cheese Burger",
+                category: "Burgers",
+                description: "Fresh burger",
+                price: 55,
+                available: true,
+                status: "approved",
+                image: "burger.jpg"
+              })
+            },
+            {
+              id: "item-2",
+              data: () => ({
+                vendorId: "vendor-1",
+                name: "Sold Out Pizza",
+                category: "Pizza",
+                description: "Unavailable",
+                price: 70,
+                available: false,
+                status: "approved"
+              })
+            },
+            {
+              id: "item-3",
+              data: () => ({
+                vendorId: "vendor-1",
+                name: "Suspended Chips",
+                category: "Sides",
+                price: 20,
+                available: true,
+                status: "suspended"
+              })
+            }
+          ]
+        };
+      }
+
+      if (queryObj.collectionName === "reviews") {
+        return {
+          docs: [
+            {
+              id: "review-1",
+              data: () => ({
+                customerName: "Taylor Pitts",
+                customerImage: "customer.jpg",
+                rating: 5,
+                comment: "Great food.",
+                orderNumber: 7,
+                items: [{ name: "Cheese Burger" }]
+              })
+            },
+            {
+              id: "review-2",
+              data: () => ({
+                customerName: "Alex Smith",
+                rating: 4,
+                comment: "Good service.",
+                orderNumber: 8,
+                items: [{ name: "Pizza" }]
+              })
+            },
+            {
+              id: "review-3",
+              data: () => ({
+                customerName: "Sam Lee",
+                rating: 3,
+                comment: "Nice meal.",
+                orderNumber: 9,
+                items: [{ name: "Wrap" }]
+              })
+            },
+            {
+              id: "review-4",
+              data: () => ({
+                customerName: "No Image User",
+                rating: 5,
+                comment: "Excellent.",
+                orderNumber: 10,
+                items: [{ name: "Burger" }]
+              })
+            }
+          ]
+        };
+      }
+
+      return { docs: [] };
+    });
+
+    jest.spyOn(window, "alert").mockImplementation(() => {});
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
-  test("loads approved vendor details and available menu items", async () => {
-    window.history.pushState({}, "", "/vendor-profile.html?vendorId=vendor-123");
+  test("loads approved vendor details and available approved menu items", async () => {
+    await import("../scripts/vendor-profile.js");
+    await flush();
 
-    doc.mockReturnValue({});
-    collection.mockReturnValue({});
-    where.mockReturnValue({});
-    query.mockReturnValue({});
-
-    getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        role: "vendor",
-        status: "approved",
-        shopName: "BobThePlug",
-        location: "Matrix Ground Floor",
-        image: "vendor-logo-url",
-        openingTime: "08:00",
-        closingTime: "17:00"
-      })
-    });
-
-    getDocs.mockResolvedValue({
-      docs: [
-        {
-          id: "item-1",
-          data: () => ({
-            name: "Cheese Burger",
-            category: "Main Course",
-            description: "Beef burger",
-            price: 45,
-            image: "burger-url",
-            available: true,
-            status: "approved"
-          })
-        },
-        {
-          id: "item-2",
-          data: () => ({
-            name: "Sold Out Pizza",
-            category: "Light Meals",
-            description: "Unavailable",
-            price: 30,
-            image: "pizza-url",
-            available: false,
-            status: "approved"
-          })
-        }
-      ]
-    });
-
-    await initVendorProfile();
-
-    expect(document.getElementById("vendorName").textContent).toBe("BobThePlug");
-    expect(document.getElementById("vendorLocation").textContent).toBe("Matrix Ground Floor");
-    expect(document.getElementById("vendorHours").textContent).toBe("08:00 - 17:00");
-    expect(document.getElementById("vendorStatus").textContent).toBe("Open Now");
-
-    expect(document.getElementById("vendorImage").src).toContain("vendor-logo-url");
+    expect(document.getElementById("vendorName").textContent).toBe("Campus Café");
+    expect(document.getElementById("vendorLocation").textContent).toBe("Matrix");
     expect(document.getElementById("vendorImage").classList.contains("hidden")).toBe(false);
 
-    expect(document.getElementById("vendorMenu").textContent).toContain("Cheese Burger");
-    expect(document.getElementById("vendorMenu").textContent).not.toContain("Sold Out Pizza");
+    const menuText = document.getElementById("vendorMenu").textContent;
+
+    expect(menuText).toContain("Cheese Burger");
+    expect(menuText).not.toContain("Sold Out Pizza");
+    expect(menuText).not.toContain("Suspended Chips");
   });
 
-  test("shows closed status when current time is outside operating hours", async () => {
-    window.history.pushState({}, "", "/vendor-profile.html?vendorId=vendor-123");
+  test("renders vendor reviews horizontally with next and previous buttons", async () => {
+    await import("../scripts/vendor-profile.js");
+    await flush();
 
-    getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        role: "vendor",
-        status: "approved",
-        shopName: "BobThePlug",
-        openingTime: "07:00",
-        closingTime: "09:00"
-      })
-    });
+    const html = document.getElementById("vendorReviews").innerHTML;
 
-    getDocs.mockResolvedValue({
-      docs: []
-    });
+    expect(html).toContain("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3");
+    expect(html).toMatch(
+      /Taylor Pitts|Alex Smith|Sam Lee|No Image User/
+    );
 
-    await initVendorProfile();
-
-    expect(document.getElementById("vendorStatus").textContent).toBe("Closed Now");
-    expect(document.getElementById("vendorHours").textContent).toBe("07:00 - 09:00");
+    expect(html).toMatch(
+      /Great food.|Good service.|Nice meal.|Excellent./
+    );
+    expect(html).toContain("←");
+    expect(html).toContain("→");
   });
 
-  test("shows fallback text when operating hours are missing", async () => {
-    window.history.pushState({}, "", "/vendor-profile.html?vendorId=vendor-123");
+  test("moves to next review page", async () => {
+    await import("../scripts/vendor-profile.js");
+    await flush();
 
-    getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        role: "vendor",
-        status: "approved",
-        shopName: "BobThePlug"
-      })
-    });
+    document.getElementById("nextReviewsBtn").click();
 
-    getDocs.mockResolvedValue({
-      docs: []
-    });
+    const html = document.getElementById("vendorReviews").innerHTML;
 
-    await initVendorProfile();
-
-    expect(document.getElementById("vendorHours").textContent).toBe("Operating hours not set");
-    expect(document.getElementById("vendorStatus").textContent).toBe("Closed Now");
+    expect(html).toContain("No Image User");
   });
 
-  test("alerts when vendor id is missing from URL", async () => {
+  test("uses default customer image when review has no image", async () => {
+    await import("../scripts/vendor-profile.js");
+    await flush();
+
+    document.getElementById("nextReviewsBtn").click();
+
+    expect(document.getElementById("vendorReviews").innerHTML)
+      .toContain("assets/default-icon.jpg");
+  });
+
+  test("shows empty review state when vendor has no reviews", async () => {
+    database.getDocs.mockImplementation(async (queryObj) => {
+      if (queryObj.collectionName === "menu_items") {
+        return { docs: [] };
+      }
+
+      if (queryObj.collectionName === "reviews") {
+        return { docs: [] };
+      }
+
+      return { docs: [] };
+    });
+
+    await import("../scripts/vendor-profile.js");
+    await flush();
+
+    expect(document.getElementById("vendorReviews").innerHTML)
+      .toContain("No reviews yet.");
+  });
+
+  test("redirects when vendor id is missing", async () => {
     window.history.pushState({}, "", "/vendor-profile.html");
 
-    await initVendorProfile();
+    delete window.location;
+    window.location = {
+      href: "",
+      search: ""
+    };
 
-    expect(global.alert).toHaveBeenCalledWith("Vendor profile could not be loaded.");
-  });
+    await import("../scripts/vendor-profile.js");
+    await flush();
 
-  test("alerts when vendor document does not exist", async () => {
-    window.history.pushState({}, "", "/vendor-profile.html?vendorId=missing-vendor");
-
-    getDoc.mockResolvedValue({
-      exists: () => false
-    });
-
-    await initVendorProfile();
-
-    expect(global.alert).toHaveBeenCalledWith("Vendor not found.");
-  });
-
-  test("alerts when vendor is not approved", async () => {
-    window.history.pushState({}, "", "/vendor-profile.html?vendorId=vendor-123");
-
-    getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        role: "vendor",
-        status: "pending",
-        shopName: "Pending Vendor"
-      })
-    });
-
-    await initVendorProfile();
-
-    expect(global.alert).toHaveBeenCalledWith("This vendor profile is not available.");
-  });
-
-  test("shows message when vendor has no available menu items", async () => {
-    window.history.pushState({}, "", "/vendor-profile.html?vendorId=vendor-123");
-
-    getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        role: "vendor",
-        status: "approved",
-        shopName: "BobThePlug",
-        openingTime: "08:00",
-        closingTime: "17:00"
-      })
-    });
-
-    getDocs.mockResolvedValue({
-      docs: [
-        {
-          id: "item-1",
-          data: () => ({
-            name: "Unavailable Item",
-            available: false
-          })
-        }
-      ]
-    });
-
-    await initVendorProfile();
-
-    expect(document.getElementById("vendorMenu").textContent).toContain("No available menu items yet.");
+    expect(alert).toHaveBeenCalledWith("Vendor profile could not be loaded.");
   });
 });

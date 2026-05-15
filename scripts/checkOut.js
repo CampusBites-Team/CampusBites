@@ -1,6 +1,8 @@
 import {
   db,
   getDocs,
+  getDoc,
+  addDoc,
   doc,
   collection,
   auth,
@@ -12,7 +14,9 @@ import {
 } from "./database.js";
 
 let currentUser = null;
+let currentUserData = null;
 let ordersCache = [];
+let reviewsCache = [];
 
 // ----------------------
 // Auth
@@ -34,8 +38,44 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
+  await loadCurrentUserData();
   await loadOrders();
 });
+
+// ----------------------
+// Load current user profile
+// ----------------------
+async function loadCurrentUserData() {
+  try {
+    const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+
+    currentUserData = userSnap.exists()
+      ? userSnap.data()
+      : {};
+  } catch (error) {
+    console.error("Failed to load user profile:", error);
+    currentUserData = {};
+  }
+}
+
+// ----------------------
+// Load current user's reviews
+// ----------------------
+async function loadCustomerReviews() {
+  if (!currentUser) return [];
+
+  const reviewsQuery = query(
+    collection(db, "reviews"),
+    where("customerId", "==", currentUser.uid)
+  );
+
+  const snapshot = await getDocs(reviewsQuery);
+
+  return snapshot.docs.map((reviewDoc) => ({
+    id: reviewDoc.id,
+    ...reviewDoc.data()
+  }));
+}
 
 // ----------------------
 // Load current user's orders
@@ -49,12 +89,26 @@ async function loadOrders() {
       where("userId", "==", currentUser.uid)
     );
 
-    const snapshot = await getDocs(q);
+    const [ordersSnapshot, reviews] = await Promise.all([
+      getDocs(q),
+      loadCustomerReviews()
+    ]);
 
-    ordersCache = snapshot.docs.map((d) => ({
-      id: d.id,
-      ...d.data()
-    }));
+    reviewsCache = reviews;
+
+    ordersCache = ordersSnapshot.docs.map((d) => {
+      const order = {
+        id: d.id,
+        ...d.data()
+      };
+
+      const hasReview = reviewsCache.some((review) => review.orderId === order.id);
+
+      return {
+        ...order,
+        reviewed: order.reviewed || hasReview
+      };
+    });
 
     renderOrders(ordersCache);
   } catch (error) {
@@ -86,6 +140,37 @@ function formatTimestamp(timestamp) {
 
 function formatStatus(status = "Pending") {
   return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+}
+
+function getOrderItems(order) {
+  return order.menuItems || order.items || [];
+}
+
+function getVendorId(order) {
+  return (
+    order.vendorId ||
+    getOrderItems(order)[0]?.vendorId ||
+    ""
+  );
+}
+
+function getVendorName(order) {
+  return (
+    order.vendorName ||
+    getOrderItems(order)[0]?.vendorName ||
+    "Vendor"
+  );
+}
+
+function getOrderNumber(order, orderNumber) {
+  return order.orderNumber || orderNumber || order.id;
+}
+
+function canReviewOrder(order) {
+  return (
+    (order.status || "").toLowerCase() === "collected" &&
+    !order.reviewed
+  );
 }
 
 // ----------------------
@@ -131,7 +216,7 @@ function buildOrderCard(order, orderNumber) {
         `
         : "";
 
-  const itemsHtml = (order.menuItems || [])
+  const itemsHtml = getOrderItems(order)
     .map((item) => `
       <section class="flex items-center gap-3 py-2 border-b border-gray-100">
         <img
@@ -153,12 +238,35 @@ function buildOrderCard(order, orderNumber) {
     `)
     .join("");
 
+  const reviewButton = canReviewOrder(order)
+    ? `
+      <button
+        type="button"
+        data-order-id="${order.id}"
+        data-order-number="${getOrderNumber(order, orderNumber)}"
+        class="review-order-btn flex-1 bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600"
+      >
+        Review
+      </button>
+    `
+    : (order.reviewed && status === "Collected")
+      ? `
+        <button
+          type="button"
+          disabled
+          class="flex-1 bg-gray-200 text-gray-600 py-2 rounded-lg cursor-not-allowed"
+        >
+          Review submitted
+        </button>
+      `
+      : "";
+
   return `
     <article class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 hover:shadow-md transition">
       <header class="flex justify-between items-start mb-4">
         <section>
           <h3 class="text-lg font-bold text-gray-900">
-            Order ${orderNumber}
+            Order ${getOrderNumber(order, orderNumber)}
           </h3>
 
           <p class="text-sm text-gray-500">
@@ -195,6 +303,8 @@ function buildOrderCard(order, orderNumber) {
             `
             : ""
         }
+
+        ${reviewButton}
 
         <button
           type="button"
@@ -323,7 +433,7 @@ function updateDetails(order) {
 
   if (!container || !countLabel) return;
 
-  const items = order.menuItems || [];
+  const items = getOrderItems(order);
 
   let html = `
     <section class="bg-gray-50 p-4 rounded-xl mb-4">
@@ -414,6 +524,174 @@ function updateDetails(order) {
 }
 
 // ----------------------
+// Review modal
+// ----------------------
+function showReviewModal(order, orderNumber) {
+  const existingModal = document.getElementById("review-modal");
+  if (existingModal) existingModal.remove();
+
+  const items = getOrderItems(order);
+  const vendorName = getVendorName(order);
+
+  const modal = document.createElement("section");
+  modal.id = "review-modal";
+  modal.innerHTML = `
+    <section class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4">
+      <article class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 relative">
+        <button
+          id="closeReviewModal"
+          class="absolute top-3 right-3 bg-gray-100 rounded-full px-3 py-1 hover:bg-gray-200"
+        >
+          ✕
+        </button>
+
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">
+          Review Order ${getOrderNumber(order, orderNumber)}
+        </h2>
+
+        <p class="text-sm text-gray-500 mb-4">
+          Vendor: ${vendorName}
+        </p>
+
+        <section class="bg-gray-50 rounded-xl p-4 mb-4">
+          <h3 class="font-semibold text-sm mb-2">Items</h3>
+
+          ${
+            items.length
+              ? items.map((item) => `
+                  <p class="text-sm text-gray-600">
+                    ${item.name || "Unnamed item"} × ${item.quantity ?? 1}
+                  </p>
+                `).join("")
+              : `<p class="text-sm text-gray-500">No items found.</p>`
+          }
+        </section>
+
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Rating
+        </label>
+
+        <select
+          id="reviewRating"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4"
+        >
+          <option value="">Select rating</option>
+          <option value="5">5 - Excellent</option>
+          <option value="4">4 - Good</option>
+          <option value="3">3 - Okay</option>
+          <option value="2">2 - Poor</option>
+          <option value="1">1 - Bad</option>
+        </select>
+
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Review
+        </label>
+
+        <textarea
+          id="reviewComment"
+          rows="4"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4"
+          placeholder="Write your review..."
+        ></textarea>
+
+        <button
+          id="submitReviewBtn"
+          type="button"
+          class="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700"
+        >
+          Submit Review
+        </button>
+      </article>
+    </section>
+  `;
+
+  document.body.appendChild(modal);
+
+  document.getElementById("closeReviewModal")?.addEventListener("click", () => {
+    modal.remove();
+  });
+
+  document.getElementById("submitReviewBtn")?.addEventListener("click", () => {
+    submitReview(order, orderNumber);
+  });
+}
+
+async function submitReview(order, orderNumber) {
+  const ratingInput = document.getElementById("reviewRating");
+  const commentInput = document.getElementById("reviewComment");
+
+  const rating = Number(ratingInput?.value || 0);
+  const comment = commentInput?.value.trim() || "";
+
+  if (!rating) {
+    alert("Please select a rating.");
+    return;
+  }
+
+  if (!comment) {
+    alert("Please write a review.");
+    return;
+  }
+
+  if (!currentUser) {
+    alert("You must be signed in to submit a review.");
+    return;
+  }
+
+  if (order.reviewed) {
+    alert("You have already reviewed this order.");
+    return;
+  }
+
+  try {
+    await addDoc(collection(db, "reviews"), {
+      customerId: currentUser.uid,
+      customerName:
+        currentUserData?.fullName ||
+        currentUserData?.name ||
+        currentUser.displayName ||
+        "Customer",
+      customerImage:
+        currentUserData?.image ||
+        currentUserData?.photoURL ||
+        currentUser.photoURL ||
+        "assets/default-icon.jpg",
+      vendorId: getVendorId(order),
+      vendorName: getVendorName(order),
+      orderId: order.id,
+      orderNumber: getOrderNumber(order, orderNumber),
+      items: getOrderItems(order).map((item) => ({
+        name: item.name || "Unnamed item",
+        quantity: item.quantity ?? 1
+      })),
+      rating,
+      comment,
+      createdAt: serverTimestamp()
+    });
+
+    await updateDoc(doc(db, "orders", order.id), {
+      reviewed: true,
+      updatedAt: serverTimestamp()
+    });
+
+    ordersCache = ordersCache.map((cachedOrder) =>
+      cachedOrder.id === order.id
+        ? { ...cachedOrder, reviewed: true }
+        : cachedOrder
+    );
+
+    document.getElementById("review-modal")?.remove();
+
+    renderOrders(ordersCache);
+
+    alert("Review submitted successfully.");
+  } catch (error) {
+    console.error("Failed to submit review:", error);
+    alert("Failed to submit review.");
+  }
+}
+
+// ----------------------
 // Update order status
 // ----------------------
 async function updateOrderStatus(order, status) {
@@ -482,13 +760,13 @@ async function refundPaidOrder(order) {
   }
 }
 
-
 // ----------------------
 // Card click handler
 // ----------------------
 document.body.addEventListener("click", (e) => {
   const detailsBtn = e.target.closest(".details-order-btn");
   const cancelBtn = e.target.closest(".cancel-order-btn");
+  const reviewBtn = e.target.closest(".review-order-btn");
 
   if (detailsBtn) {
     const orderId = detailsBtn.dataset.orderId;
@@ -504,6 +782,17 @@ document.body.addEventListener("click", (e) => {
     modal?.classList.remove("hidden");
 
     updateDetails(order);
+    return;
+  }
+
+  if (reviewBtn) {
+    const orderId = reviewBtn.dataset.orderId;
+    const orderNumber = reviewBtn.dataset.orderNumber;
+    const order = ordersCache.find((order) => order.id === orderId);
+
+    if (!order) return;
+
+    showReviewModal(order, orderNumber);
     return;
   }
 
