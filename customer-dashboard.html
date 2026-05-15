@@ -38,9 +38,15 @@
 
     <header class="mb-10">
       <section class="flex items-center justify-between">
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-900">
-          Customer Dashboard
-        </h1>
+        <section>
+          <h1 id="dashboardTitle" class="text-3xl md:text-4xl font-bold text-gray-900">
+            Customer Dashboard
+          </h1>
+
+          <p id="dashboardSubtitle" class="mt-2 text-gray-600">
+            Welcome to your dashboard!
+          </p>
+        </section>
 
         <a
           href="browse.html"
@@ -49,10 +55,6 @@
           Place Order
         </a>
       </section>
-
-      <p class="mt-2 text-gray-600">
-        Browse vendors, place orders, and track your meals in one place.
-      </p>
     </header>
 
     <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -169,10 +171,40 @@
   <script type="module">
     import { initAuthUI, logout } from "./scripts/auth.js";
 
+    import {
+      auth,
+      db,
+      doc,
+      getDoc,
+      onAuthStateChanged
+    } from "./scripts/database.js";
+
     initAuthUI();
     lucide.createIcons();
 
     document.getElementById("logoutBtn")?.addEventListener("click", logout);
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) return;
+
+      const userData = userSnap.data();
+
+      const dashboardTitle = document.getElementById("dashboardTitle");
+      const dashboardSubtitle = document.getElementById("dashboardSubtitle");
+
+      if (dashboardTitle) {
+        dashboardTitle.textContent = `${userData.fullName || "Customer"}'s Dashboard`;
+      }
+
+      if (dashboardSubtitle) {
+        dashboardSubtitle.textContent = "Welcome to your dashboard!";
+      }
+    });
   </script>
 
 </body>
