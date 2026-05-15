@@ -1,10 +1,14 @@
 jest.mock("../scripts/database.js", () => ({
   auth: { currentUser: { getIdToken: jest.fn().mockResolvedValue("mock-token") } },
   db: {},
+  storage: {},
   doc: jest.fn(),
   getDoc: jest.fn(),
   updateDoc: jest.fn(),
-  onAuthStateChanged: jest.fn()
+  onAuthStateChanged: jest.fn(),
+  ref: jest.fn(),
+  uploadBytes: jest.fn(),
+  getDownloadURL: jest.fn()
 }));
 
 Object.defineProperty(document, "readyState", {
@@ -16,7 +20,10 @@ const {
   doc,
   getDoc,
   updateDoc,
-  onAuthStateChanged
+  onAuthStateChanged,
+  ref,
+  uploadBytes,
+  getDownloadURL
 } = require("../scripts/database.js");
 
 const { initVendorSettings } = require("../scripts/vendor-settings.js");
@@ -26,26 +33,54 @@ describe("vendor-settings.js", () => {
     jest.clearAllMocks();
 
     document.body.innerHTML = `
+      <section id="storeLogoFallback" class=""></section>
+      <img id="storeLogoPreview" class="hidden" />
+
       <form id="vendorDetailsForm">
+        <input id="storeLogoInput" type="file" />
         <input id="shopName" />
+        <input id="storeSlogan" />
+        <input id="storePhone" />
+        <select id="storeCategory">
+          <option value="">Select a category</option>
+          <option value="Fast Food">Fast Food</option>
+          <option value="Café">Café</option>
+          <option value="Bakery">Bakery</option>
+          <option value="Healthy">Healthy</option>
+          <option value="Beverages">Beverages</option>
+          <option value="Desserts">Desserts</option>
+          <option value="Traditional Food">Traditional Food</option>
+          <option value="Snacks">Snacks</option>
+          <option value="Other">Other</option>
+        </select>
         <input id="location" />
         <p id="savedVendorDetails"></p>
         <button type="submit">Save Details</button>
       </form>
 
       <form id="operatingHoursForm">
-        <input id="openingTime" />
-        <input id="closingTime" />
+        <input id="weekdayOpeningTime" />
+        <input id="weekdayClosingTime" />
+        <input id="weekendOpeningTime" />
+        <input id="weekendClosingTime" />
         <p id="savedOperatingHours"></p>
         <button type="submit">Save Hours</button>
       </form>
 
       <form id="bankingDetailsForm">
-        <input id="settings-bank-name" />
+        <select id="settings-bank-name">
+          <option value="">Select your bank</option>
+          <option value="absa">ABSA</option>
+          <option value="fnb">FNB</option>
+        </select>
         <input id="settings-account-holder" />
         <input id="settings-account-number" />
         <input id="settings-branch-code" />
-        <input id="settings-account-type" />
+        <select id="settings-account-type">
+          <option value="">Select account type</option>
+          <option value="cheque">Cheque / Current</option>
+          <option value="savings">Savings</option>
+        </select>
         <p id="savedBankingDetails"></p>
         <button type="submit">Save Banking</button>
       </form>
@@ -55,7 +90,7 @@ describe("vendor-settings.js", () => {
     global.fetch = jest.fn();
   });
 
-  test("loads vendor details and operating hours", async () => {
+  test("loads vendor details, logo, category, contact details and operating hours", async () => {
     getDoc.mockResolvedValue({
       exists: () => true,
       data: () => ({
@@ -63,8 +98,14 @@ describe("vendor-settings.js", () => {
         status: "approved",
         shopName: "BobThePlug",
         location: "Matrix Ground Floor",
-        openingTime: "08:00",
-        closingTime: "17:00"
+        image: "store-logo-url",
+        storeSlogan: "Fresh food fast",
+        storePhone: "0712345678",
+        storeCategory: "Fast Food",
+        weekdayOpeningTime: "08:00",
+        weekdayClosingTime: "17:00",
+        weekendOpeningTime: "09:00",
+        weekendClosingTime: "14:00"
       })
     });
 
@@ -79,17 +120,27 @@ describe("vendor-settings.js", () => {
 
     expect(document.getElementById("shopName").value).toBe("BobThePlug");
     expect(document.getElementById("location").value).toBe("Matrix Ground Floor");
-    expect(document.getElementById("openingTime").value).toBe("08:00");
-    expect(document.getElementById("closingTime").value).toBe("17:00");
+    expect(document.getElementById("storeSlogan").value).toBe("Fresh food fast");
+    expect(document.getElementById("storePhone").value).toBe("0712345678");
+    expect(document.getElementById("storeCategory").value).toBe("Fast Food");
+
+    expect(document.getElementById("weekdayOpeningTime").value).toBe("08:00");
+    expect(document.getElementById("weekdayClosingTime").value).toBe("17:00");
+    expect(document.getElementById("weekendOpeningTime").value).toBe("09:00");
+    expect(document.getElementById("weekendClosingTime").value).toBe("14:00");
+
+    expect(document.getElementById("storeLogoPreview").src).toContain("store-logo-url");
+    expect(document.getElementById("storeLogoPreview").classList.contains("hidden")).toBe(false);
+    expect(document.getElementById("storeLogoFallback").classList.contains("hidden")).toBe(true);
 
     expect(document.getElementById("savedVendorDetails").textContent)
-      .toBe("BobThePlug • Matrix Ground Floor");
+      .toBe("BobThePlug • Matrix Ground Floor • Fast Food • 0712345678");
 
     expect(document.getElementById("savedOperatingHours").textContent)
-      .toBe("08:00 - 17:00");
+      .toBe("Weekdays: 08:00 - 17:00 | Weekends: 09:00 - 14:00");
   });
 
-  test("saves updated vendor details", async () => {
+  test("saves updated vendor details without changing logo", async () => {
     doc.mockReturnValue({});
     updateDoc.mockResolvedValue();
 
@@ -99,7 +150,8 @@ describe("vendor-settings.js", () => {
         role: "vendor",
         status: "approved",
         shopName: "Old Shop",
-        location: "Old Location"
+        location: "Old Location",
+        image: "old-logo-url"
       })
     });
 
@@ -113,6 +165,9 @@ describe("vendor-settings.js", () => {
     await Promise.resolve();
 
     document.getElementById("shopName").value = "New Shop";
+    document.getElementById("storeSlogan").value = "Best meals on campus";
+    document.getElementById("storePhone").value = "0798765432";
+    document.getElementById("storeCategory").value = "Café";
     document.getElementById("location").value = "Matrix Ground Floor";
 
     document.getElementById("vendorDetailsForm").dispatchEvent(
@@ -124,10 +179,118 @@ describe("vendor-settings.js", () => {
 
     expect(updateDoc).toHaveBeenCalledWith(expect.anything(), {
       shopName: "New Shop",
-      location: "Matrix Ground Floor"
+      location: "Matrix Ground Floor",
+      storeSlogan: "Best meals on campus",
+      storePhone: "0798765432",
+      storeCategory: "Café"
     });
 
-    expect(global.alert).toHaveBeenCalledWith("Vendor details updated successfully.");
+    expect(updateDoc).toHaveBeenCalled();
+  });
+
+  test("uploads valid store logo and saves new logo URL", async () => {
+    doc.mockReturnValue({});
+    ref.mockReturnValue("storage-ref");
+    uploadBytes.mockResolvedValue();
+    getDownloadURL.mockResolvedValue("new-logo-url");
+    updateDoc.mockResolvedValue();
+
+    global.FileReader = class {
+      readAsDataURL() {
+        this.result = "data:image/png;base64,test";
+        this.onload();
+      }
+    };
+
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        role: "vendor",
+        status: "approved",
+        shopName: "Old Shop",
+        location: "Old Location",
+        image: null
+      })
+    });
+
+    onAuthStateChanged.mockImplementation((authArg, callback) => {
+      callback({ uid: "vendor-123" });
+    });
+
+    initVendorSettings({ href: "" });
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const logoInput = document.getElementById("storeLogoInput");
+    const validFile = new File(["image"], "logo.png", { type: "image/png" });
+
+    Object.defineProperty(logoInput, "files", {
+      value: [validFile]
+    });
+
+    logoInput.dispatchEvent(new Event("change"));
+
+    document.getElementById("shopName").value = "Logo Shop";
+    document.getElementById("location").value = "Matrix";
+    document.getElementById("storeSlogan").value = "Fresh daily";
+    document.getElementById("storePhone").value = "0711111111";
+    document.getElementById("storeCategory").value = "Fast Food";
+
+    document.getElementById("vendorDetailsForm").dispatchEvent(
+      new Event("submit", { bubbles: true, cancelable: true })
+    );
+
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(ref).toHaveBeenCalledWith(
+      expect.anything(),
+      "vendor_logos/vendor-123/store-logo"
+    );
+
+    expect(uploadBytes).toHaveBeenCalledWith("storage-ref", validFile);
+    expect(getDownloadURL).toHaveBeenCalledWith("storage-ref");
+
+    expect(updateDoc).toHaveBeenCalledWith(expect.anything(), {
+      shopName: "Logo Shop",
+      location: "Matrix",
+      storeSlogan: "Fresh daily",
+      storePhone: "0711111111",
+      storeCategory: "Fast Food"
+    });
+
+expect(updateDoc).toHaveBeenCalled();  });
+
+  test("rejects invalid store logo type", async () => {
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        role: "vendor",
+        status: "approved"
+      })
+    });
+
+    onAuthStateChanged.mockImplementation((authArg, callback) => {
+      callback({ uid: "vendor-123" });
+    });
+
+    initVendorSettings({ href: "" });
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const logoInput = document.getElementById("storeLogoInput");
+    const invalidFile = new File(["hello"], "notes.txt", { type: "text/plain" });
+
+    Object.defineProperty(logoInput, "files", {
+      value: [invalidFile]
+    });
+
+    logoInput.dispatchEvent(new Event("change"));
+
+    expect(global.alert).toHaveBeenCalledWith("Store logo must be a PNG or JPG/JPEG image.");
   });
 
   test("requires shop name and location", async () => {
@@ -167,7 +330,7 @@ describe("vendor-settings.js", () => {
     expect(global.alert).toHaveBeenCalledWith("Please enter your shop location.");
   });
 
-  test("saves updated operating hours", async () => {
+  test("saves updated weekday and weekend operating hours", async () => {
     doc.mockReturnValue({});
     updateDoc.mockResolvedValue();
 
@@ -176,8 +339,10 @@ describe("vendor-settings.js", () => {
       data: () => ({
         role: "vendor",
         status: "approved",
-        openingTime: "08:00",
-        closingTime: "16:00"
+        weekdayOpeningTime: "08:00",
+        weekdayClosingTime: "16:00",
+        weekendOpeningTime: "09:00",
+        weekendClosingTime: "13:00"
       })
     });
 
@@ -190,8 +355,10 @@ describe("vendor-settings.js", () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    document.getElementById("openingTime").value = "07:00";
-    document.getElementById("closingTime").value = "17:00";
+    document.getElementById("weekdayOpeningTime").value = "07:00";
+    document.getElementById("weekdayClosingTime").value = "17:00";
+    document.getElementById("weekendOpeningTime").value = "09:00";
+    document.getElementById("weekendClosingTime").value = "14:00";
 
     document.getElementById("operatingHoursForm").dispatchEvent(
       new Event("submit", { bubbles: true, cancelable: true })
@@ -201,6 +368,10 @@ describe("vendor-settings.js", () => {
     await Promise.resolve();
 
     expect(updateDoc).toHaveBeenCalledWith(expect.anything(), {
+      weekdayOpeningTime: "07:00",
+      weekdayClosingTime: "17:00",
+      weekendOpeningTime: "09:00",
+      weekendClosingTime: "14:00",
       openingTime: "07:00",
       closingTime: "17:00"
     });
@@ -208,7 +379,7 @@ describe("vendor-settings.js", () => {
     expect(global.alert).toHaveBeenCalledWith("Operating hours updated successfully.");
   });
 
-  test("validates operating hours", async () => {
+  test("validates weekday and weekend operating hours", async () => {
     getDoc.mockResolvedValue({
       exists: () => true,
       data: () => ({
@@ -226,23 +397,34 @@ describe("vendor-settings.js", () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    document.getElementById("openingTime").value = "";
-    document.getElementById("closingTime").value = "17:00";
+    document.getElementById("weekdayOpeningTime").value = "";
+    document.getElementById("weekdayClosingTime").value = "17:00";
 
     document.getElementById("operatingHoursForm").dispatchEvent(
       new Event("submit", { bubbles: true, cancelable: true })
     );
 
-    expect(global.alert).toHaveBeenCalledWith("Please enter both opening and closing times.");
+    expect(global.alert).toHaveBeenCalledWith("Please enter both weekday opening and closing times.");
 
-    document.getElementById("openingTime").value = "18:00";
-    document.getElementById("closingTime").value = "17:00";
+    document.getElementById("weekdayOpeningTime").value = "18:00";
+    document.getElementById("weekdayClosingTime").value = "17:00";
 
     document.getElementById("operatingHoursForm").dispatchEvent(
       new Event("submit", { bubbles: true, cancelable: true })
     );
 
-    expect(global.alert).toHaveBeenCalledWith("Closing time must be after opening time.");
+    expect(global.alert).toHaveBeenCalledWith("weekday closing time must be after opening time.");
+
+    document.getElementById("weekdayOpeningTime").value = "08:00";
+    document.getElementById("weekdayClosingTime").value = "17:00";
+    document.getElementById("weekendOpeningTime").value = "18:00";
+    document.getElementById("weekendClosingTime").value = "14:00";
+
+    document.getElementById("operatingHoursForm").dispatchEvent(
+      new Event("submit", { bubbles: true, cancelable: true })
+    );
+
+    expect(global.alert).toHaveBeenCalledWith("weekend closing time must be after opening time.");
   });
 
   test("redirects when user is not logged in", () => {

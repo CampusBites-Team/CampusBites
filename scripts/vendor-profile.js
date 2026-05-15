@@ -24,15 +24,45 @@ function showVendorImage(imageURL) {
   vendorImageFallback.classList.add("hidden");
 }
 
-function formatOperatingHours(openingTime, closingTime) {
-  if (!openingTime || !closingTime) {
-    return "Operating hours not set";
-  }
+function getTodayOperatingHours(vendorData) {
+  const today = new Date().getDay();
+  const isWeekend = today === 0 || today === 6;
 
-  return `${openingTime} - ${closingTime}`;
+  const openingTime = isWeekend
+    ? vendorData.weekendOpeningTime || vendorData.openingTime
+    : vendorData.weekdayOpeningTime || vendorData.openingTime;
+
+  const closingTime = isWeekend
+    ? vendorData.weekendClosingTime || vendorData.closingTime
+    : vendorData.weekdayClosingTime || vendorData.closingTime;
+
+  return {
+    openingTime,
+    closingTime,
+    label: isWeekend ? "Weekend hours" : "Weekday hours"
+  };
 }
 
-function isVendorOpen(openingTime, closingTime) {
+function formatOperatingHours(vendorData) {
+  const weekdayOpening = vendorData.weekdayOpeningTime || vendorData.openingTime;
+  const weekdayClosing = vendorData.weekdayClosingTime || vendorData.closingTime;
+  const weekendOpening = vendorData.weekendOpeningTime;
+  const weekendClosing = vendorData.weekendClosingTime;
+
+  const weekdayHours = weekdayOpening && weekdayClosing
+    ? `Weekdays: ${weekdayOpening} - ${weekdayClosing}`
+    : "Weekdays: Not set";
+
+  const weekendHours = weekendOpening && weekendClosing
+    ? `Weekends: ${weekendOpening} - ${weekendClosing}`
+    : "Weekends: Not set";
+
+  return `${weekdayHours} | ${weekendHours}`;
+}
+
+function isVendorOpen(vendorData) {
+  const { openingTime, closingTime } = getTodayOperatingHours(vendorData);
+
   if (!openingTime || !closingTime) {
     return false;
   }
@@ -43,6 +73,15 @@ function isVendorOpen(openingTime, closingTime) {
   return currentTime >= openingTime && currentTime <= closingTime;
 }
 
+function showTextElement(elementId, value) {
+  const element = document.getElementById(elementId);
+
+  if (!element || !value) return;
+
+  element.textContent = value;
+  element.classList.remove("hidden");
+}
+
 function renderVendorDetails(vendorData) {
   const vendorName = document.getElementById("vendorName");
   const vendorLocation = document.getElementById("vendorLocation");
@@ -50,10 +89,29 @@ function renderVendorDetails(vendorData) {
   const vendorStatus = document.getElementById("vendorStatus");
 
   vendorName.textContent = vendorData.shopName || "Vendor";
-  vendorLocation.textContent = vendorData.location || "Location not available";
-  vendorHours.textContent = formatOperatingHours(vendorData.openingTime, vendorData.closingTime);
 
-  const openNow = isVendorOpen(vendorData.openingTime, vendorData.closingTime);
+  vendorLocation.innerHTML = `
+    <i data-lucide="map-pin" class="w-4 h-4 text-indigo-600"></i>
+    <span>${vendorData.location || "Location not available"}</span>
+  `;
+
+  vendorHours.innerHTML = `
+    <i data-lucide="clock" class="w-4 h-4 text-indigo-600"></i>
+    <span>${formatOperatingHours(vendorData)}</span>
+  `;
+
+  showTextElement("vendorSlogan", vendorData.storeSlogan);
+  showTextElement("vendorCategory", vendorData.storeCategory);
+
+  if (vendorData.storePhone) {
+    document.getElementById("vendorPhone").innerHTML = `
+      <i data-lucide="phone" class="w-4 h-4 text-indigo-600"></i>
+      <span>${vendorData.storePhone}</span>
+    `;
+    document.getElementById("vendorPhone").classList.remove("hidden");
+  }
+
+  const openNow = isVendorOpen(vendorData);
 
   if (openNow) {
     vendorStatus.textContent = "Open Now";
