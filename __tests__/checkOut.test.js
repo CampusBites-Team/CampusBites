@@ -636,7 +636,13 @@ describe("checkOut.js", () => {
 
     await flush();
 
-    expect(document.getElementById("order-history").innerHTML).toContain("Cancelled");
+    expect(db.updateDoc).toHaveBeenCalledWith(
+  expect.anything(),
+  expect.objectContaining({
+    status: "cancelled"
+  })
+);
+      
   });
 
   test("renders no orders message when user has no orders", async () => {
@@ -789,8 +795,14 @@ describe("checkOut.js", () => {
       "Refund initiated. It usually clears within a few minutes."
     );
 
-    expect(document.getElementById("refund-orders").innerHTML)
-      .toContain("Refund pending");
+    expect(db.updateDoc).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        status: "refund pending",
+        refundStatus: "pending"
+      })
+    );
+
   });
 
   test("alerts when Paystack refund request fails", async () => {

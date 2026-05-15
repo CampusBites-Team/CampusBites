@@ -165,9 +165,12 @@ describe("browse.js", () => {
 
   const bootBrowse = async () => {
     const mod = await import("../scripts/browse.js");
+
     document.dispatchEvent(new Event("DOMContentLoaded"));
+
     await flush();
     await flush();
+
     return mod;
   };
 
