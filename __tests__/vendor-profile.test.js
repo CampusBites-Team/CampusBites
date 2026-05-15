@@ -263,4 +263,73 @@ describe("vendor-profile.js", () => {
 
     expect(alert).toHaveBeenCalledWith("Vendor profile could not be loaded.");
   });
+  test("does not crash when vendor image is missing", async () => {
+  database.getDoc.mockResolvedValueOnce({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved",
+      shopName: "Campus Café"
+    })
+  });
+
+  await import("../scripts/vendor-profile.js");
+  await flush();
+
+  expect(document.getElementById("vendorName").textContent)
+    .toBe("Campus Café");
+});
+
+test("renders location fallback", async () => {
+  database.getDoc.mockResolvedValueOnce({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved",
+      shopName: "Campus Café",
+      openingTime: "08:00",
+      closingTime: "18:00"
+    })
+  });
+
+  await import("../scripts/vendor-profile.js");
+  await flush();
+
+  expect(document.getElementById("vendorLocation").textContent)
+    .toContain("Location not available");
+});
+
+test("renders closed status when vendor is closed", async () => {
+  jest.spyOn(global, "Date").mockImplementation(() => ({
+    toTimeString: () => "23:00:00"
+  }));
+
+  await import("../scripts/vendor-profile.js");
+  await flush();
+
+  expect(document.getElementById("vendorStatus").textContent)
+    .toContain("Closed Now");
+});
+
+test("creates reviews section dynamically when missing", async () => {
+  document.getElementById("vendorReviews")?.remove();
+
+  await import("../scripts/vendor-profile.js");
+  await flush();
+
+  expect(document.getElementById("vendorReviews"))
+    .not.toBeNull();
+});
+
+test("moves to previous review page", async () => {
+  await import("../scripts/vendor-profile.js");
+  await flush();
+
+  document.getElementById("nextReviewsBtn")?.click();
+  document.getElementById("prevReviewsBtn")?.click();
+
+  expect(
+    document.getElementById("vendorReviews").innerHTML
+  ).toContain("Reviews");
+});
 });

@@ -279,4 +279,88 @@ describe("customer-orders review flow", () => {
 
     expect(document.querySelector(".review-order-btn")).toBeNull();
   });
+  test("prevents review submission when user is missing", async () => {
+  database.onAuthStateChanged.mockImplementation((auth, callback) => {
+    callback(null);
+  });
+
+  await import("../scripts/checkOut.js");
+  await flush();
+
+  expect(
+    document.getElementById("active-orders").textContent
+  ).toContain("Please log in");
+});
+
+test("prevents duplicate reviews", async () => {
+  database.getDocs.mockImplementation(async (queryObj) => {
+    if (queryObj.collectionName === "orders") {
+      return {
+        docs: [
+          {
+            id: "order-1",
+            data: () => ({
+              userId: "customer-1",
+              vendorId: "vendor-1",
+              vendorName: "Campus Café",
+              orderNumber: 7,
+              status: "Collected",
+              reviewed: true,
+              menuItems: [
+                {
+                  name: "Cheese Burger",
+                  quantity: 1
+                }
+              ]
+            })
+          }
+        ]
+      };
+    }
+
+    if (queryObj.collectionName === "reviews") {
+      return {
+        docs: [
+          {
+            id: "review-1",
+            data: () => ({
+              orderId: "order-1"
+            })
+          }
+        ]
+      };
+    }
+
+    return { docs: [] };
+  });
+
+  await import("../scripts/checkOut.js");
+  await flush();
+  await flush();
+
+  expect(
+    document.getElementById("order-history").innerHTML
+  ).toContain("Review submitted");
+});
+
+test("shows review failure alert", async () => {
+  database.addDoc.mockRejectedValueOnce(new Error("fail"));
+
+  await import("../scripts/checkOut.js");
+  await flush();
+  await flush();
+
+  document.querySelector(".review-order-btn").click();
+
+  document.getElementById("reviewRating").value = "5";
+  document.getElementById("reviewComment").value = "Excellent";
+
+  document.getElementById("submitReviewBtn").click();
+
+  await flush();
+
+  expect(alert).toHaveBeenCalledWith(
+    "Failed to submit review."
+  );
+});
 });
