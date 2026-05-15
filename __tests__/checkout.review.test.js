@@ -139,7 +139,7 @@ describe("customer-orders review flow", () => {
   });
 
   test("shows review button only for collected unreviewed orders", async () => {
-    await import("../scripts/checkout.js");
+    await import("../scripts/checkOut.js");
     await flush();
     await flush();
 
@@ -152,7 +152,7 @@ describe("customer-orders review flow", () => {
   });
 
   test("opens review modal with order number and items", async () => {
-    await import("../scripts/checkout.js");
+    await import("../scripts/checkOut.js");
     await flush();
     await flush();
 
@@ -167,7 +167,7 @@ describe("customer-orders review flow", () => {
   });
 
   test("validates rating before submitting review", async () => {
-    await import("../scripts/checkout.js");
+    await import("../scripts/checkOut.js");
     await flush();
     await flush();
 
@@ -183,7 +183,7 @@ describe("customer-orders review flow", () => {
   });
 
   test("validates comment before submitting review", async () => {
-    await import("../scripts/checkout.js");
+    await import("../scripts/checkOut.js");
     await flush();
     await flush();
 
@@ -199,7 +199,7 @@ describe("customer-orders review flow", () => {
   });
 
   test("submits review and marks order as reviewed", async () => {
-    await import("../scripts/checkout.js");
+    await import("../scripts/checkOut.js");
     await flush();
     await flush();
 
@@ -270,7 +270,7 @@ describe("customer-orders review flow", () => {
       return { docs: [] };
     });
 
-    await import("../scripts/checkout.js");
+    await import("../scripts/checkOut.js");
     await flush();
     await flush();
 
