@@ -33,6 +33,9 @@ describe("orders.js", () => {
     jest.resetModules();
     jest.clearAllMocks();
 
+    const freshBody = document.createElement("body");
+    document.documentElement.replaceChild(freshBody, document.body);
+
     document.body.innerHTML = `
       <section id="newOrders"></section>
       <section id="preparingOrders"></section>

@@ -847,6 +847,135 @@ describe("checkOut.js", () => {
     expect(alertSpy).toHaveBeenCalledWith("Could not initiate refund: boom");
   });
 
+  test("renders cash unpaid notice and Cash • Unpaid badge for unpaid cash orders", async () => {
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      cb({ uid: "user-123" });
+    });
+
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "order-cash-1",
+          userId: "user-123",
+          status: "Pending",
+          paymentMethod: "cash",
+          paymentStatus: "unpaid",
+          total: 88.5,
+          menuItems: [{ name: "Burger", price: 50 }]
+        }
+      ])
+    );
+
+    require("../scripts/checkOut.js");
+    await flush();
+
+    const html = document.getElementById("active-orders").innerHTML;
+
+    expect(html).toContain("Cash • Unpaid");
+    expect(html).toContain("Pay R88.50 in cash");
+  });
+
+  test("renders Cash • Paid badge for paid cash orders", async () => {
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      cb({ uid: "user-123" });
+    });
+
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "order-cash-2",
+          userId: "user-123",
+          status: "Ready",
+          paymentMethod: "cash",
+          paymentStatus: "paid",
+          total: 40,
+          menuItems: [{ name: "Wrap", price: 40 }]
+        }
+      ])
+    );
+
+    require("../scripts/checkOut.js");
+    await flush();
+
+    const html = document.getElementById("ready-orders").innerHTML;
+
+    expect(html).toContain("Cash • Paid");
+    expect(html).not.toContain("Pay R");
+  });
+
+  test("renders Card badge for card orders", async () => {
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      cb({ uid: "user-123" });
+    });
+
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "order-card-1",
+          userId: "user-123",
+          status: "Preparing",
+          paymentMethod: "card",
+          paymentStatus: "paid",
+          menuItems: [{ name: "Pizza", price: 80 }]
+        }
+      ])
+    );
+
+    require("../scripts/checkOut.js");
+    await flush();
+
+    expect(document.getElementById("active-orders").innerHTML).toContain("Card");
+  });
+
+  test("cancels an unpaid cash order without invoking Paystack refund", async () => {
+    const fetchMock = jest.fn();
+    global.fetch = fetchMock;
+
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      cb({ uid: "user-123" });
+    });
+
+    db.getDocs
+      .mockResolvedValueOnce(
+        makeSnapshot([
+          {
+            id: "order-cash-3",
+            userId: "user-123",
+            status: "Pending",
+            paymentMethod: "cash",
+            paymentStatus: "unpaid",
+            total: 60,
+            menuItems: [{ name: "Burger", price: 60 }]
+          }
+        ])
+      )
+      .mockResolvedValueOnce(
+        makeSnapshot([
+          {
+            id: "order-cash-3",
+            userId: "user-123",
+            status: "cancelled",
+            paymentMethod: "cash",
+            paymentStatus: "unpaid",
+            menuItems: [{ name: "Burger", price: 60 }]
+          }
+        ])
+      );
+
+    require("../scripts/checkOut.js");
+    await flush();
+
+    document.querySelector('.cancel-order-btn[data-order-id="order-cash-3"]').click();
+
+    await flush();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(db.updateDoc).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ status: "cancelled" })
+    );
+  });
+
   test("refund alerts when user is no longer signed in", async () => {
     const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
     let authCb;
