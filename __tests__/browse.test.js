@@ -949,16 +949,18 @@ describe("browse.js", () => {
   });
 
   describe("cash payment flow", () => {
-    let originalAssign;
+    let assignMock;
+    let originalLocation;
 
     beforeEach(() => {
-      originalAssign = window.location.assign;
-      delete window.location.assign;
-      window.location.assign = jest.fn();
+      assignMock = jest.fn();
+      originalLocation = window.location;
+      delete window.location;
+      window.location = { assign: assignMock, hash: "" };
     });
 
     afterEach(() => {
-      window.location.assign = originalAssign;
+      window.location = originalLocation;
     });
 
     test("posts cart items to /api/orders/create-cash when cash selected", async () => {
