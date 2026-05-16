@@ -8,13 +8,14 @@ jest.mock("../scripts/database.js", () => ({
   db: {},
   auth: {},
   getDoc: jest.fn(),
-  collection: jest.fn(),
+  collection: jest.fn((_db, name) => name),
   doc: jest.fn((...args) => args),
   where: jest.fn(),
   query: jest.fn(),
   onAuthStateChanged: jest.fn(),
   onSnapshot: jest.fn(),
   updateDoc: jest.fn(),
+  addDoc: jest.fn(),
   serverTimestamp: jest.fn(() => "mock-timestamp")
 }));
 

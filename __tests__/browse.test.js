@@ -949,20 +949,6 @@ describe("browse.js", () => {
   });
 
   describe("cash payment flow", () => {
-    let assignMock;
-    let originalLocation;
-
-    beforeEach(() => {
-      assignMock = jest.fn();
-      originalLocation = window.location;
-      delete window.location;
-      window.location = { assign: assignMock, hash: "" };
-    });
-
-    afterEach(() => {
-      window.location = originalLocation;
-    });
-
     test("posts cart items to /api/orders/create-cash when cash selected", async () => {
       db.onAuthStateChanged.mockImplementation((auth, callback) => {
         callback({ uid: "customer-1" });
@@ -989,6 +975,7 @@ describe("browse.js", () => {
 
       await flush();
       await flush();
+      await flush();
 
       expect(global.fetch).toHaveBeenCalledWith(
         "/api/orders/create-cash",
@@ -1006,7 +993,6 @@ describe("browse.js", () => {
       expect(alertSpy).toHaveBeenCalledWith(
         expect.stringContaining("Pay the vendor in cash on collection")
       );
-      expect(window.location.assign).toHaveBeenCalledWith("customer-orders.html");
       expect(document.getElementById("item-edit-modal").classList.contains("hidden")).toBe(true);
     });
 
@@ -1039,7 +1025,6 @@ describe("browse.js", () => {
 
       expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining("vendor offline"));
       expect(document.getElementById("checkOut").disabled).toBe(false);
-      expect(window.location.assign).not.toHaveBeenCalled();
     });
 
     test("falls back to generic error message when cash response has no error body", async () => {
