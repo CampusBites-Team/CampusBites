@@ -116,14 +116,34 @@ export function renderQuickStats(orders) {
   collectedCount.textContent = orders.filter((order) => formatStatus(order.status) === "Collected").length;
 }
 
+export function getPaymentMeta(order) {
+  const paymentMethod = order.paymentMethod === "cash" ? "cash" : "card";
+  const paymentStatus = order.paymentStatus || (paymentMethod === "cash" ? "unpaid" : "paid");
+
+  return {
+    paymentMethod,
+    paymentStatus,
+    isUnpaidCash: paymentMethod === "cash" && paymentStatus === "unpaid"
+  };
+}
+
 export function getStatusButtons(order) {
   const currentStatus = formatStatus(order.status);
   const nextStatus = getNextStatus(currentStatus);
+  const { isUnpaidCash } = getPaymentMeta(order);
 
   if (!nextStatus) {
     return `
       <p class="text-sm text-gray-500">
         This order has been collected and can no longer be updated.
+      </p>
+    `;
+  }
+
+  if (nextStatus === "Collected" && isUnpaidCash) {
+    return `
+      <p class="text-sm text-yellow-700">
+        Mark this cash order as paid before marking it collected.
       </p>
     `;
   }
@@ -156,22 +176,63 @@ export function renderOrders(orders) {
     return;
   }
 
-  ordersList.innerHTML = currentOrders.map((order, index) => `
-    <article class="border border-gray-200 rounded-xl p-4">
-      <header class="mb-3">
-        <h3 class="text-lg font-semibold text-gray-900">Order ${index + 1}</h3>
-        <p class="text-sm text-gray-600">Status: ${formatStatus(order.status)}</p>
-      </header>
+  ordersList.innerHTML = currentOrders.map((order, index) => {
+    const { paymentMethod, paymentStatus, isUnpaidCash } = getPaymentMeta(order);
 
-      <section class="mb-3">
-        <p class="text-sm text-gray-700">Total: R${order.total || 0}</p>
-      </section>
+    const paymentBadge = paymentMethod === "cash"
+      ? `<span class="payment-badge inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${
+          isUnpaidCash ? "bg-yellow-100 text-yellow-700" : "bg-emerald-100 text-emerald-700"
+        }">${isUnpaidCash ? "Cash • Unpaid" : "Cash • Paid"}</span>`
+      : `<span class="payment-badge inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700">Card</span>`;
 
-      <section class="flex flex-wrap gap-2">
-        ${getStatusButtons(order)}
-      </section>
-    </article>
-  `).join("");
+    const cashBanner = isUnpaidCash
+      ? `
+        <section class="cash-banner mb-3 bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs p-2 rounded-lg">
+          Awaiting cash payment — R${Number(order.total || 0).toFixed(2)}
+        </section>
+      `
+      : "";
+
+    const markPaidButton = isUnpaidCash
+      ? `
+        <button
+          type="button"
+          class="mark-paid-btn px-3 py-1 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+          data-mark-paid-id="${order.id}"
+        >
+          Mark as Paid
+        </button>
+      `
+      : "";
+
+    return `
+      <article
+        class="border border-gray-200 rounded-xl p-4"
+        data-order-id="${order.id}"
+        data-payment-method="${paymentMethod}"
+        data-payment-status="${paymentStatus}"
+      >
+        <header class="mb-3 flex justify-between items-start gap-2">
+          <section>
+            <h3 class="text-lg font-semibold text-gray-900">Order ${index + 1}</h3>
+            <p class="text-sm text-gray-600">Status: ${formatStatus(order.status)}</p>
+          </section>
+          ${paymentBadge}
+        </header>
+
+        <section class="mb-3">
+          <p class="text-sm text-gray-700">Total: R${order.total || 0}</p>
+        </section>
+
+        ${cashBanner}
+
+        <section class="flex flex-wrap gap-2">
+          ${getStatusButtons(order)}
+          ${markPaidButton}
+        </section>
+      </article>
+    `;
+  }).join("");
 }
 
 export async function updateOrderStatus(orderId, newStatus) {
