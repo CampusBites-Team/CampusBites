@@ -240,6 +240,48 @@ export async function updateOrderStatus(orderId, newStatus) {
   await updateDoc(orderRef, { status: newStatus });
 }
 
+export async function markCashOrderAsPaid(order) {
+  await updateDoc(doc(db, "orders", order.id), {
+    paymentStatus: "paid",
+    paidAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  });
+
+  await addDoc(collection(db, "wallet_ledger"), {
+    type: "credit",
+    source: "cash",
+    vendorId: order.vendorId,
+    vendorName: order.vendorName || "",
+    orderId: order.id,
+    amount: Number(order.total || 0),
+    status: "settled",
+    createdAt: serverTimestamp()
+  });
+}
+
+function refreshCardAfterMarkPaid(article, order) {
+  article.dataset.paymentStatus = "paid";
+
+  const badge = article.querySelector(".payment-badge");
+  if (badge) {
+    badge.className = "payment-badge inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700";
+    badge.textContent = "Cash • Paid";
+  }
+
+  article.querySelector(".cash-banner")?.remove();
+  article.querySelector(".mark-paid-btn")?.remove();
+
+  const buttonSection = article.querySelector("section.flex.flex-wrap.gap-2");
+  if (buttonSection) {
+    buttonSection.innerHTML = getStatusButtons({
+      id: order.id,
+      status: order.status,
+      paymentMethod: "cash",
+      paymentStatus: "paid"
+    });
+  }
+}
+
 export function attachOrderStatusListeners() {
   const ordersList = document.getElementById("orders-list");
 
@@ -250,6 +292,39 @@ export function attachOrderStatusListeners() {
   ordersList.dataset.listenerAttached = "true";
 
   ordersList.addEventListener("click", async (event) => {
+    const markPaidBtn = event.target.closest(".mark-paid-btn");
+
+    if (markPaidBtn) {
+      const orderId = markPaidBtn.dataset.markPaidId;
+      if (!orderId) return;
+
+      markPaidBtn.disabled = true;
+      markPaidBtn.textContent = "Marking as paid...";
+
+      try {
+        const snap = await getDoc(doc(db, "orders", orderId));
+        if (!snap.exists()) {
+          alert("Order no longer exists.");
+          return;
+        }
+
+        const orderData = snap.data();
+        await markCashOrderAsPaid({ id: orderId, ...orderData });
+
+        const article = markPaidBtn.closest("article");
+        if (article) {
+          refreshCardAfterMarkPaid(article, { id: orderId, ...orderData });
+        }
+      } catch (err) {
+        console.error("Failed to mark order as paid:", err);
+        alert("Failed to mark order as paid.");
+        markPaidBtn.disabled = false;
+        markPaidBtn.textContent = "Mark as Paid";
+      }
+
+      return;
+    }
+
     const button = event.target.closest("button");
     if (!button) return;
 
@@ -294,7 +369,9 @@ export function attachOrderStatusListeners() {
     if (buttonSection) {
       buttonSection.innerHTML = getStatusButtons({
         id: orderId,
-        status: newStatus
+        status: newStatus,
+        paymentMethod: updatedOrderElement.dataset.paymentMethod || "card",
+        paymentStatus: updatedOrderElement.dataset.paymentStatus || "paid"
       });
     }
   });
