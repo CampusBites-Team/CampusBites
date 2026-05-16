@@ -424,3 +424,6 @@ if (typeof window !== "undefined") {
     document.addEventListener("DOMContentLoaded", initVendorSettings);
   }
 }
+export {
+  validateTimePair
+};
