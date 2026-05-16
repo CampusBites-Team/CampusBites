@@ -45,12 +45,29 @@ export function initVendorDashboard(locationObj = window.location, alertFn = ale
       return;
     }
 
+    updateDashboardTitle(userData);
+
     const orders = await fetchVendorOrders(user.uid);
     renderOrders(orders);
     attachOrderStatusListeners();
   });
 }
 
+// ---------------- DASHBOARD TITLE ----------------
+export function updateDashboardTitle(userData) {
+  const dashboardTitle = document.getElementById("dashboardTitle");
+  const dashboardSubtitle = document.getElementById("dashboardSubtitle");
+
+  const shopName = userData.shopName || "Vendor";
+
+  if (dashboardTitle) {
+    dashboardTitle.textContent = `${shopName}'s Dashboard`;
+  }
+
+  if (dashboardSubtitle) {
+    dashboardSubtitle.textContent = "Welcome to your dashboard!";
+  }
+}
 // ---------------- UTILS ----------------
 export const calculateRevenue = (orders) => {
   return orders.reduce((sum, order) => sum + (order.total || 0), 0);

@@ -62,11 +62,46 @@
             Vendor Details
           </h2>
           <p class="text-gray-600">
-            Update your shop name and collection location.
+            Update your shop logo, slogan, category, contact details, and location.
           </p>
         </header>
 
         <form id="vendorDetailsForm" class="space-y-5">
+
+          <section>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Store Logo
+            </label>
+
+            <section class="flex flex-col sm:flex-row sm:items-center gap-4">
+              <section
+                id="storeLogoFallback"
+                class="w-24 h-24 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center"
+              >
+                <i data-lucide="store" class="w-10 h-10 text-gray-400"></i>
+              </section>
+
+              <img
+                id="storeLogoPreview"
+                src=""
+                alt="Store logo preview"
+                class="hidden w-24 h-24 rounded-full object-cover border border-gray-200 bg-gray-100"
+              />
+
+              <section class="flex-1">
+                <input
+                  type="file"
+                  id="storeLogoInput"
+                  accept="image/png, image/jpeg"
+                  class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none"
+                />
+
+                <p class="mt-2 text-sm text-gray-500">
+                  Only PNG or JPG/JPEG images are allowed.
+                </p>
+              </section>
+            </section>
+          </section>
 
           <section>
             <label for="shopName" class="block text-sm font-medium text-gray-700 mb-1">
@@ -78,6 +113,52 @@
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               placeholder="Enter your shop name"
             />
+          </section>
+
+          <section>
+            <label for="storeSlogan" class="block text-sm font-medium text-gray-700 mb-1">
+              Store Slogan
+            </label>
+            <input
+              type="text"
+              id="storeSlogan"
+              maxlength="80"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              placeholder="Example: Fresh food, fast service"
+            />
+          </section>
+
+          <section>
+            <label for="storePhone" class="block text-sm font-medium text-gray-700 mb-1">
+              Store Contact Number
+            </label>
+            <input
+              type="tel"
+              id="storePhone"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              placeholder="Example: 0712345678"
+            />
+          </section>
+
+          <section>
+            <label for="storeCategory" class="block text-sm font-medium text-gray-700 mb-1">
+              Store Category
+            </label>
+            <select
+              id="storeCategory"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            >
+              <option value="">Select a category</option>
+              <option value="Fast Food">Fast Food</option>
+              <option value="Café">Café</option>
+              <option value="Bakery">Bakery</option>
+              <option value="Healthy">Healthy</option>
+              <option value="Beverages">Beverages</option>
+              <option value="Desserts">Desserts</option>
+              <option value="Traditional Food">Traditional Food</option>
+              <option value="Snacks">Snacks</option>
+              <option value="Other">Other</option>
+            </select>
           </section>
 
           <section>
@@ -119,32 +200,70 @@
             Operating Hours
           </h2>
           <p class="text-gray-600">
-            Set when customers should see your store as open or closed.
+            Set different operating hours for weekdays and weekends.
           </p>
         </header>
 
-        <form id="operatingHoursForm" class="space-y-5">
+        <form id="operatingHoursForm" class="space-y-6">
 
           <section>
-            <label for="openingTime" class="block text-sm font-medium text-gray-700 mb-1">
-              Opening Time
-            </label>
-            <input
-              type="time"
-              id="openingTime"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-            />
+            <h3 class="font-semibold text-gray-900 mb-3">
+              Weekdays
+            </h3>
+
+            <section class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <section>
+                <label for="weekdayOpeningTime" class="block text-sm font-medium text-gray-700 mb-1">
+                  Opening Time
+                </label>
+                <input
+                  type="time"
+                  id="weekdayOpeningTime"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </section>
+
+              <section>
+                <label for="weekdayClosingTime" class="block text-sm font-medium text-gray-700 mb-1">
+                  Closing Time
+                </label>
+                <input
+                  type="time"
+                  id="weekdayClosingTime"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </section>
+            </section>
           </section>
 
           <section>
-            <label for="closingTime" class="block text-sm font-medium text-gray-700 mb-1">
-              Closing Time
-            </label>
-            <input
-              type="time"
-              id="closingTime"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-            />
+            <h3 class="font-semibold text-gray-900 mb-3">
+              Weekends
+            </h3>
+
+            <section class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <section>
+                <label for="weekendOpeningTime" class="block text-sm font-medium text-gray-700 mb-1">
+                  Opening Time
+                </label>
+                <input
+                  type="time"
+                  id="weekendOpeningTime"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </section>
+
+              <section>
+                <label for="weekendClosingTime" class="block text-sm font-medium text-gray-700 mb-1">
+                  Closing Time
+                </label>
+                <input
+                  type="time"
+                  id="weekendClosingTime"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </section>
+            </section>
           </section>
 
           <section class="bg-gray-50 rounded-xl p-4">
