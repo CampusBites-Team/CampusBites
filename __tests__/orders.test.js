@@ -77,6 +77,8 @@ describe("orders.js", () => {
   test("renders pending orders into newOrders with customer names", async () => {
     db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "vendor-1" }));
 
+    const fakeDate = new Date("2026-05-08T10:00:00");
+
     db.getDoc
       .mockResolvedValueOnce({
         exists: () => true,
@@ -96,6 +98,7 @@ describe("orders.js", () => {
               vendorId: "vendor-1",
               userId: "customer-1",
               status: "Pending",
+              createdAt: { seconds: 1, toDate: () => fakeDate },
               menuItems: [{ name: "Burger", quantity: 2 }]
             })
           }
@@ -112,7 +115,7 @@ describe("orders.js", () => {
 
     const html = document.getElementById("newOrders").innerHTML;
 
-    expect(html).toContain("Order 1");
+    expect(html).toContain("Order #001");
     expect(html).toContain("Alice Smith");
     expect(html).toContain("Burger");
     expect(html).toContain("x2");
@@ -121,6 +124,8 @@ describe("orders.js", () => {
 
   test("renders Preparing orders into preparingOrders and Ready orders into readyOrders", async () => {
     db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "vendor-1" }));
+
+    const fakeDate = new Date("2026-05-08T10:00:00");
 
     db.getDoc
       .mockResolvedValueOnce({
@@ -145,6 +150,7 @@ describe("orders.js", () => {
               vendorId: "vendor-1",
               userId: "customer-1",
               status: "Preparing",
+              createdAt: { seconds: 1, toDate: () => fakeDate },
               menuItems: [{ name: "Pizza", quantity: 1 }]
             })
           },
@@ -154,6 +160,7 @@ describe("orders.js", () => {
               vendorId: "vendor-1",
               userId: "customer-2",
               status: "Ready",
+              createdAt: { seconds: 2, toDate: () => fakeDate },
               menuItems: [{ name: "Juice", quantity: 1 }]
             })
           }
@@ -171,10 +178,12 @@ describe("orders.js", () => {
     const preparingHtml = document.getElementById("preparingOrders").innerHTML;
     const readyHtml = document.getElementById("readyOrders").innerHTML;
 
+    expect(preparingHtml).toContain("Order #001");
     expect(preparingHtml).toContain("Bob Jones");
     expect(preparingHtml).toContain("Preparing");
     expect(preparingHtml).toContain("Pizza");
 
+    expect(readyHtml).toContain("Order #002");
     expect(readyHtml).toContain("Cara Lee");
     expect(readyHtml).toContain("Ready");
     expect(readyHtml).toContain("Juice");
@@ -182,6 +191,8 @@ describe("orders.js", () => {
 
   test("renders collected orders into completedOrders", async () => {
     db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "vendor-1" }));
+
+    const fakeDate = new Date("2026-05-08T10:00:00");
 
     db.getDoc
       .mockResolvedValueOnce({
@@ -202,6 +213,7 @@ describe("orders.js", () => {
               vendorId: "vendor-1",
               userId: "customer-1",
               status: "Collected",
+              createdAt: { seconds: 1, toDate: () => fakeDate },
               menuItems: [{ name: "Wrap", quantity: 1 }]
             })
           }
@@ -218,6 +230,7 @@ describe("orders.js", () => {
 
     const html = document.getElementById("completedOrders").innerHTML;
 
+    expect(html).toContain("Order #001");
     expect(html).toContain("David King");
     expect(html).toContain("Collected");
     expect(html).toContain("Wrap");
@@ -251,6 +264,8 @@ describe("orders.js", () => {
   test("falls back to Unknown Customer when customer doc does not exist", async () => {
     db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "vendor-1" }));
 
+    const fakeDate = new Date("2026-05-08T10:00:00");
+
     db.getDoc
       .mockResolvedValueOnce({
         exists: () => true,
@@ -265,11 +280,12 @@ describe("orders.js", () => {
       cb({
         docs: [
           {
-            id: "order-1",
+            id: "order-abc123",
             data: () => ({
               vendorId: "vendor-1",
               userId: "customer-1",
               status: "Pending",
+              createdAt: { seconds: 1, toDate: () => fakeDate },
               menuItems: [{ name: "Burger" }]
             })
           }
@@ -284,7 +300,10 @@ describe("orders.js", () => {
 
     await flush();
 
-    expect(document.getElementById("newOrders").innerHTML).toContain("Unknown Customer");
+    const html = document.getElementById("newOrders").innerHTML;
+
+    expect(html).toContain("Unknown Customer");
+    expect(html).toContain("Order #001");
   });
 
   test("formats created and updated timestamps in vendor orders", async () => {
@@ -311,7 +330,7 @@ describe("orders.js", () => {
               vendorId: "vendor-1",
               userId: "customer-1",
               status: "Pending",
-              createdAt: { toDate: () => fakeDate },
+              createdAt: { seconds: 1, toDate: () => fakeDate },
               updatedAt: { toDate: () => fakeDate },
               menuItems: [{ name: "Burger", quantity: 1 }]
             })
@@ -350,12 +369,12 @@ describe("orders.js", () => {
     await updateOrderStatus("order-1", "Preparing");
 
     expect(db.updateDoc).toHaveBeenCalledWith(
-  [{}, "orders", "order-1"],
-  {
-    status: "Preparing",
-    updatedAt: "mock-timestamp"
-  }
-);
+      [{}, "orders", "order-1"],
+      {
+        status: "Preparing",
+        updatedAt: "mock-timestamp"
+      }
+    );
   });
 
   test("allows preparing orders to move only to ready", () => {
@@ -394,7 +413,7 @@ describe("orders.js", () => {
     expect(getNextDropStatus("Collected", "readyOrders")).toBe(null);
   });
 
-    test("formats unknown statuses as Pending", () => {
+  test("formats unknown statuses as Pending", () => {
     jest.isolateModules(() => {
       require("../scripts/orders.js");
     });
@@ -413,18 +432,88 @@ describe("orders.js", () => {
 
     const { buildOrderHTML } = require("../scripts/orders.js");
 
-    const html = buildOrderHTML(
-      {
-        id: "order-1",
-        status: "Collected",
-        customerName: "Test Customer",
-        menuItems: [{ name: "Burger", quantity: 1 }]
-      },
-      0
-    );
+    const html = buildOrderHTML({
+      id: "order-1",
+      status: "Collected",
+      customerName: "Test Customer",
+      dailyOrderNumber: "006",
+      menuItems: [{ name: "Burger", quantity: 1 }]
+    });
 
+    expect(html).toContain("Order #006");
     expect(html).toContain('draggable="false"');
     expect(html).toContain('data-order-status="Collected"');
+  });
+
+  test("daily order numbers stay stable across different statuses", () => {
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const { buildOrderHTML } = require("../scripts/orders.js");
+
+    const pendingHtml = buildOrderHTML({
+      id: "abc123xyz",
+      status: "Pending",
+      dailyOrderNumber: "003",
+      customerName: "Test Customer",
+      menuItems: []
+    });
+
+    const readyHtml = buildOrderHTML({
+      id: "abc123xyz",
+      status: "Ready",
+      dailyOrderNumber: "003",
+      customerName: "Test Customer",
+      menuItems: []
+    });
+
+    expect(pendingHtml).toContain("Order #003");
+    expect(readyHtml).toContain("Order #003");
+    expect(pendingHtml).not.toContain("Order 1");
+    expect(readyHtml).not.toContain("Order 1");
+  });
+
+  test("adds daily order numbers by date in oldest first order", () => {
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const { addDailyOrderNumbers } = require("../scripts/orders.js");
+
+    const dayOne = new Date("2026-05-08T09:00:00");
+    const dayTwo = new Date("2026-05-09T09:00:00");
+
+    const numberedOrders = addDailyOrderNumbers([
+      {
+        id: "order-1",
+        createdAt: { toDate: () => dayOne }
+      },
+      {
+        id: "order-2",
+        createdAt: { toDate: () => dayOne }
+      },
+      {
+        id: "order-3",
+        createdAt: { toDate: () => dayTwo }
+      }
+    ]);
+
+    expect(numberedOrders[0].dailyOrderNumber).toBe("001");
+    expect(numberedOrders[1].dailyOrderNumber).toBe("002");
+    expect(numberedOrders[2].dailyOrderNumber).toBe("001");
+  });
+
+  test("formats daily order numbers with three digits", () => {
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const { formatDailyOrderNumber } = require("../scripts/orders.js");
+
+    expect(formatDailyOrderNumber(1)).toBe("001");
+    expect(formatDailyOrderNumber(12)).toBe("012");
+    expect(formatDailyOrderNumber(123)).toBe("123");
   });
 
   test("attaches drag listeners only once", () => {
@@ -458,7 +547,7 @@ describe("orders.js", () => {
         data-order-id="order-1"
         data-order-status="Pending"
       >
-        Order 1
+        Order #001
       </article>
     `;
 
