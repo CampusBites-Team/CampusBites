@@ -8,8 +8,7 @@ import {
   onAuthStateChanged,
   collection,
   query,
-  where,
-  serverTimestamp
+  where
 } from "./database.js";
 
 // ---------------- AUTH GUARD ----------------
@@ -71,8 +70,33 @@ export function updateDashboardTitle(userData) {
 }
 // ---------------- UTILS ----------------
 export const calculateRevenue = (orders) => {
-  return orders.reduce((sum, o) => sum + (o.total || 0), 0);
+  return orders.reduce((sum, order) => sum + (order.total || 0), 0);
 };
+
+export function normaliseStatus(status) {
+  return String(status || "Pending").trim().toLowerCase();
+}
+
+export function formatStatus(status) {
+  const normalisedStatus = normaliseStatus(status);
+
+  if (normalisedStatus === "pending") return "Pending";
+  if (normalisedStatus === "preparing") return "Preparing";
+  if (normalisedStatus === "ready") return "Ready";
+  if (normalisedStatus === "collected") return "Collected";
+
+  return "Pending";
+}
+
+export function getNextStatus(status) {
+  const currentStatus = formatStatus(status);
+
+  if (currentStatus === "Pending") return "Preparing";
+  if (currentStatus === "Preparing") return "Ready";
+  if (currentStatus === "Ready") return "Collected";
+
+  return null;
+}
 
 export async function fetchVendorOrders(vendorId) {
   const ordersRef = collection(db, "orders");
@@ -93,46 +117,65 @@ export async function fetchVendorOrders(vendorId) {
   return orders;
 }
 
+export function renderQuickStats(orders) {
+  const pendingCount = document.getElementById("pending-count");
+  const preparingCount = document.getElementById("preparing-count");
+  const readyCount = document.getElementById("ready-count");
+  const collectedCount = document.getElementById("collected-count");
+
+  if (!pendingCount || !preparingCount || !readyCount || !collectedCount) return;
+
+  pendingCount.textContent = orders.filter((order) => formatStatus(order.status) === "Pending").length;
+  preparingCount.textContent = orders.filter((order) => formatStatus(order.status) === "Preparing").length;
+  readyCount.textContent = orders.filter((order) => formatStatus(order.status) === "Ready").length;
+  collectedCount.textContent = orders.filter((order) => formatStatus(order.status) === "Collected").length;
+}
+
 export function getStatusButtons(order) {
-  const statuses = ["Pending", "Preparing", "Ready", "Collected"];
-  const currentStatus = order.status || "Pending";
+  const currentStatus = formatStatus(order.status);
+  const nextStatus = getNextStatus(currentStatus);
 
-  return statuses.map((status) => {
-    const isCurrent = currentStatus === status;
-
+  if (!nextStatus) {
     return `
-      <button
-        type="button"
-        class="px-3 py-1 rounded-lg border ${
-          isCurrent
-            ? "bg-indigo-600 text-white border-indigo-600"
-            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-        }"
-        data-order-id="${order.id}"
-        data-status="${status}"
-        ${isCurrent ? "disabled" : ""}
-      >
-        ${status}
-      </button>
+      <p class="text-sm text-gray-500">
+        This order has been collected and can no longer be updated.
+      </p>
     `;
-  }).join("");
+  }
+
+  return `
+    <button
+      type="button"
+      class="px-3 py-1 rounded-lg border bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700"
+      data-order-id="${order.id}"
+      data-status="${nextStatus}"
+    >
+      ${nextStatus}
+    </button>
+  `;
 }
 
 export function renderOrders(orders) {
   const ordersList = document.getElementById("orders-list");
 
+  renderQuickStats(orders);
+
   if (!ordersList) return;
 
-  if (!orders.length) {
-    ordersList.innerHTML = `<p class="text-gray-500">No orders available yet.</p>`;
+  const currentOrders = orders.filter((order) => {
+    return formatStatus(order.status) !== "Collected";
+  });
+
+  if (!currentOrders.length) {
+    ordersList.innerHTML = `<p class="text-gray-500">No current orders available.</p>`;
     return;
   }
 
-  ordersList.innerHTML = orders.map((order, index) => `
+  ordersList.innerHTML = currentOrders.map((order, index) => `
     <article class="border border-gray-200 rounded-xl p-4">
       <header class="mb-3">
         <h3 class="text-lg font-semibold text-gray-900">Order ${index + 1}</h3>
-        <p class="text-sm text-gray-600">Status: ${order.status || "Pending"}</p>
+        <p class="text-sm text-gray-600">Status: ${formatStatus(order.status)}</p>
       </header>
 
       <section class="mb-3">
@@ -148,10 +191,7 @@ export function renderOrders(orders) {
 
 export async function updateOrderStatus(orderId, newStatus) {
   const orderRef = doc(db, "orders", orderId);
-  await updateDoc(orderRef, {
-    status: newStatus,
-    updatedAt: serverTimestamp()
-  });
+  await updateDoc(orderRef, { status: newStatus });
 }
 
 export function attachOrderStatusListeners() {
@@ -177,12 +217,34 @@ export function attachOrderStatusListeners() {
     const updatedOrderElement = button.closest("article");
     if (!updatedOrderElement) return;
 
+    if (newStatus === "Collected") {
+      updatedOrderElement.remove();
+
+      const collectedCount = document.getElementById("collected-count");
+      if (collectedCount) {
+        collectedCount.textContent = String(Number(collectedCount.textContent || 0) + 1);
+      }
+
+      const readyCount = document.getElementById("ready-count");
+      if (readyCount) {
+        readyCount.textContent = String(Math.max(Number(readyCount.textContent || 0) - 1, 0));
+      }
+
+      if (!ordersList.querySelector("article")) {
+        ordersList.innerHTML = `<p class="text-gray-500">No current orders available.</p>`;
+      }
+
+      return;
+    }
+
     const statusText = updatedOrderElement.querySelector("p.text-sm.text-gray-600");
+
     if (statusText) {
       statusText.textContent = `Status: ${newStatus}`;
     }
 
     const buttonSection = updatedOrderElement.querySelector("section.flex.flex-wrap.gap-2");
+
     if (buttonSection) {
       buttonSection.innerHTML = getStatusButtons({
         id: orderId,

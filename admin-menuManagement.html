@@ -3,36 +3,43 @@
 <head>
     <title>CampusBites - Admin Menu Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="CampusBites">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
-    <nav class="fixed bg-white w-full z-50 glass-effect border-b border-gray-200">
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
-            <header class="flex items-center gap-2 cursor-pointer">
-                <i data-lucide="utensils" class="w-8 h-8 text-indigo-600"></i>
-                <span class="text-xl font-bold text-gray-900">CampusBites</span>
-            </header>
+<nav class="bg-white border-b border-gray-200 shadow-sm">
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+    <a href="index.html" class="flex items-center gap-2">
+      <i data-lucide="utensils" class="w-7 h-7 text-indigo-600"></i>
+      <span class="text-xl font-bold text-gray-900">CampusBites</span>
+    </a>
 
-            <section class="md:flex space-x-8">
-                <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
-                <a id="AdmindashboardLink" href="admin-dashboard.html" class="text-gray-700 hover:text-indigo-600">Dashboard</a>
-                <a href="vendor-management.html" class="text-gray-700 hover:text-indigo-600">Vendors</a>
-                <a href="admin-analytics.html" class="text-gray-700 hover:text-indigo-600">Analytics</a>
-                <a href="admin-menuManagement.html" class="text-gray-700 hover:text-indigo-600">Menu Management</a>
-                <a href="admin-payouts.html" class="text-gray-700 hover:text-indigo-600">Payouts</a>
-            </section>
+    <section id="navLinks" class="flex items-center gap-6 mx-auto">
+      <!-- Populated by navbar.js -->
+    </section>
 
-            <section class="flex items-center gap-4">
-                <a href="login.html" id="loginLink" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
-                    Sign in
-                </a>
-                <button id="logoutBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition hidden">
-                    Logout
-                </button>
-            </section>
-        </section>
-    </nav>
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+    <section id="profileMenuContainer" class="relative hidden">
+      <button id="profileMenuBtn" class="flex items-center gap-2">
+        <img
+          id="profileAvatar"
+          src="assets/default_vendor.jpg"
+          alt="Profile"
+          class="w-10 h-10 rounded-full object-cover border-2 border-indigo-500"
+        />
+      </button>
+
+      <section
+        id="profileDropdown"
+        class="hidden absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50"
+      ></section>
+    </section>
+  </section>
+</nav>
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <h2 class="text-2xl font-bold mb-6">Menu Management</h2>
     
     <section class="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -59,8 +66,8 @@
     </section>
 
     </section>
-    <script type="module" src="./scripts/admin-menuManagement.js">
-        import { initAuthUI, logout } from "./scripts/auth.js";
-    </script>
+    <script src="scripts/pwa.js"></script>
+    <script type="module" src="./scripts/navbar.js"></script>
+    <script type="module" src="./scripts/admin-menuManagement.js"></script>
 </body>
 </html>

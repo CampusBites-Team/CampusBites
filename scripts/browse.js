@@ -74,17 +74,110 @@ function updateCartCount() {
   if (cartCount) cartCount.textContent = cart.length;
 }
 
+function updateCart() {
+  const container = document.getElementById("cartList");
+  const numItemsCart = document.getElementById("numItemsCart");
+  const cartWarning = document.getElementById("cartWarning");
+
+  if (!container) return;
+
+  cart = JSON.parse(localStorage.getItem("cart")) || [];
+  cartWarning?.classList.add("hidden");
+
+  if (!cart.length) {
+    container.innerHTML = `
+      <p class="text-center text-gray-500 col-span-3">
+        Your cart is empty.
+      </p>
+    `;
+
+    if (numItemsCart) numItemsCart.textContent = "0 items in cart";
+
+    updateCartCount();
+    return;
+  }
+
+  let html = "";
+  const doneItems = [];
+
+  for (let i = 0; i < cart.length; i++) {
+    if (!doneItems.includes(cart[i].id)) {
+      let num = 0;
+
+      for (let j = 0; j < cart.length; j++) {
+        if (cart[i].id === cart[j].id) {
+          num++;
+        }
+      }
+
+      html += `
+        <article class="relative bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+          <img 
+            src="${cart[i].image || cart[i].imageUrl || "assets/default_vendor.jpg"}"
+            alt="${cart[i].name || "Menu item"}"
+            class="w-full h-48 object-cover rounded-lg mb-4"
+          >
+
+          <section class="flex justify-between items-start mb-2">
+            <section>
+              <h3 class="text-lg font-semibold">${cart[i].name || "Unnamed Item"}</h3>
+              <p class="text-sm text-gray-500">${cart[i].vendorName || "Vendor"}</p>
+            </section>
+
+            <span class="font-bold text-indigo-600">
+              R${Number(cart[i].price || 0).toFixed(2)}
+            </span>
+          </section>
+
+          <p class="text-sm text-gray-600 mb-3 line-clamp-2">
+            ${cart[i].description || "No description available."}
+          </p>
+
+          <section class="flex gap-2">
+            <button 
+              data-cart-index="${i}" 
+              class="remove-cart-btn flex-1 bg-red-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-red-700"
+            >
+              <i data-lucide="minus" class="w-4 h-4"></i>
+              Remove
+            </button>
+          </section>
+
+          <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+            ${num}
+          </span>
+        </article>
+      `;
+
+      doneItems.push(cart[i].id);
+    }
+  }
+
+  container.innerHTML = html;
+
+  if (numItemsCart) {
+    numItemsCart.textContent =
+      cart.length === 1 ? "1 item in cart" : `${cart.length} items in cart`;
+  }
+
+  updateCartCount();
+  globalThis.lucide?.createIcons?.();
+}
+
 function addToCart(item) {
   let vendorNum = 0;
-  for(let i = 0; i < cart.length; i++){
-    if(cart[i].vendorName == item.vendorName){
+
+  for (let i = 0; i < cart.length; i++) {
+    if (cart[i].vendorName === item.vendorName) {
       vendorNum++;
     }
   }
-  if(vendorNum == 10){
+
+  if (vendorNum === 10) {
     alert("You can order at most 10 items from the same vendor");
     return;
   }
+
   cart.push(item);
   saveCart();
   updateCart();
@@ -104,10 +197,7 @@ function applyFilter(item) {
   if (category !== "AllCategories" && item.category !== category) return false;
   if (vendor !== "AllVendors" && item.vendorName !== vendor) return false;
 
-  if (
-    vendorLocation !== "AllLocations" &&
-    item.location !== vendorLocation
-  ) {
+  if (vendorLocation !== "AllLocations" && item.location !== vendorLocation) {
     return false;
   }
 
@@ -159,9 +249,7 @@ function populateVendorFilter(items) {
 
   vendorSelect.innerHTML = `
     <option value="AllVendors">All Vendors</option>
-    ${vendorNames.map(name => `
-      <option value="${name}">${name}</option>
-    `).join("")}
+    ${vendorNames.map(name => `<option value="${name}">${name}</option>`).join("")}
   `;
 
   if (vendorNames.includes(currentValue) || currentValue === "AllVendors") {
@@ -187,9 +275,7 @@ function populateLocationFilter(items) {
 
   locationSelect.innerHTML = `
     <option value="AllLocations">All Locations</option>
-    ${locations.map(location => `
-      <option value="${location}">${location}</option>
-    `).join("")}
+    ${locations.map(location => `<option value="${location}">${location}</option>`).join("")}
   `;
 
   if (locations.includes(currentValue) || currentValue === "AllLocations") {
@@ -303,7 +389,7 @@ function renderMenuItems() {
 
       <p class="flex items-center gap-1 mb-2">
         ${renderStars(item.rating)}
-        <span class="text-sm text-gray-600 ml-1">${Number(item.rating).toFixed(1)}/5</span>
+        <span class="text-sm text-gray-600 ml-1">${Number(item.rating || 0).toFixed(1)}/5</span>
       </p>
 
       <section class="flex gap-2">
@@ -332,92 +418,6 @@ function renderMenuItems() {
         : `${currentRenderedItems.length} items found`;
   }
 
-  globalThis.lucide?.createIcons?.();
-}
-
-
-function updateCart() {
-  const container = document.getElementById("cartList");
-  const numItemsCart = document.getElementById("numItemsCart");
-  const cartWarning = document.getElementById("cartWarning");
-
-  if (!container) return;
-
-  cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-  cartWarning?.classList.add("hidden");
-
-  if (!cart.length) {
-    container.innerHTML = `
-      <p class="text-center text-gray-500 col-span-3">
-        Your cart is empty.
-      </p>
-    `;
-
-    if (numItemsCart) numItemsCart.textContent = "0 items in cart";
-
-    updateCartCount();
-    return;
-  }
-  let html = ``;
-  let doneItems = [];
-  for(let i = 0; i < cart.length; i++){
-    if(!doneItems.includes(cart[i].id)){
-      let num = 0;
-      for(let j = 0; j < cart.length; j++){
-        if(cart[i].id == cart[j].id){
-          num++;
-        }
-      }
-      html += `
-    <article class="relative bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-      <img 
-        src="${cart[i].image || cart[i].imageUrl || "assets/default_vendor.jpg"}"
-        alt="${cart[i].name || "Menu item"}"
-        class="w-full h-48 object-cover rounded-lg mb-4"
-      >
-
-      <section class="flex justify-between items-start mb-2">
-        <section>
-          <h3 class="text-lg font-semibold">${cart[i].name || "Unnamed Item"}</h3>
-          <p class="text-sm text-gray-500">${cart[i].vendorName || "Vendor"}</p>
-        </section>
-
-        <span class="font-bold text-indigo-600">
-          R${Number(cart[i].price || 0).toFixed(2)}
-        </span>
-      </section>
-
-      <p class="text-sm text-gray-600 mb-3 line-clamp-2">
-        ${cart[i].description || "No description available."}
-      </p>
-
-      <section class="flex gap-2">
-        <button 
-          data-cart-index="${i}" 
-          class="remove-cart-btn flex-1 bg-red-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-red-700"
-        >
-          <i data-lucide="minus" class="w-4 h-4"></i>
-          Remove
-        </button>
-      </section>
-      <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
-                ${num}
-        </span>
-    </article>
-    
-  `;
-  doneItems.push(cart[i].id);
-    }
-  }
-  container.innerHTML = html;
-
-  if (numItemsCart) {
-    numItemsCart.textContent =
-      cart.length === 1 ? "1 item in cart" : `${cart.length} items in cart`;
-  }
-  
-  updateCartCount();
   globalThis.lucide?.createIcons?.();
 }
 
@@ -492,6 +492,27 @@ function showItemDetails(item) {
             }
           </section>
 
+          <section class="mb-4">
+            <h3 class="font-semibold text-sm mb-2">Nutritional Info</h3>
+
+            <section class="grid grid-cols-3 gap-3 text-center">
+              <section class="bg-gray-50 rounded-lg p-3">
+                <p class="font-bold">${item.calories || 320}</p>
+                <p class="text-xs text-gray-500">kcal</p>
+              </section>
+
+              <section class="bg-gray-50 rounded-lg p-3">
+                <p class="font-bold">${item.protein || "18"}g</p>
+                <p class="text-xs text-gray-500">protein</p>
+              </section>
+
+              <section class="bg-gray-50 rounded-lg p-3">
+                <p class="font-bold">${item.carbs || "18"}g</p>
+                <p class="text-xs text-gray-500">carbs</p>
+              </section>
+            </section>
+          </section>
+
           <button
             id="detailsAddToCart"
             class="w-full bg-indigo-600 text-white py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700"
@@ -541,10 +562,15 @@ async function loadMenuItems() {
     vendorMap[vendorData.id] = vendorData;
   });
 
-  const approvedVendorIds = new Set(approvedVendors.map(vendorData => vendorData.id));
+  const approvedVendorIds = new Set(
+    approvedVendors.map(vendorData => vendorData.id)
+  );
 
   allVisibleItems = items
-    .filter(item => approvedVendorIds.has(item.vendorId))
+    .filter(item =>
+      approvedVendorIds.has(item.vendorId) &&
+      item.status === "approved"
+    )
     .map(item => {
       const vendorData = vendorMap[item.vendorId];
 
@@ -568,7 +594,6 @@ async function loadMenuItems() {
 
   populateVendorFilter(allVisibleItems);
   populateLocationFilter(allVisibleItems);
-
   setupPriceSlider(allVisibleItems);
   renderMenuItems();
   updateCartCount();
@@ -654,8 +679,9 @@ function attachEventListeners() {
       cart.splice(index, 1);
       saveCart();
       updateCart();
-      if(cart.length == 0){
-        document.getElementById("empty").classList.add("hidden");
+
+      if (cart.length === 0) {
+        document.getElementById("empty")?.classList.add("hidden");
       }
     }
   });
@@ -664,18 +690,20 @@ function attachEventListeners() {
     cart = [];
     saveCart();
     updateCart();
-    document.getElementById("empty").classList.add("hidden");
+    document.getElementById("empty")?.classList.add("hidden");
   });
 
   document.getElementById("cart")?.addEventListener("click", () => {
     cart = JSON.parse(localStorage.getItem("cart")) || [];
 
     document.getElementById("item-edit-modal")?.classList.remove("hidden");
-    if(cart.length == 0){
-          document.getElementById("empty").classList.add("hidden");
+
+    if (cart.length === 0) {
+      document.getElementById("empty")?.classList.add("hidden");
     } else {
-          document.getElementById("empty").classList.remove("hidden");
+      document.getElementById("empty")?.classList.remove("hidden");
     }
+
     updateCart();
   });
 
@@ -762,11 +790,14 @@ const paystack = {
       }
 
       const { authorization_url, reference } = await res.json();
+
       if (!authorization_url) {
         throw new Error("Payment provider did not return a redirect URL");
       }
 
-      try { sessionStorage.setItem("cb_paystack_reference", reference); } catch {}
+      try {
+        sessionStorage.setItem("cb_paystack_reference", reference);
+      } catch {}
 
       cart = [];
       saveCart();

@@ -6,6 +6,11 @@
   <title>CampusBites - Confirming Payment</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="CampusBites">
 </head>
 <body class="min-h-screen bg-gray-100">
 
@@ -35,17 +40,18 @@
         <i data-lucide="check-circle-2" class="w-16 h-16 text-green-500 mx-auto mb-4"></i>
         <h1 class="text-2xl font-bold text-gray-900 mb-2">Payment confirmed</h1>
         <p class="text-gray-600 mb-6">Your order has been sent to the vendor.</p>
-        <a href="checkOut.html" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">View my orders</a>
+        <a href="customer-orders.html" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">View my orders</a>
       </section>
 
       <section id="error-state" class="hidden">
         <i data-lucide="alert-triangle" class="w-16 h-16 text-orange-500 mx-auto mb-4"></i>
         <h1 class="text-2xl font-bold text-gray-900 mb-2">Still confirming...</h1>
         <p class="text-gray-600 mb-6">Paystack hasn't notified us yet. This usually takes under a minute. You can check your orders shortly — if the payment cleared, the order will appear there.</p>
-        <a href="checkOut.html" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">Go to my orders</a>
+        <a href="customer-orders.html" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">Go to my orders</a>
       </section>
     </article>
   </main>
+  <script src="scripts/pwa.js"></script>
 
   <script type="module">
     import { db } from "./scripts/database.js";
@@ -83,7 +89,7 @@
           try { sessionStorage.removeItem("cb_paystack_reference"); } catch {}
           show("success-state");
           unsub();
-          setTimeout(() => { window.location.href = "checkOut.html"; }, 1500);
+          setTimeout(() => { window.location.href = "customer-orders.html"; }, 1500);
         } else if (data.status === "failed" || data.status === "cancelled") {
           show("error-state");
           unsub();
