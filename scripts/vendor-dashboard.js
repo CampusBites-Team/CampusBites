@@ -5,10 +5,12 @@ import {
   getDoc,
   getDocs,
   updateDoc,
+  addDoc,
   onAuthStateChanged,
   collection,
   query,
-  where
+  where,
+  serverTimestamp
 } from "./database.js";
 
 // ---------------- AUTH GUARD ----------------
