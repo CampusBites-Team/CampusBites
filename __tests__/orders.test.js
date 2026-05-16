@@ -532,4 +532,340 @@ describe("orders.js", () => {
 
     expect(db.updateDoc).not.toHaveBeenCalled();
   });
+
+  test("buildOrderHTML renders Card badge for non-cash orders", () => {
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const { buildOrderHTML } = require("../scripts/orders.js");
+
+    const html = buildOrderHTML(
+      {
+        id: "order-1",
+        status: "Pending",
+        paymentMethod: "card",
+        paymentStatus: "paid",
+        customerName: "Card Customer",
+        menuItems: [{ name: "Burger", quantity: 1 }]
+      },
+      0
+    );
+
+    expect(html).toContain("Card");
+    expect(html).not.toContain("Mark as Paid");
+    expect(html).not.toContain("Awaiting cash payment");
+    expect(html).toContain('data-payment-method="card"');
+  });
+
+  test("buildOrderHTML renders unpaid cash banner and Mark as Paid button", () => {
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const { buildOrderHTML } = require("../scripts/orders.js");
+
+    const html = buildOrderHTML(
+      {
+        id: "order-2",
+        status: "Pending",
+        paymentMethod: "cash",
+        paymentStatus: "unpaid",
+        total: 42.5,
+        customerName: "Cash Customer",
+        menuItems: [{ name: "Wrap", quantity: 1 }]
+      },
+      0
+    );
+
+    expect(html).toContain("Cash • Unpaid");
+    expect(html).toContain("Awaiting cash payment");
+    expect(html).toContain("R42.50");
+    expect(html).toContain("mark-paid-btn");
+    expect(html).toContain('data-mark-paid-id="order-2"');
+    expect(html).toContain('data-payment-method="cash"');
+    expect(html).toContain('data-payment-status="unpaid"');
+  });
+
+  test("buildOrderHTML renders paid cash badge without Mark as Paid button", () => {
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const { buildOrderHTML } = require("../scripts/orders.js");
+
+    const html = buildOrderHTML(
+      {
+        id: "order-3",
+        status: "Ready",
+        paymentMethod: "cash",
+        paymentStatus: "paid",
+        total: 30,
+        customerName: "Cash Paid",
+        menuItems: [{ name: "Juice", quantity: 1 }]
+      },
+      0
+    );
+
+    expect(html).toContain("Cash • Paid");
+    expect(html).not.toContain("Mark as Paid");
+    expect(html).not.toContain("Awaiting cash payment");
+  });
+
+  test("markCashOrderAsPaid updates order and writes cash ledger credit", async () => {
+    db.updateDoc.mockResolvedValue({});
+    db.addDoc.mockResolvedValue({ id: "ledger-1" });
+
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const { markCashOrderAsPaid } = require("../scripts/orders.js");
+
+    await markCashOrderAsPaid({
+      id: "order-9",
+      vendorId: "vendor-1",
+      vendorName: "Shop1",
+      total: 75
+    });
+
+    expect(db.updateDoc).toHaveBeenCalledWith(
+      [{}, "orders", "order-9"],
+      expect.objectContaining({
+        paymentStatus: "paid",
+        paidAt: "mock-timestamp",
+        updatedAt: "mock-timestamp"
+      })
+    );
+
+    expect(db.addDoc).toHaveBeenCalledWith(
+      "wallet_ledger",
+      expect.objectContaining({
+        type: "credit",
+        source: "cash",
+        vendorId: "vendor-1",
+        vendorName: "Shop1",
+        orderId: "order-9",
+        amount: 75,
+        status: "settled"
+      })
+    );
+  });
+
+  test("drag-drop blocks unpaid cash orders from being marked Collected", async () => {
+    db.updateDoc.mockResolvedValue({});
+    window.alert = jest.fn();
+
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const { attachDragAndDropListeners } = require("../scripts/orders.js");
+
+    attachDragAndDropListeners();
+
+    const completedColumn = document.getElementById("completedOrders");
+
+    const dropEvent = new Event("drop", { bubbles: true });
+    Object.defineProperty(dropEvent, "dataTransfer", {
+      value: {
+        getData: jest.fn((key) => {
+          if (key === "orderId") return "order-cash-1";
+          if (key === "orderStatus") return "Ready";
+          if (key === "paymentMethod") return "cash";
+          if (key === "paymentStatus") return "unpaid";
+          return "";
+        })
+      }
+    });
+
+    completedColumn.dispatchEvent(dropEvent);
+
+    await flush();
+
+    expect(window.alert).toHaveBeenCalledWith(
+      expect.stringContaining("Mark this cash order as paid")
+    );
+    expect(db.updateDoc).not.toHaveBeenCalled();
+  });
+
+  test("drag-drop allows paid cash orders to be marked Collected", async () => {
+    db.updateDoc.mockResolvedValue({});
+
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const { attachDragAndDropListeners } = require("../scripts/orders.js");
+
+    attachDragAndDropListeners();
+
+    const completedColumn = document.getElementById("completedOrders");
+
+    const dropEvent = new Event("drop", { bubbles: true });
+    Object.defineProperty(dropEvent, "dataTransfer", {
+      value: {
+        getData: jest.fn((key) => {
+          if (key === "orderId") return "order-cash-2";
+          if (key === "orderStatus") return "Ready";
+          if (key === "paymentMethod") return "cash";
+          if (key === "paymentStatus") return "paid";
+          return "";
+        })
+      }
+    });
+
+    completedColumn.dispatchEvent(dropEvent);
+
+    await flush();
+
+    expect(db.updateDoc).toHaveBeenCalledWith(
+      [{}, "orders", "order-cash-2"],
+      expect.objectContaining({ status: "Collected" })
+    );
+  });
+
+  test("dragstart on non-draggable card does not populate dataTransfer", () => {
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const { attachDragAndDropListeners } = require("../scripts/orders.js");
+
+    document.getElementById("completedOrders").innerHTML = `
+      <article
+        draggable="false"
+        data-order-id="order-c"
+        data-order-status="Collected"
+        data-payment-method="card"
+        data-payment-status="paid"
+      >Collected card</article>
+    `;
+
+    attachDragAndDropListeners();
+
+    const card = document.querySelector("article[data-order-id='order-c']");
+    const setData = jest.fn();
+
+    const dragStartEvent = new Event("dragstart", { bubbles: true });
+    Object.defineProperty(dragStartEvent, "dataTransfer", {
+      value: { setData, getData: jest.fn() }
+    });
+
+    card.dispatchEvent(dragStartEvent);
+
+    expect(setData).not.toHaveBeenCalled();
+  });
+
+  test("mark-paid button click loads order and marks it paid", async () => {
+    db.updateDoc.mockResolvedValue({});
+    db.addDoc.mockResolvedValue({ id: "ledger-1" });
+    db.getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        vendorId: "vendor-1",
+        vendorName: "Shop1",
+        total: 50
+      })
+    });
+
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const btn = document.createElement("button");
+    btn.className = "mark-paid-btn";
+    btn.dataset.markPaidId = "order-mp-1";
+    document.body.appendChild(btn);
+
+    btn.click();
+
+    await flush();
+    await flush();
+
+    expect(db.getDoc).toHaveBeenCalled();
+    expect(db.updateDoc).toHaveBeenCalledWith(
+      [{}, "orders", "order-mp-1"],
+      expect.objectContaining({ paymentStatus: "paid" })
+    );
+    expect(db.addDoc).toHaveBeenCalledWith(
+      "wallet_ledger",
+      expect.objectContaining({ source: "cash", orderId: "order-mp-1", amount: 50 })
+    );
+  });
+
+  test("mark-paid button alerts when order no longer exists", async () => {
+    db.getDoc.mockResolvedValue({ exists: () => false, data: () => ({}) });
+    window.alert = jest.fn();
+
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const btn = document.createElement("button");
+    btn.className = "mark-paid-btn";
+    btn.dataset.markPaidId = "missing-order";
+    document.body.appendChild(btn);
+
+    btn.click();
+
+    await flush();
+    await flush();
+
+    expect(window.alert).toHaveBeenCalledWith("Order no longer exists.");
+    expect(db.updateDoc).not.toHaveBeenCalled();
+  });
+
+  test("mark-paid button re-enables itself when the update fails", async () => {
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+    db.getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({ vendorId: "v", vendorName: "V", total: 10 })
+    });
+    db.updateDoc.mockRejectedValue(new Error("boom"));
+    window.alert = jest.fn();
+
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const btn = document.createElement("button");
+    btn.className = "mark-paid-btn";
+    btn.dataset.markPaidId = "order-fail";
+    document.body.appendChild(btn);
+
+    btn.click();
+
+    await flush();
+    await flush();
+
+    expect(errorSpy).toHaveBeenCalled();
+    expect(window.alert).toHaveBeenCalledWith("Failed to mark order as paid.");
+    expect(btn.disabled).toBe(false);
+    expect(btn.textContent).toBe("Mark as Paid");
+
+    errorSpy.mockRestore();
+  });
+
+  test("enrichOrdersWithCustomerNames falls back when getDoc rejects", async () => {
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+    db.getDoc.mockRejectedValue(new Error("network down"));
+
+    jest.isolateModules(() => {
+      require("../scripts/orders.js");
+    });
+
+    const { enrichOrdersWithCustomerNames } = require("../scripts/orders.js");
+
+    const enriched = await enrichOrdersWithCustomerNames([
+      { id: "o-1", userId: "u-1", status: "Pending" }
+    ]);
+
+    expect(enriched[0].customerName).toBe("Unknown Customer");
+    expect(errorSpy).toHaveBeenCalled();
+
+    errorSpy.mockRestore();
+  });
 });
