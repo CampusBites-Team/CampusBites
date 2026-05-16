@@ -826,18 +826,6 @@ const paystack = {
 
 const cash = {
   placeOrder: async () => {
-    if (!currentUser) {
-      console.error("No user logged in");
-      return;
-    }
-
-    cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-    if (!cart.length) {
-      console.error("Cart is empty");
-      return;
-    }
-
     const btn = document.getElementById("checkOut");
 
     if (btn) {
