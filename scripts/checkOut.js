@@ -216,6 +216,23 @@ function buildOrderCard(order, orderNumber) {
         `
         : "";
 
+  const paymentMethod = order.paymentMethod === "cash" ? "cash" : "card";
+  const isUnpaidCash = paymentMethod === "cash" && order.paymentStatus === "unpaid";
+
+  const paymentBadge = paymentMethod === "cash"
+    ? `<span class="px-3 py-1 rounded-full text-xs font-semibold ${
+        isUnpaidCash ? "bg-yellow-100 text-yellow-700" : "bg-emerald-100 text-emerald-700"
+      }">${isUnpaidCash ? "Cash • Unpaid" : "Cash • Paid"}</span>`
+    : `<span class="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700">Card</span>`;
+
+  const cashNotice = isUnpaidCash
+    ? `
+      <section class="mb-4 bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm p-3 rounded-lg">
+        Pay R${Number(order.total || 0).toFixed(2)} in cash to the vendor at or before collection.
+      </section>
+    `
+    : "";
+
   const itemsHtml = getOrderItems(order)
     .map((item) => `
       <section class="flex items-center gap-3 py-2 border-b border-gray-100">
@@ -274,14 +291,19 @@ function buildOrderCard(order, orderNumber) {
           </p>
         </section>
 
-        <span class="px-3 py-1 rounded-full text-xs font-semibold ${statusColor}">
-          ${status}
-        </span>
+        <section class="flex flex-col items-end gap-1">
+          <span class="px-3 py-1 rounded-full text-xs font-semibold ${statusColor}">
+            ${status}
+          </span>
+          ${paymentBadge}
+        </section>
       </header>
 
       <section class="space-y-2 mb-4 max-h-52 overflow-y-auto">
         ${itemsHtml}
       </section>
+
+      ${cashNotice}
 
       ${refundMessage}
 
@@ -805,7 +827,9 @@ document.body.addEventListener("click", (e) => {
     const status = (order.status || "Pending").toLowerCase();
 
     if (status === "pending") {
-      if (order.paymentStatus === "paid" && order.paystackReference) {
+      if (order.paymentMethod === "cash" && order.paymentStatus !== "paid") {
+        updateOrderStatus(order, "cancelled");
+      } else if (order.paymentStatus === "paid" && order.paystackReference) {
         refundPaidOrder(order);
       } else {
         updateOrderStatus(order, "cancelled");
