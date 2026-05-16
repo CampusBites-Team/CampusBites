@@ -203,7 +203,13 @@ function attachVendorDetailsForm(vendorId, userData) {
     const location = document.getElementById("location").value.trim();
     const storeSlogan = document.getElementById("storeSlogan").value.trim();
     const storePhone = document.getElementById("storePhone").value.trim();
-    const storeCategory = document.getElementById("storeCategory").value;
+    const storeCategoryValue = document.getElementById("storeCategory").value;
+const customCategory = document.getElementById("customCategory")?.value.trim() || "";
+
+const storeCategory =
+  storeCategoryValue === "Other"
+    ? customCategory
+    : storeCategoryValue;
 
     if (!shopName) {
       alert("Please enter your shop name.");
@@ -373,6 +379,22 @@ function attachBankingDetailsForm(vendorId, userData) {
   });
 }
 
+
+function attachCustomCategoryListener() {
+  const storeCategory = document.getElementById("storeCategory");
+  const customCategorySection = document.getElementById("customCategorySection");
+
+  if (!storeCategory || !customCategorySection) return;
+
+  storeCategory.addEventListener("change", () => {
+    if (storeCategory.value === "Other") {
+      customCategorySection.classList.remove("hidden");
+    } else {
+      customCategorySection.classList.add("hidden");
+    }
+  });
+}
+
 export function initVendorSettings(locationObj = window.location) {
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
@@ -409,6 +431,7 @@ export function initVendorSettings(locationObj = window.location) {
     fillVendorDetails(userData);
     fillOperatingHours(userData);
     fillBankingDetails(userData);
+    attachCustomCategoryListener();
 
     attachStoreLogoListener();
     attachVendorDetailsForm(user.uid, userData);
