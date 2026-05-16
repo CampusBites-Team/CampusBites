@@ -6,7 +6,7 @@ import {
   onAuthStateChanged
 } from "./database.js";
 
-globalThis.lucide?.createIcons?.();
+lucide.createIcons();
 
 let loggedIn = false;
 let currentUser = null;
@@ -16,22 +16,15 @@ const vegetarian = document.getElementById("Vegetarian");
 const halal = document.getElementById("Halal");
 const gluten = document.getElementById("Gluten-Free");
 const menuList = document.getElementById("menu");
-
+let priceSlider = document.getElementById("PriceSlider");
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
-
 let restrictions = [false, false, false, false];
 let vendor = "AllVendors";
 let category = "AllCategories";
-let vendorLocation = "AllLocations";
-let sortBy = "Default";
-let maxPrice = 200;
-
-let allVisibleItems = [];
-let currentRenderedItems = [];
-let listenersAttached = false;
-
+let done = false;
+let maxPrice2 = Number.MAX_SAFE_INTEGER;
 function renderStars(rating) {
-  const rounded = Math.round(Number(rating || 0));
+  const rounded = Math.round(rating);
   let stars = "";
 
   for (let i = 1; i <= 5; i++) {
@@ -48,30 +41,47 @@ function renderStars(rating) {
 
   return stars;
 }
+function getVendorRating(vendor) {
+  if (vendor.rating) return Number(vendor.rating).toFixed(1);
 
-function getVendorRating(vendorData = {}) {
-  if (vendorData.rating) return Number(vendorData.rating).toFixed(1);
-
-  const name =
-    vendorData.shopName ||
-    vendorData.fullName ||
-    vendorData.email ||
-    "vendor";
-
+  const name = vendor.shopName || vendor.fullName || vendor.email || "vendor";
   const total = name
     .split("")
     .reduce((sum, char) => sum + char.charCodeAt(0), 0);
 
   return (3.8 + (total % 12) / 10).toFixed(1);
 }
-
 function saveCart() {
   localStorage.setItem("cart", JSON.stringify(cart));
 }
 
 function updateCartCount() {
   const cartCount = document.getElementById("cartCount");
-  if (cartCount) cartCount.textContent = cart.length;
+
+  if (cartCount) {
+    cartCount.textContent = cart.length;
+  }
+}
+
+function addToCart(item) {
+  cart.push(item);
+  saveCart();
+  updateCart();
+  updateCartCount();
+}
+
+function applyFilter(item) {
+  if (!item.available) return false;
+  if(item.price > maxPrice2)return false;
+  if (restrictions[0] && !(item.dietary || []).includes("Vegan")) return false;
+  if (restrictions[1] && !(item.dietary || []).includes("Vegetarian")) return false;
+  if (restrictions[3] && !(item.dietary || []).includes("Halal")) return false;
+  if (restrictions[2] && (item.allergens || []).includes("Gluten")) return false;
+
+  if (category !== "AllCategories" && item.category !== category) return false;
+  if (vendor !== "AllVendors" && item.vendorName !== vendor) return false;
+
+  return true;
 }
 
 function updateCart() {
@@ -82,7 +92,10 @@ function updateCart() {
   if (!container) return;
 
   cart = JSON.parse(localStorage.getItem("cart")) || [];
-  cartWarning?.classList.add("hidden");
+
+  if (cartWarning) {
+    cartWarning.classList.add("hidden");
+  }
 
   if (!cart.length) {
     container.innerHTML = `
@@ -91,69 +104,71 @@ function updateCart() {
       </p>
     `;
 
-    if (numItemsCart) numItemsCart.textContent = "0 items in cart";
+    if (numItemsCart) {
+      numItemsCart.textContent = "0 items in cart";
+    }
 
     updateCartCount();
     return;
   }
 
-  let html = "";
-  const doneItems = [];
+  container.innerHTML = cart.map((item, index) => `
+    <article class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
 
-  for (let i = 0; i < cart.length; i++) {
-    if (!doneItems.includes(cart[i].id)) {
-      let num = 0;
+      <img 
+        src="${item.image || item.imageUrl || "assets/default_vendor.jpg"}"
+        alt="${item.name || "Menu item"}"
+        class="w-full h-48 object-cover rounded-lg mb-4"
+      >
 
-      for (let j = 0; j < cart.length; j++) {
-        if (cart[i].id === cart[j].id) {
-          num++;
-        }
-      }
+      <section class="flex justify-between items-start mb-2">
+        <section>
+          <h3 class="text-lg font-semibold">${item.name || "Unnamed Item"}</h3>
+          <p class="text-sm text-gray-500">${item.vendorName || "Vendor"}</p>
+        </section>
 
-      html += `
-        <article class="relative bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-          <img 
-            src="${cart[i].image || cart[i].imageUrl || "assets/default_vendor.jpg"}"
-            alt="${cart[i].name || "Menu item"}"
-            class="w-full h-48 object-cover rounded-lg mb-4"
-          >
+        <span class="font-bold text-indigo-600">
+          R${Number(item.price || 0).toFixed(2)}
+        </span>
+      </section>
 
-          <section class="flex justify-between items-start mb-2">
-            <section>
-              <h3 class="text-lg font-semibold">${cart[i].name || "Unnamed Item"}</h3>
-              <p class="text-sm text-gray-500">${cart[i].vendorName || "Vendor"}</p>
-            </section>
+      <p class="text-sm text-gray-600 mb-3 line-clamp-2">
+        ${item.description || "No description available."}
+      </p>
 
-            <span class="font-bold text-indigo-600">
-              R${Number(cart[i].price || 0).toFixed(2)}
+      ${(item.dietary || []).length ? `
+        <section class="flex flex-wrap gap-1 mb-2">
+          ${(item.dietary || []).map(tag => `
+            <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+              ${tag}
             </span>
-          </section>
+          `).join("")}
+        </section>
+      ` : ""}
 
-          <p class="text-sm text-gray-600 mb-3 line-clamp-2">
-            ${cart[i].description || "No description available."}
-          </p>
+      ${(item.allergens || []).length ? `
+        <section class="flex flex-wrap gap-1 mb-3">
+          <span class="text-xs text-orange-500 font-medium mr-1">⚠ Contains:</span>
+          ${(item.allergens || []).map(a => `
+            <span class="text-xs bg-orange-50 text-orange-600 border border-orange-200 px-2 py-0.5 rounded-full">
+              ${a}
+            </span>
+          `).join("")}
+        </section>
+      ` : "<section class='mb-3'></section>"}
 
-          <section class="flex gap-2">
-            <button 
-              data-cart-index="${i}" 
-              class="remove-cart-btn flex-1 bg-red-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-red-700"
-            >
-              <i data-lucide="minus" class="w-4 h-4"></i>
-              Remove
-            </button>
-          </section>
+      <section class="flex gap-2">
+        <button 
+          data-cart-index="${index}" 
+          class="remove-cart-btn flex-1 bg-red-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-red-700"
+        >
+          <i data-lucide="minus" class="w-4 h-4"></i>
+          Remove
+        </button>
+      </section>
 
-          <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
-            ${num}
-          </span>
-        </article>
-      `;
-
-      doneItems.push(cart[i].id);
-    }
-  }
-
-  container.innerHTML = html;
+    </article>
+  `).join("");
 
   if (numItemsCart) {
     numItemsCart.textContent =
@@ -162,76 +177,6 @@ function updateCart() {
 
   updateCartCount();
   globalThis.lucide?.createIcons?.();
-}
-
-function addToCart(item) {
-  let vendorNum = 0;
-
-  for (let i = 0; i < cart.length; i++) {
-    if (cart[i].vendorName === item.vendorName) {
-      vendorNum++;
-    }
-  }
-
-  if (vendorNum === 10) {
-    alert("You can order at most 10 items from the same vendor");
-    return;
-  }
-
-  cart.push(item);
-  saveCart();
-  updateCart();
-  updateCartCount();
-}
-
-function applyFilter(item) {
-  if (!item.available) return false;
-
-  if (Number(item.price || 0) > Number(maxPrice)) return false;
-
-  if (restrictions[0] && !(item.dietary || []).includes("Vegan")) return false;
-  if (restrictions[1] && !(item.dietary || []).includes("Vegetarian")) return false;
-  if (restrictions[2] && (item.allergens || []).includes("Gluten")) return false;
-  if (restrictions[3] && !(item.dietary || []).includes("Halal")) return false;
-
-  if (category !== "AllCategories" && item.category !== category) return false;
-  if (vendor !== "AllVendors" && item.vendorName !== vendor) return false;
-
-  if (vendorLocation !== "AllLocations" && item.location !== vendorLocation) {
-    return false;
-  }
-
-  return true;
-}
-
-function sortItems(items) {
-  const sortedItems = [...items];
-
-  if (sortBy === "PriceLowToHigh") {
-    sortedItems.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
-  }
-
-  if (sortBy === "PriceHighToLow") {
-    sortedItems.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
-  }
-
-  if (sortBy === "VendorNameAtoZ") {
-    sortedItems.sort((a, b) =>
-      (a.vendorName || "").localeCompare(b.vendorName || "")
-    );
-  }
-
-  if (sortBy === "VendorNameZtoA") {
-    sortedItems.sort((a, b) =>
-      (b.vendorName || "").localeCompare(a.vendorName || "")
-    );
-  }
-
-  if (sortBy === "Rating") {
-    sortedItems.sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0));
-  }
-
-  return sortedItems;
 }
 
 function populateVendorFilter(items) {
@@ -259,175 +204,15 @@ function populateVendorFilter(items) {
     vendor = "AllVendors";
   }
 }
-
-function populateLocationFilter(items) {
-  const locationSelect = document.getElementById("VendorLocations");
-  if (!locationSelect) return;
-
-  const currentValue = locationSelect.value || "AllLocations";
-
-  const locations = [...new Set(
-    items
-      .map(item => item.location)
-      .filter(Boolean)
-      .sort((a, b) => a.localeCompare(b))
-  )];
-
-  locationSelect.innerHTML = `
-    <option value="AllLocations">All Locations</option>
-    ${locations.map(location => `<option value="${location}">${location}</option>`).join("")}
-  `;
-
-  if (locations.includes(currentValue) || currentValue === "AllLocations") {
-    locationSelect.value = currentValue;
-  } else {
-    locationSelect.value = "AllLocations";
-    vendorLocation = "AllLocations";
-  }
-}
-
-function setupPriceSlider(items) {
-  const priceSlider = document.getElementById("PriceSlider");
-  const priceLabel = document.getElementById("PriceLabel");
-
-  if (!priceSlider || !priceLabel) return;
-
-  const highestPrice = Math.max(
-    0,
-    ...items.map(item => Number(item.price || 0))
-  );
-
-  priceSlider.max = highestPrice;
-  priceSlider.value = highestPrice;
-  maxPrice = highestPrice;
-
-  priceLabel.textContent = `Max Price: R${highestPrice}`;
-}
-
-function updatePriceLabel() {
-  const priceLabel = document.getElementById("PriceLabel");
-  if (priceLabel) {
-    priceLabel.textContent = `Max Price: R${maxPrice}`;
-  }
-}
-
-function getFilteredItems() {
-  return sortItems(allVisibleItems.filter(item => applyFilter(item)));
-}
-
-function renderEmptyState() {
-  const container = document.getElementById("menu");
-  const numItems = document.getElementById("numItems");
-
-  if (!container) return;
-
-  container.innerHTML = `
-    <section class="col-span-full flex flex-col items-center justify-center text-center py-20">
-      <i data-lucide="search-x" class="w-16 h-16 text-gray-400 mb-4"></i>
-
-      <h3 class="text-xl font-semibold text-gray-800 mb-2">
-        No menu items found
-      </h3>
-
-      <p class="text-sm text-gray-500 max-w-md">
-        Try changing your filters, increasing the max price, or selecting all vendors and locations.
-      </p>
-    </section>
-  `;
-
-  if (numItems) numItems.textContent = "0 items found";
-
-  globalThis.lucide?.createIcons?.();
-}
-
-function renderMenuItems() {
-  const container = document.getElementById("menu");
-  const numItems = document.getElementById("numItems");
-
-  if (!container) return;
-
-  currentRenderedItems = getFilteredItems();
-
-  if (!currentRenderedItems.length) {
-    renderEmptyState();
-    return;
-  }
-
-  container.innerHTML = currentRenderedItems.map(item => `
-    <article class="bg-white p-4 rounded-xl shadow-sm">
-      <img 
-        src="${item.image || item.imageUrl || "assets/default.jpg"}"
-        alt="${item.name || "Menu item"}"
-        class="w-full h-48 object-cover rounded-lg mb-4"
-      >
-
-      <section class="flex justify-between items-start mb-2">
-        <section>
-          <h3 class="text-lg font-semibold">${item.name || "Unnamed Item"}</h3>
-          <p class="text-sm font-semibold text-gray-500">${item.vendorName || "Vendor"}</p>
-        </section>
-
-        <span class="font-bold text-indigo-600">
-          R${Number(item.price || 0).toFixed(2)}
-          <p class="text-sm text-gray-500">${item.location || "Unknown location"}</p>
-        </span>
-      </section>
-
-      <p class="text-sm text-gray-600 mb-3 line-clamp-2">
-        ${item.description || "No description available."}
-      </p>
-
-      ${(item.allergens || []).length ? `
-        <section class="flex flex-wrap gap-1 mb-3">
-          ${(item.allergens || []).map(a => `
-            <span class="text-xs bg-red-50 text-red-600 border border-red-200 px-2 py-0.5 rounded-full">
-              ${a}
-            </span>
-          `).join("")}
-        </section>
-      ` : "<section class='mb-3'></section>"}
-
-      <p class="flex items-center gap-1 mb-2">
-        ${renderStars(item.rating)}
-        <span class="text-sm text-gray-600 ml-1">${Number(item.rating || 0).toFixed(1)}/5</span>
-      </p>
-
-      <section class="flex gap-2">
-        <button
-          data-item-id="${item.id}"
-          class="item-details-btn flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200"
-        >
-          Details
-        </button>
-
-        <button
-          data-item-id="${item.id}"
-          class="add-cart-btn flex-1 bg-indigo-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700"
-        >
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          Add
-        </button>
-      </section>
-    </article>
-  `).join("");
-
-  if (numItems) {
-    numItems.textContent =
-      currentRenderedItems.length === 1
-        ? "1 item found"
-        : `${currentRenderedItems.length} items found`;
-  }
-
-  globalThis.lucide?.createIcons?.();
-}
-
 function showItemDetails(item) {
   const modal = document.getElementById("details-modal");
   if (!modal) return;
+  const location = item.location || "Unknown location";
 
   modal.innerHTML = `
     <section class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4">
       <article class="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto relative shadow-xl">
+
         <button id="closeDetailsModal"
           class="absolute top-3 right-3 bg-white rounded-full p-1 shadow hover:bg-gray-100">
           ✕
@@ -445,17 +230,15 @@ function showItemDetails(item) {
               <p class="text-sm text-indigo-600 font-medium">${item.vendorName || "Vendor"}</p>
               <h2 class="text-2xl font-bold text-gray-900">${item.name || "Unnamed Item"}</h2>
             </section>
-
-            <section>
-              <p class="font-bold text-indigo-600">
-                R${Number(item.price || 0).toFixed(2)}
-              </p>
-
-              <section class="font-bold flex items-center gap-2 mt-1">
-                <i data-lucide="map-pin" class="w-4 h-4 text-gray-500"></i>
-                <p class="text-sm text-gray-500">${item.location || "Unknown location"}</p>
-              </section>
-            </section>
+          <span>
+          <p class="font-bold text-indigo-600">
+            R${Number(item.price || 0).toFixed(2)}
+          <p>
+          <section class="font-bold flex items-center gap-2 mt-1">
+            <i data-lucide="map-pin" class="w-4 h-4 text-gray-500"></i>
+            <p class="text-sm text-gray-500">${location}</p>
+          </section>
+          </span>
           </section>
 
           <p class="text-sm text-gray-600 mb-4">
@@ -518,7 +301,7 @@ function showItemDetails(item) {
             class="w-full bg-indigo-600 text-white py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700"
           >
             <i data-lucide="shopping-cart" class="w-4 h-4"></i>
-            Add to Cart - R${Number(item.price || 0).toFixed(2)}
+            Add to Cart - R ${Number(item.price || 0).toFixed(2)}
           </button>
         </section>
       </article>
@@ -541,7 +324,7 @@ function showItemDetails(item) {
   globalThis.lucide?.createIcons?.();
 }
 
-async function loadMenuItems() {
+const loadMenuItems = async () => {
   const [menuSnapshot, usersSnapshot] = await Promise.all([
     getDocs(collection(db, "menu_items")),
     getDocs(collection(db, "users"))
@@ -556,184 +339,170 @@ async function loadMenuItems() {
     .map(doc => ({ id: doc.id, ...doc.data() }))
     .filter(user => user.role === "vendor" && user.status === "approved");
 
+  const approvedVendorIds = new Set(approvedVendors.map(vendor => vendor.id));
   const vendorMap = {};
-
-  approvedVendors.forEach(vendorData => {
-    vendorMap[vendorData.id] = vendorData;
-  });
-
-  const approvedVendorIds = new Set(
-    approvedVendors.map(vendorData => vendorData.id)
-  );
-
-  allVisibleItems = items
-    .filter(item =>
-      approvedVendorIds.has(item.vendorId) &&
-      item.status === "approved"
-    )
-    .map(item => {
-      const vendorData = vendorMap[item.vendorId];
-
-      const rating = getVendorRating(vendorData || {
-        shopName: item.vendorName,
-        fullName: item.vendorName,
-        email: item.vendorName
-      });
-
-      return {
-        ...item,
-        vendorName:
-          item.vendorName ||
-          vendorData?.shopName ||
-          vendorData?.fullName ||
-          "Vendor",
-        location: vendorData?.location || "Unknown location",
-        rating: Number(rating)
-      };
+    approvedVendors.forEach(vendor => {
+      vendorMap[vendor.id] = vendor;
     });
 
-  populateVendorFilter(allVisibleItems);
-  populateLocationFilter(allVisibleItems);
-  setupPriceSlider(allVisibleItems);
-  renderMenuItems();
-  updateCartCount();
+  const visibleItems = items
+  .filter(item => approvedVendorIds.has(item.vendorId) && item.status === "approved")
+  .map(item => {
+    const vendor = vendorMap[item.vendorId];
 
-  globalThis.lucide?.createIcons?.();
-}
-
-function attachEventListeners() {
-  if (listenersAttached) return;
-
-  vegan?.addEventListener("change", () => {
-    restrictions[0] = vegan.checked;
-    renderMenuItems();
+    return {
+      ...item,
+      location: vendor?.location || "Unknown location"
+    };
   });
 
-  vegetarian?.addEventListener("change", () => {
-    restrictions[1] = vegetarian.checked;
-    renderMenuItems();
+  populateVendorFilter(visibleItems);
+
+  const availableItems = visibleItems.filter(item => applyFilter(item));
+
+  const container = document.getElementById("menu");
+
+  if (!container) return;
+  container.innerHTML = availableItems.map(item => {
+  const itemVendor = vendorMap[item.vendorId];
+  const location = itemVendor?.location || "Unknown location";
+
+  const rating = getVendorRating(itemVendor || {
+    shopName: item.vendorName,
+    fullName: item.vendorName,
+    email: item.vendorName
   });
 
-  gluten?.addEventListener("change", () => {
-    restrictions[2] = gluten.checked;
-    renderMenuItems();
-  });
+  return `
+    <article class="bg-white p-4 rounded-xl shadow-sm">
+      <img 
+        src="${item.image || item.imageUrl || "assets/default.jpg"}"
+        alt="${item.name || "Menu item"}"
+        class="w-full h-48 object-cover rounded-lg mb-4"
+      >
 
-  halal?.addEventListener("change", () => {
-    restrictions[3] = halal.checked;
-    renderMenuItems();
-  });
+      <section class="flex justify-between items-start mb-2">
+        <section>
+          <h3 class="text-lg font-semibold">${item.name || "Unnamed Item"}</h3>
+          <p class="text-sm font-semibold text-gray-500">${item.vendorName || "Vendor"}</p>
+        </section>
 
-  document.getElementById("Vendors")?.addEventListener("change", (e) => {
-    vendor = e.target.value;
-    renderMenuItems();
-  });
+        <span class="font-bold text-indigo-600">
+          R${Number(item.price || 0).toFixed(2)}
+          <p class="text-sm text-gray-500">${location || "Vendor Location"}</p>
+        </span>
+      </section>
+      <p class="text-sm text-gray-600 mb-3 line-clamp-2">
+        ${item.description || "No description available."}
+      </p>
+      ${(item.allergens || []).length ? `
+        <section class="flex flex-wrap gap-1 mb-3">
+          ${(item.allergens || []).map(a => `
+            <span class="text-xs bg-red-50 text-red-600 border border-red-200 px-2 py-0.5 rounded-full">
+              ${a}
+            </span>
+          `).join("")}
+        </section>
+      ` : "<section class='mb-3'></section>"}
+      <p class="flex items-center gap-1 mb-2">
+        ${renderStars(rating)}
+        <span class="text-sm text-gray-600 ml-1">${rating}/5</span>
+      </p>
+      <section class="flex gap-2">
+        <button
+          data-item-id="${item.id}"
+          class="item-details-btn flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200"
+        >
+          Details
+        </button>
 
-  document.getElementById("Categories")?.addEventListener("change", (e) => {
-    category = e.target.value;
-    renderMenuItems();
-  });
+        <button
+          data-item-id="${item.id}"
+          class="add-cart-btn flex-1 bg-indigo-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700"
+        >
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          Add
+        </button>
+      </section>
+    </article>
+  `;
+}).join("");
 
-  document.getElementById("VendorLocations")?.addEventListener("change", (e) => {
-    vendorLocation = e.target.value;
-    renderMenuItems();
-  });
+ 
 
-  document.getElementById("SortBy")?.addEventListener("change", (e) => {
-    sortBy = e.target.value;
-    renderMenuItems();
-  });
+  const numItems = document.getElementById("numItems");
 
-  document.getElementById("PriceSlider")?.addEventListener("input", (e) => {
-    maxPrice = Number(e.target.value);
-    updatePriceLabel();
-    renderMenuItems();
-  });
+  if (numItems) {
+    numItems.textContent =
+      availableItems.length === 1
+        ? "1 item found"
+        : `${availableItems.length} items found`;
+  }
 
-  menuList?.addEventListener("click", (e) => {
-    const btn = e.target.closest("button");
-    if (!btn) return;
-
-    const itemId = btn.dataset.itemId;
-    const selectedItem = currentRenderedItems.find(item => item.id === itemId);
-
-    if (!selectedItem) return;
-
-    if (btn.classList.contains("item-details-btn")) {
-      showItemDetails(selectedItem);
-      return;
+  if (!done) {
+    let maxPrice = 0;
+  for(let i = 0; i < items.length; i++){
+    if(items[i].price > maxPrice){
+      maxPrice = items[i].price;
     }
-
-    if (btn.classList.contains("add-cart-btn")) {
-      addToCart(selectedItem);
-    }
+  }
+  document.getElementById("PriceFilter").innerHTML = `
+  <label id = "PriceLabel" class="text-sm font-medium text-gray-700 mb-2 block">
+    Max Price: R${maxPrice}
+  </label>
+  <input id = "PriceSlider" type="range" min="0" max="${maxPrice}" value="${maxPrice}" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">`;
+  priceSlider = document.getElementById("PriceSlider");
+  priceSlider.addEventListener("click", () => {
+  document.getElementById("PriceLabel").textContent = `Max Price: ${priceSlider.value}`;
+  maxPrice2 = priceSlider.value;
+  loadMenuItems();
   });
+    menuList?.addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
 
-  document.getElementById("cartList")?.addEventListener("click", (e) => {
-    const btn = e.target.closest(".remove-cart-btn");
-    if (!btn) return;
+     if (btn.classList.contains("item-details-btn")) {
+        const itemId = btn.dataset.itemId;
+        const selectedItem = availableItems.find(item => item.id === itemId);
 
-    const index = Number(btn.dataset.cartIndex);
+        if (selectedItem) {
+          showItemDetails(selectedItem);
+        }
 
-    if (!Number.isNaN(index)) {
-      cart.splice(index, 1);
-      saveCart();
-      updateCart();
-
-      if (cart.length === 0) {
-        document.getElementById("empty")?.classList.add("hidden");
+        return;
       }
-    }
-  });
 
-  document.getElementById("empty")?.addEventListener("click", () => {
-    cart = [];
-    saveCart();
-    updateCart();
-    document.getElementById("empty")?.classList.add("hidden");
-  });
+      if (btn.classList.contains("add-cart-btn")) {
+        const itemId = btn.dataset.itemId;
+        const selectedItem = availableItems.find(item => item.id === itemId);
 
-  document.getElementById("cart")?.addEventListener("click", () => {
-    cart = JSON.parse(localStorage.getItem("cart")) || [];
+        if (selectedItem) {
+          addToCart(selectedItem);
+        }
+      }
+    });
 
-    document.getElementById("item-edit-modal")?.classList.remove("hidden");
+    document.getElementById("cartList")?.addEventListener("click", (e) => {
+      const btn = e.target.closest(".remove-cart-btn");
+      if (!btn) return;
 
-    if (cart.length === 0) {
-      document.getElementById("empty")?.classList.add("hidden");
-    } else {
-      document.getElementById("empty")?.classList.remove("hidden");
-    }
+      const index = Number(btn.dataset.cartIndex);
 
-    updateCart();
-  });
+      if (!Number.isNaN(index)) {
+        cart.splice(index, 1);
+        saveCart();
+        updateCart();
+      }
+    });
 
-  document.getElementById("closeCartModal")?.addEventListener("click", () => {
-    document.getElementById("item-edit-modal")?.classList.add("hidden");
-  });
+    done = true;
+  }
 
-  document.getElementById("checkOut")?.addEventListener("click", () => {
-    const cartWarning = document.getElementById("cartWarning");
-
-    if (!loggedIn || !currentUser) {
-      alert("You must be logged in to proceed to checkout");
-      return;
-    }
-
-    cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-    if (cart.length === 0) {
-      cartWarning?.classList.remove("hidden");
-      return;
-    }
-
-    paystack.payNow();
-  });
-
-  listenersAttached = true;
-}
+  updateCartCount();
+  lucide.createIcons();
+};
 
 document.addEventListener("DOMContentLoaded", () => {
-  attachEventListeners();
   loadMenuItems();
   updateCartCount();
 
@@ -741,6 +510,65 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("item-edit-modal")?.classList.remove("hidden");
     updateCart();
   }
+});
+
+vegan?.addEventListener("click", () => {
+  restrictions[0] = vegan.checked;
+  loadMenuItems();
+});
+
+halal?.addEventListener("click", () => {
+  restrictions[3] = halal.checked;
+  loadMenuItems();
+});
+
+gluten?.addEventListener("click", () => {
+  restrictions[2] = gluten.checked;
+  loadMenuItems();
+});
+
+vegetarian?.addEventListener("click", () => {
+  restrictions[1] = vegetarian.checked;
+  loadMenuItems();
+});
+
+document.getElementById("Vendors")?.addEventListener("change", () => {
+  vendor = document.getElementById("Vendors").value;
+  loadMenuItems();
+});
+
+document.getElementById("Categories")?.addEventListener("change", () => {
+  category = document.getElementById("Categories").value;
+  loadMenuItems();
+});
+
+document.getElementById("cart")?.addEventListener("click", () => {
+  cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  document.getElementById("item-edit-modal")?.classList.remove("hidden");
+  updateCart();
+});
+
+document.getElementById("closeCartModal")?.addEventListener("click", () => {
+  document.getElementById("item-edit-modal")?.classList.add("hidden");
+});
+
+document.getElementById("checkOut")?.addEventListener("click", () => {
+  const cartWarning = document.getElementById("cartWarning");
+
+  if (!loggedIn || !currentUser) {
+    alert("You must be logged in to proceed to checkout");
+    return;
+  }
+
+  cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  if (cart.length === 0) {
+    cartWarning?.classList.remove("hidden");
+    return;
+  }
+
+  payfast.payNow();
 });
 
 onAuthStateChanged(auth, async (user) => {
@@ -753,7 +581,7 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-const paystack = {
+const payfast = {
   payNow: async () => {
     if (!currentUser) {
       console.error("No user logged in");
@@ -768,14 +596,10 @@ const paystack = {
     }
 
     const btn = document.getElementById("checkOut");
-
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = "Redirecting...";
-    }
+    if (btn) { btn.disabled = true; btn.textContent = "Redirecting..."; }
 
     try {
-      const res = await fetch("/api/paystack/create-payment", {
+      const res = await fetch("/api/payfast/create-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -789,33 +613,32 @@ const paystack = {
         throw new Error(err.error || `Payment init failed (${res.status})`);
       }
 
-      const { authorization_url, reference } = await res.json();
+      const { action, fields } = await res.json();
 
-      if (!authorization_url) {
-        throw new Error("Payment provider did not return a redirect URL");
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = action;
+      form.style.display = "none";
+      for (const [key, value] of Object.entries(fields)) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = key;
+        input.value = value;
+        form.appendChild(input);
       }
-
-      try {
-        sessionStorage.setItem("cb_paystack_reference", reference);
-      } catch {}
-
+      document.body.appendChild(form);
       cart = [];
       saveCart();
       updateCartCount();
 
-      window.location.assign(authorization_url);
+      form.submit();
     } catch (error) {
       console.error("Error starting payment:", error);
       alert("Could not start payment: " + error.message);
-
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = "Pay Now";
-      }
+      if (btn) { btn.disabled = false; btn.textContent = "Pay Now"; }
     }
   }
 };
 
 export const loadBrowseItems = loadMenuItems;
 export { loadMenuItems };
-export { addToCart };
