@@ -711,16 +711,19 @@ expect(updateDoc).toHaveBeenCalled();  });
       "Could not update banking details: Bank validation failed"
     );
   });
-
-
-
-
-
-
 test("validates missing opening and closing times", async () => {
   const mod = await import("../scripts/vendor-settings.js");
 
   expect(mod.validateTimePair("", "17:00", "Weekday")).toBe(false);
   expect(mod.validateTimePair("08:00", "", "Weekday")).toBe(false);
 });
+
+test("validateTimePair returns true when both times are empty", async () => {
+  const mod = await import("../scripts/vendor-settings.js");
+
+  expect(
+    mod.validateTimePair("", "", "weekday")
+  ).toBe(true);
+});
+
 });
