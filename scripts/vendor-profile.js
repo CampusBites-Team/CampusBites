@@ -96,10 +96,7 @@ function renderVendorDetails(vendorData) {
   }
 
   if (vendorHours) {
-    vendorHours.textContent = formatOperatingHours(
-      vendorData.openingTime,
-      vendorData.closingTime
-    );
+    vendorHours.textContent = formatOperatingHours(vendorData);
   }
 
   vendorLocation.innerHTML = `

@@ -14,52 +14,39 @@ jest.mock("../scripts/database.js", () => ({
   getDoc: jest.fn(),
   getDocs: jest.fn(),
   collection: jest.fn((db, collectionName) => collectionName),
-  where: jest.fn((field, operator, value) => ({ field, operator, value })),
+  where: jest.fn((field, operator, value) => ({
+    field,
+    operator,
+    value
+  })),
   query: jest.fn((collectionName, ...conditions) => ({
     collectionName,
     conditions
   }))
 }));
 
-const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+const flush = async () => {
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+};
 
 describe("vendor-profile.js", () => {
   let database;
 
-  beforeEach(async () => {
-    jest.resetModules();
-    jest.clearAllMocks();
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date("2026-04-24T10:00:00").getTime());
-
-    global.alert = jest.fn();
-    global.lucide = { createIcons: jest.fn() };
-
-    document.body.innerHTML = `
-      <section id="vendorImageFallback" class=""></section>
-      <img id="vendorImage" class="hidden" />
-      <span id="vendorCategory" class="hidden"></span>
-      <span id="vendorStatus"></span>
-
-    window.history.pushState({}, "", "/vendor-profile.html?vendorId=vendor-1");
-
+  function setupDom() {
     document.body.innerHTML = `
       <h1 id="vendorName"></h1>
       <p id="vendorSlogan" class="hidden"></p>
       <p id="vendorLocation"></p>
       <p id="vendorPhone" class="hidden"></p>
       <p id="vendorHours"></p>
-      <section id="vendorMenu"></section>
-    `;
-  });
-      <p id="vendorHours"></p>
+      <span id="vendorCategory" class="hidden"></span>
       <span id="vendorStatus"></span>
 
       <img id="vendorImage" class="hidden" />
       <section id="vendorImageFallback"></section>
 
-  test("loads approved vendor details, contact info, hours and available menu items", async () => {
-    window.history.pushState({}, "", "/vendor-profile.html?vendorId=vendor-123");
       <section id="vendorMenu"></section>
 
       <section class="mt-10">
@@ -67,133 +54,175 @@ describe("vendor-profile.js", () => {
         <section id="vendorReviews" class="space-y-4"></section>
       </section>
     `;
+  }
 
-    database = await import("../scripts/database.js");
+  function defaultVendorData(overrides = {}) {
+    return {
+      role: "vendor",
+      status: "approved",
+      shopName: "BobThePlug",
+      location: "Matrix Ground Floor",
+      image: "vendor-logo-url",
+      storeSlogan: "Fresh food fast",
+      storePhone: "0712345678",
+      storeCategory: "Fast Food",
+      weekdayOpeningTime: "08:00",
+      weekdayClosingTime: "17:00",
+      weekendOpeningTime: "09:00",
+      weekendClosingTime: "14:00",
+      ...overrides
+    };
+  }
 
+  function defaultMenuItems() {
+    return [
+      {
+        id: "item-1",
+        vendorId: "vendor-1",
+        name: "Cheese Burger",
+        category: "Burgers",
+        description: "Fresh burger",
+        price: 55,
+        available: true,
+        status: "approved",
+        image: "burger.jpg"
+      },
+      {
+        id: "item-2",
+        vendorId: "vendor-1",
+        name: "Sold Out Pizza",
+        category: "Pizza",
+        description: "Unavailable",
+        price: 70,
+        available: false,
+        status: "approved"
+      },
+      {
+        id: "item-3",
+        vendorId: "vendor-1",
+        name: "Suspended Chips",
+        category: "Sides",
+        price: 20,
+        available: true,
+        status: "suspended"
+      }
+    ];
+  }
+
+  function defaultReviews() {
+    return [
+      {
+        id: "review-1",
+        customerName: "Taylor Pitts",
+        customerImage: "customer.jpg",
+        rating: 5,
+        comment: "Great food.",
+        orderNumber: 7,
+        items: [{ name: "Cheese Burger" }]
+      },
+      {
+        id: "review-2",
+        customerName: "Alex Smith",
+        rating: 4,
+        comment: "Good service.",
+        orderNumber: 8,
+        items: [{ name: "Pizza" }]
+      },
+      {
+        id: "review-3",
+        customerName: "Sam Lee",
+        rating: 3,
+        comment: "Nice meal.",
+        orderNumber: 9,
+        items: [{ name: "Wrap" }]
+      },
+      {
+        id: "review-4",
+        customerName: "No Image User",
+        rating: 5,
+        comment: "Excellent.",
+        orderNumber: 10,
+        items: [{ name: "Burger" }]
+      }
+    ];
+  }
+
+  function makeSnapshot(items) {
+    return {
+      docs: items.map((item, index) => ({
+        id: item.id || `doc-${index + 1}`,
+        data: () => {
+          const { id, ...rest } = item;
+          return rest;
+        }
+      }))
+    };
+  }
+
+  function mockVendorData(overrides = {}) {
     database.getDoc.mockResolvedValue({
       exists: () => true,
-      data: () => ({
-        role: "vendor",
-        status: "approved",
-        shopName: "BobThePlug",
-        location: "Matrix Ground Floor",
-        image: "vendor-logo-url",
-        storeSlogan: "Fresh food fast",
-        storePhone: "0712345678",
-        storeCategory: "Fast Food",
-        weekdayOpeningTime: "08:00",
-        weekdayClosingTime: "17:00",
-        weekendOpeningTime: "09:00",
-        weekendClosingTime: "14:00"
-        shopName: "Campus Café",
-        location: "Matrix",
-        openingTime: "08:00",
-        closingTime: "18:00",
-        image: "vendor.jpg"
-      })
+      data: () => defaultVendorData(overrides)
     });
+  }
 
+  function mockSnapshots({
+    menuItems = defaultMenuItems(),
+    reviews = defaultReviews()
+  } = {}) {
     database.getDocs.mockImplementation(async (queryObj) => {
       if (queryObj.collectionName === "menu_items") {
-        return {
-          docs: [
-            {
-              id: "item-1",
-              data: () => ({
-                vendorId: "vendor-1",
-                name: "Cheese Burger",
-                category: "Burgers",
-                description: "Fresh burger",
-                price: 55,
-                available: true,
-                status: "approved",
-                image: "burger.jpg"
-              })
-            },
-            {
-              id: "item-2",
-              data: () => ({
-                vendorId: "vendor-1",
-                name: "Sold Out Pizza",
-                category: "Pizza",
-                description: "Unavailable",
-                price: 70,
-                available: false,
-                status: "approved"
-              })
-            },
-            {
-              id: "item-3",
-              data: () => ({
-                vendorId: "vendor-1",
-                name: "Suspended Chips",
-                category: "Sides",
-                price: 20,
-                available: true,
-                status: "suspended"
-              })
-            }
-          ]
-        };
+        return makeSnapshot(menuItems);
       }
 
       if (queryObj.collectionName === "reviews") {
-        return {
-          docs: [
-            {
-              id: "review-1",
-              data: () => ({
-                customerName: "Taylor Pitts",
-                customerImage: "customer.jpg",
-                rating: 5,
-                comment: "Great food.",
-                orderNumber: 7,
-                items: [{ name: "Cheese Burger" }]
-              })
-            },
-            {
-              id: "review-2",
-              data: () => ({
-                customerName: "Alex Smith",
-                rating: 4,
-                comment: "Good service.",
-                orderNumber: 8,
-                items: [{ name: "Pizza" }]
-              })
-            },
-            {
-              id: "review-3",
-              data: () => ({
-                customerName: "Sam Lee",
-                rating: 3,
-                comment: "Nice meal.",
-                orderNumber: 9,
-                items: [{ name: "Wrap" }]
-              })
-            },
-            {
-              id: "review-4",
-              data: () => ({
-                customerName: "No Image User",
-                rating: 5,
-                comment: "Excellent.",
-                orderNumber: 10,
-                items: [{ name: "Burger" }]
-              })
-            }
-          ]
-        };
+        return makeSnapshot(reviews);
       }
 
-      return { docs: [] };
+      return makeSnapshot([]);
     });
+  }
+
+  async function loadVendorProfile() {
+    const mod = await import("../scripts/vendor-profile.js");
+
+    document.dispatchEvent(new Event("DOMContentLoaded"));
+
+    if (mod.initVendorProfile) {
+      await mod.initVendorProfile();
+    }
+
+    await flush();
+
+    return mod;
+  }
+
+  beforeEach(async () => {
+    jest.resetModules();
+    jest.clearAllMocks();
+
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2026-04-24T10:00:00").getTime());
+
+    setupDom();
+
+    window.history.pushState({}, "", "/vendor-profile.html?vendorId=vendor-1");
+
+    database = await import("../scripts/database.js");
+
+    mockVendorData();
+    mockSnapshots();
 
     jest.spyOn(window, "alert").mockImplementation(() => {});
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.restoreAllMocks();
   });
+
+  test("loads approved vendor details, contact info, hours and available menu items", async () => {
+    await loadVendorProfile();
 
     expect(document.getElementById("vendorName").textContent).toBe("BobThePlug");
     expect(document.getElementById("vendorSlogan").textContent).toBe("Fresh food fast");
@@ -209,173 +238,66 @@ describe("vendor-profile.js", () => {
     expect(document.getElementById("vendorHours").textContent).toContain("Weekdays: 08:00 - 17:00");
     expect(document.getElementById("vendorHours").textContent).toContain("Weekends: 09:00 - 14:00");
     expect(document.getElementById("vendorStatus").textContent).toBe("Open Now");
-  test("loads approved vendor details and available approved menu items", async () => {
-    await import("../scripts/vendor-profile.js");
-    await flush();
 
-    expect(document.getElementById("vendorName").textContent).toBe("Campus Café");
-    expect(document.getElementById("vendorLocation").textContent).toBe("Matrix");
-    expect(document.getElementById("vendorImage").classList.contains("hidden")).toBe(false);
+    const menuText = document.getElementById("vendorMenu").textContent;
 
-    expect(document.getElementById("vendorMenu").textContent).toContain("Cheese Burger");
-    expect(document.getElementById("vendorMenu").textContent).not.toContain("Sold Out Pizza");
+    expect(menuText).toContain("Cheese Burger");
+    expect(menuText).not.toContain("Sold Out Pizza");
+    expect(menuText).not.toContain("Suspended Chips");
 
     expect(global.lucide.createIcons).toHaveBeenCalled();
   });
 
   test("uses weekend operating hours on weekends", async () => {
     jest.setSystemTime(new Date("2026-04-25T10:00:00").getTime());
-    window.history.pushState({}, "", "/vendor-profile.html?vendorId=vendor-123");
 
-    getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        role: "vendor",
-        status: "approved",
-        shopName: "Weekend Shop",
-        weekendOpeningTime: "09:00",
-        weekendClosingTime: "14:00"
-      })
+    mockVendorData({
+      shopName: "Weekend Shop",
+      weekendOpeningTime: "09:00",
+      weekendClosingTime: "14:00"
     });
 
-    getDocs.mockResolvedValue({
-      docs: []
-    });
+    mockSnapshots({ menuItems: [], reviews: [] });
 
-    await initVendorProfile();
+    await loadVendorProfile();
 
+    expect(document.getElementById("vendorName").textContent).toBe("Weekend Shop");
     expect(document.getElementById("vendorHours").textContent).toContain("Weekends: 09:00 - 14:00");
     expect(document.getElementById("vendorStatus").textContent).toBe("Open Now");
   });
 
   test("falls back to old openingTime and closingTime fields", async () => {
-    window.history.pushState({}, "", "/vendor-profile.html?vendorId=vendor-123");
-
-    getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        role: "vendor",
-        status: "approved",
-        shopName: "Legacy Shop",
-        openingTime: "08:00",
-        closingTime: "17:00"
-      })
+    mockVendorData({
+      shopName: "Legacy Shop",
+      weekdayOpeningTime: undefined,
+      weekdayClosingTime: undefined,
+      weekendOpeningTime: undefined,
+      weekendClosingTime: undefined,
+      openingTime: "08:00",
+      closingTime: "17:00"
     });
 
-    getDocs.mockResolvedValue({
-      docs: []
-    });
+    mockSnapshots({ menuItems: [], reviews: [] });
 
-    await initVendorProfile();
+    await loadVendorProfile();
 
     expect(document.getElementById("vendorHours").textContent).toContain("Weekdays: 08:00 - 17:00");
     expect(document.getElementById("vendorStatus").textContent).toBe("Open Now");
-    const menuText = document.getElementById("vendorMenu").textContent;
-
-    expect(menuText).toContain("Cheese Burger");
-    expect(menuText).not.toContain("Sold Out Pizza");
-    expect(menuText).not.toContain("Suspended Chips");
-  });
-
-  test("renders vendor reviews horizontally with next and previous buttons", async () => {
-    await import("../scripts/vendor-profile.js");
-    await flush();
-
-    getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        role: "vendor",
-        status: "approved",
-        shopName: "BobThePlug",
-        weekdayOpeningTime: "07:00",
-        weekdayClosingTime: "09:00"
-      })
-    });
-    const html = document.getElementById("vendorReviews").innerHTML;
-
-    expect(html).toContain("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3");
-    expect(html).toMatch(
-      /Taylor Pitts|Alex Smith|Sam Lee|No Image User/
-    );
-
-    expect(html).toMatch(
-      /Great food.|Good service.|Nice meal.|Excellent./
-    );
-    expect(html).toContain("←");
-    expect(html).toContain("→");
-  });
-
-  test("moves to next review page", async () => {
-    await import("../scripts/vendor-profile.js");
-    await flush();
-
-    expect(document.getElementById("vendorStatus").textContent).toBe("Closed Now");
-    expect(document.getElementById("vendorHours").textContent).toContain("Weekdays: 07:00 - 09:00");
-    document.getElementById("nextReviewsBtn").click();
-
-    const html = document.getElementById("vendorReviews").innerHTML;
-
-    expect(html).toMatch(
-  /No Image User|Sam Lee|Alex Smith|Taylor Pitts/
-);
-  });
-
-  test("uses default customer image when review has no image", async () => {
-    await import("../scripts/vendor-profile.js");
-    await flush();
-
-    document.getElementById("nextReviewsBtn").click();
-
-    const images = document
-      .querySelectorAll("#vendorReviews img");
-
-    const hasDefaultImage = [...images].some((img) =>
-      img.src.includes("default-icon.jpg")
-    );
-
-    expect(hasDefaultImage).toBe(true);
-
-  });
-
-  test("shows empty review state when vendor has no reviews", async () => {
-    database.getDocs.mockImplementation(async (queryObj) => {
-      if (queryObj.collectionName === "menu_items") {
-        return { docs: [] };
-      }
-
-      if (queryObj.collectionName === "reviews") {
-        return { docs: [] };
-      }
-
-      return { docs: [] };
-    });
-
-    await import("../scripts/vendor-profile.js");
-    await flush();
-
-    expect(document.getElementById("vendorHours").textContent).toContain("Weekdays: Not set");
-    expect(document.getElementById("vendorHours").textContent).toContain("Weekends: Not set");
-    expect(document.getElementById("vendorStatus").textContent).toBe("Closed Now");
   });
 
   test("does not show optional fields when they are missing", async () => {
-    window.history.pushState({}, "", "/vendor-profile.html?vendorId=vendor-123");
-
-    getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        role: "vendor",
-        status: "approved",
-        shopName: "Basic Shop",
-        location: "Matrix"
-      })
+    mockVendorData({
+      shopName: "Basic Shop",
+      location: "Matrix",
+      storeSlogan: "",
+      storePhone: "",
+      storeCategory: "",
+      image: ""
     });
 
-    getDocs.mockResolvedValue({
-      docs: []
-    });
+    mockSnapshots({ menuItems: [], reviews: [] });
 
-    await initVendorProfile();
+    await loadVendorProfile();
 
     expect(document.getElementById("vendorSlogan").classList.contains("hidden")).toBe(true);
     expect(document.getElementById("vendorPhone").classList.contains("hidden")).toBe(true);
@@ -383,102 +305,151 @@ describe("vendor-profile.js", () => {
     expect(document.getElementById("vendorLocation").textContent).toContain("Matrix");
   });
 
-  test("alerts when vendor id is missing from URL", async () => {
-    expect(document.getElementById("vendorReviews").innerHTML)
-      .toContain("No reviews yet.");
+  test("renders closed status when vendor is closed", async () => {
+    mockVendorData({
+      weekdayOpeningTime: "07:00",
+      weekdayClosingTime: "09:00"
+    });
+
+    await loadVendorProfile();
+
+    expect(document.getElementById("vendorStatus").textContent).toBe("Closed Now");
+    expect(document.getElementById("vendorHours").textContent).toContain("Weekdays: 07:00 - 09:00");
+  });
+
+  test("renders location fallback", async () => {
+    mockVendorData({
+      location: ""
+    });
+
+    await loadVendorProfile();
+
+    expect(document.getElementById("vendorLocation").textContent).toContain("Location not available");
+  });
+
+  test("does not crash when vendor image is missing", async () => {
+    mockVendorData({
+      image: "",
+      logo: ""
+    });
+
+    await loadVendorProfile();
+
+    expect(document.getElementById("vendorName").textContent).toBe("BobThePlug");
+    expect(document.getElementById("vendorImage").classList.contains("hidden")).toBe(true);
+  });
+
+  test("renders vendor reviews horizontally with next and previous buttons", async () => {
+    await loadVendorProfile();
+
+    const html = document.getElementById("vendorReviews").innerHTML;
+
+    expect(html).toContain("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3");
+    expect(html).toMatch(/Taylor Pitts|Alex Smith|Sam Lee|No Image User/);
+    expect(html).toMatch(/Great food.|Good service.|Nice meal.|Excellent./);
+    expect(html).toContain("←");
+    expect(html).toContain("→");
+  });
+
+  test("moves to next review page", async () => {
+    await loadVendorProfile();
+
+    document.getElementById("nextReviewsBtn")?.click();
+
+    const html = document.getElementById("vendorReviews").innerHTML;
+
+    expect(html).toMatch(/No Image User|Sam Lee|Alex Smith|Taylor Pitts/);
+  });
+
+  test("moves to previous review page", async () => {
+    await loadVendorProfile();
+
+    document.getElementById("nextReviewsBtn")?.click();
+    document.getElementById("prevReviewsBtn")?.click();
+
+    const html = document.getElementById("vendorReviews").innerHTML;
+
+    expect(html).toMatch(/Taylor Pitts|Alex Smith|Sam Lee|No Image User/);
+  });
+
+  test("uses default customer image when review has no image", async () => {
+    await loadVendorProfile();
+
+    const images = document.querySelectorAll("#vendorReviews img");
+
+    const hasDefaultImage = [...images].some((img) =>
+      img.src.includes("default-icon.jpg")
+    );
+
+    expect(hasDefaultImage).toBe(true);
+  });
+
+  test("shows empty review state when vendor has no reviews", async () => {
+    mockSnapshots({ menuItems: [], reviews: [] });
+
+    await loadVendorProfile();
+
+    expect(document.getElementById("vendorReviews").innerHTML).toContain("No reviews yet.");
+  });
+
+  test("creates reviews section dynamically when missing", async () => {
+    document.getElementById("vendorReviews")?.remove();
+
+    await loadVendorProfile();
+
+    expect(document.getElementById("vendorReviews")).not.toBeNull();
+  });
+
+  test("shows empty menu state when vendor has no available approved items", async () => {
+    mockSnapshots({
+      menuItems: [
+        {
+          id: "item-1",
+          name: "Hidden Item",
+          available: false,
+          status: "approved"
+        },
+        {
+          id: "item-2",
+          name: "Suspended Item",
+          available: true,
+          status: "suspended"
+        }
+      ],
+      reviews: []
+    });
+
+    await loadVendorProfile();
+
+    expect(document.getElementById("vendorMenu").innerHTML).toContain("No available menu items yet.");
   });
 
   test("redirects when vendor id is missing", async () => {
     window.history.pushState({}, "", "/vendor-profile.html");
 
-    delete window.location;
-    window.location = {
-      href: "",
-      search: ""
-    };
+    await loadVendorProfile();
 
-    await import("../scripts/vendor-profile.js");
-    await flush();
-
-    expect(alert).toHaveBeenCalledWith("Vendor profile could not be loaded.");
-  });
-  test("does not crash when vendor image is missing", async () => {
-  database.getDoc.mockResolvedValueOnce({
-    exists: () => true,
-    data: () => ({
-      role: "vendor",
-      status: "approved",
-      shopName: "Campus Café"
-    })
+    expect(window.alert).toHaveBeenCalledWith("Vendor profile could not be loaded.");
   });
 
-  await import("../scripts/vendor-profile.js");
-  await flush();
-
-  expect(document.getElementById("vendorName").textContent)
-    .toBe("Campus Café");
-});
-
-test("renders location fallback", async () => {
-  database.getDoc.mockResolvedValueOnce({
-    exists: () => true,
-    data: () => ({
-      role: "vendor",
-      status: "approved",
-      shopName: "Campus Café",
-      openingTime: "08:00",
-      closingTime: "18:00"
-    })
-  });
-
-  await import("../scripts/vendor-profile.js");
-  await flush();
-
-  expect(document.getElementById("vendorLocation").textContent)
-    .toContain("Location not available");
-});
-
-test("renders closed status when vendor is closed", async () => {
-  jest.spyOn(global, "Date").mockImplementation(() => ({
-    toTimeString: () => "23:00:00"
-  }));
-
-  await import("../scripts/vendor-profile.js");
-  await flush();
-
-  expect(document.getElementById("vendorStatus").textContent)
-    .toContain("Closed Now");
-});
-
-    getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        role: "vendor",
-        status: "approved",
-        shopName: "BobThePlug",
-        weekdayOpeningTime: "08:00",
-        weekdayClosingTime: "17:00"
-      })
+  test("redirects when vendor is not found", async () => {
+    database.getDoc.mockResolvedValueOnce({
+      exists: () => false,
+      data: () => ({})
     });
-test("creates reviews section dynamically when missing", async () => {
-  document.getElementById("vendorReviews")?.remove();
 
-  await import("../scripts/vendor-profile.js");
-  await flush();
+    await loadVendorProfile();
 
-  expect(document.getElementById("vendorReviews"))
-    .not.toBeNull();
-});
+    expect(window.alert).toHaveBeenCalledWith("Vendor not found.");
+  });
 
-test("moves to previous review page", async () => {
-  await import("../scripts/vendor-profile.js");
-  await flush();
+  test("redirects when vendor is not approved", async () => {
+    mockVendorData({
+      status: "pending"
+    });
 
-  document.getElementById("nextReviewsBtn")?.click();
-  document.getElementById("prevReviewsBtn")?.click();
+    await loadVendorProfile();
 
-  expect(
-    document.getElementById("vendorReviews").innerHTML
-  ).toContain("Reviews");
-});
+    expect(window.alert).toHaveBeenCalledWith("This vendor profile is not available.");
+  });
 });
