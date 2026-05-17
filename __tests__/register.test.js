@@ -245,4 +245,35 @@ test("registers DOMContentLoaded listener", () => {
     expect.any(Function)
   );
 });
+test("shows error and resets when invalid logo is selected", async () => {
+  document.body.innerHTML = `
+    <input id="logoInput" type="file" />
+    <section id="shop-logo-container"></section>
+  `;
+
+  window.alert = jest.fn();
+
+  initRegisterUI();
+
+  const logoInput = document.getElementById("logoInput");
+
+  const invalidFile = new File(
+    ["dummy"],
+    "logo.txt",
+    { type: "text/plain" }
+  );
+
+  Object.defineProperty(logoInput, "files", {
+    value: [invalidFile]
+  });
+
+  logoInput.dispatchEvent(new Event("change"));
+
+  expect(window.alert).toHaveBeenCalledWith(
+    "Shop logo must be a PNG or JPEG image."
+  );
+
+  expect(logoInput.value).toBe("");
+});
+
 });
