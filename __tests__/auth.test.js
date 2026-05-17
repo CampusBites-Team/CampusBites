@@ -125,4 +125,129 @@ describe("auth.js", () => {
     expect(logoutBtn.classList.contains("hidden")).toBe(true);
     expect(loginBtn.classList.contains("hidden")).toBe(false);
   });
+  test("reloads authenticated user", async () => {
+  let callback;
+
+  onAuthStateChanged.mockImplementation((auth, cb) => {
+    callback = cb;
+  });
+
+  const reloadMock = jest.fn().mockResolvedValue();
+
+  initAuthUI();
+
+  await callback({
+    uid: "u1",
+    reload: reloadMock
+  });
+
+  expect(reloadMock).toHaveBeenCalled();
+});
+test("hides dashboards for unverified users", async () => {
+  let callback;
+
+  onAuthStateChanged.mockImplementation((a, cb) => {
+    callback = cb;
+  });
+
+  document.body.innerHTML=`
+    <a id="CustomerdashboardLink"></a>
+    <a id="RecommendationLink"></a>
+    <a id="VendordashboardLink"></a>
+    <a id="AdmindashboardLink"></a>
+    <a id="CheckOutLink"></a>
+    <a id="CustomerProfileLink"></a>
+    <a id="loginLink"></a>
+    <a id="logoutBtn"></a>
+  `;
+
+  initAuthUI();
+
+  await callback({
+    uid:"u1",
+    emailVerified:false
+  });
+
+  expect(
+    document
+      .getElementById("logoutBtn")
+      .classList.contains("hidden")
+  ).toBe(false);
+});
+test("shows admin dashboard", async()=>{
+
+ let callback;
+
+ onAuthStateChanged.mockImplementation((a,cb)=>{
+   callback=cb;
+ });
+
+ getDoc.mockResolvedValue({
+   exists:()=>true,
+   data:()=>({
+      role:"admin"
+   })
+ });
+
+ document.body.innerHTML=`
+ <a id="AdmindashboardLink" class="hidden"></a>
+ <a id="loginLink"></a>
+ <a id="logoutBtn"></a>
+ `;
+
+ initAuthUI();
+
+ await callback({
+   uid:"u1"
+ });
+
+ expect(
+   document
+   .getElementById("AdmindashboardLink")
+   .classList.contains("hidden")
+ ).toBe(false);
+
+});
+test("handles auth UI errors", async()=>{
+
+ let callback;
+
+ onAuthStateChanged.mockImplementation((a,cb)=>{
+   callback=cb;
+ });
+
+ getDoc.mockRejectedValue(
+   new Error("db failed")
+ );
+
+ const spy=
+   jest.spyOn(console,"error")
+   .mockImplementation(()=>{});
+
+ initAuthUI();
+
+ await callback({
+   uid:"u1"
+ });
+
+ expect(spy)
+   .toHaveBeenCalled();
+
+});
+test("handles logout errors", async()=>{
+
+ signOut.mockRejectedValue(
+   new Error("logout failed")
+ );
+
+ const spy=
+   jest.spyOn(console,"error")
+   .mockImplementation(()=>{});
+
+ await logout();
+
+ expect(spy)
+   .toHaveBeenCalled();
+
+});
 });
