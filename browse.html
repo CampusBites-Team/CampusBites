@@ -175,6 +175,18 @@
           0 items in cart
         </p>
 
+        <fieldset id="paymentMethodSelect" class="mt-4 border border-gray-200 rounded-lg p-3">
+          <legend class="text-sm font-semibold text-gray-700 px-1">Payment method</legend>
+          <label class="flex items-center gap-2 text-sm py-1">
+            <input type="radio" name="paymentMethod" value="card" checked />
+            Pay with card (Paystack)
+          </label>
+          <label class="flex items-center gap-2 text-sm py-1">
+            <input type="radio" name="paymentMethod" value="cash" />
+            Pay with cash on collection
+          </label>
+        </fieldset>
+
         <section class="flex gap-3 mt-6">
           <button type="button" id="closeCartModal" class="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50">
             Close

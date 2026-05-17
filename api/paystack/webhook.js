@@ -117,6 +117,7 @@ async function handleChargeSuccess(data) {
         vendorName: v.vendorName,
         menuItems: v.items,
         status: "Pending",
+        paymentMethod: "card",
         paymentStatus: "paid",
         total: v.subtotal,
         paystackReference: reference,

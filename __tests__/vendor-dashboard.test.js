@@ -31,6 +31,8 @@ const {
   updateOrderStatus,
   fetchVendorOrders,
   attachOrderStatusListeners,
+  markCashOrderAsPaid,
+  getPaymentMeta,
 } = vendorDashboard;
 
 describe("calculateRevenue", () => {
@@ -605,6 +607,319 @@ describe("formatStatus and dashboard counts coverage", () => {
     expect(document.getElementById("orders-list").innerHTML).toContain(
       "Order 1"
     );
+  });
+});
+
+describe("getPaymentMeta", () => {
+  test("defaults to card / paid when fields are missing", () => {
+    expect(getPaymentMeta({})).toEqual({
+      paymentMethod: "card",
+      paymentStatus: "paid",
+      isUnpaidCash: false
+    });
+  });
+
+  test("flags an unpaid cash order", () => {
+    expect(getPaymentMeta({ paymentMethod: "cash", paymentStatus: "unpaid" })).toEqual({
+      paymentMethod: "cash",
+      paymentStatus: "unpaid",
+      isUnpaidCash: true
+    });
+  });
+
+  test("treats cash with no explicit status as unpaid", () => {
+    expect(getPaymentMeta({ paymentMethod: "cash" })).toEqual({
+      paymentMethod: "cash",
+      paymentStatus: "unpaid",
+      isUnpaidCash: true
+    });
+  });
+
+  test("does not flag paid cash as unpaid", () => {
+    const meta = getPaymentMeta({ paymentMethod: "cash", paymentStatus: "paid" });
+    expect(meta.isUnpaidCash).toBe(false);
+    expect(meta.paymentStatus).toBe("paid");
+  });
+});
+
+describe("getStatusButtons cash payment branches", () => {
+  test("blocks Collected button for unpaid cash orders", () => {
+    const html = getStatusButtons({
+      id: "order-cash-unpaid",
+      status: "Ready",
+      paymentMethod: "cash",
+      paymentStatus: "unpaid"
+    });
+
+    expect(html).toContain("Mark this cash order as paid");
+    expect(html).not.toContain('data-status="Collected"');
+  });
+
+  test("allows Collected button for paid cash orders", () => {
+    const html = getStatusButtons({
+      id: "order-cash-paid",
+      status: "Ready",
+      paymentMethod: "cash",
+      paymentStatus: "paid"
+    });
+
+    expect(html).toContain('data-status="Collected"');
+  });
+});
+
+describe("renderOrders cash payment UI", () => {
+  beforeEach(() => {
+    document.body.innerHTML = `<section id="orders-list"></section>`;
+  });
+
+  test("shows Card badge for non-cash orders", () => {
+    renderOrders([{ id: "o-1", status: "Pending", total: 50 }]);
+
+    const html = document.getElementById("orders-list").innerHTML;
+    expect(html).toContain("Card");
+    expect(html).not.toContain("Mark as Paid");
+    expect(html).not.toContain("Awaiting cash payment");
+  });
+
+  test("shows Cash • Unpaid badge, banner, and Mark as Paid button for unpaid cash orders", () => {
+    renderOrders([
+      {
+        id: "o-cash-1",
+        status: "Pending",
+        paymentMethod: "cash",
+        paymentStatus: "unpaid",
+        total: 88
+      }
+    ]);
+
+    const html = document.getElementById("orders-list").innerHTML;
+    expect(html).toContain("Cash • Unpaid");
+    expect(html).toContain("Awaiting cash payment");
+    expect(html).toContain("R88.00");
+    expect(html).toContain("mark-paid-btn");
+    expect(html).toContain('data-mark-paid-id="o-cash-1"');
+    expect(html).toContain('data-payment-method="cash"');
+    expect(html).toContain('data-payment-status="unpaid"');
+  });
+
+  test("shows Cash • Paid badge without banner or button for paid cash orders", () => {
+    renderOrders([
+      {
+        id: "o-cash-2",
+        status: "Ready",
+        paymentMethod: "cash",
+        paymentStatus: "paid",
+        total: 40
+      }
+    ]);
+
+    const html = document.getElementById("orders-list").innerHTML;
+    expect(html).toContain("Cash • Paid");
+    expect(html).not.toContain("Awaiting cash payment");
+    expect(html).not.toContain("Mark as Paid");
+  });
+
+  test("unpaid cash Ready order shows the block-Collected notice instead of the Collected button", () => {
+    renderOrders([
+      {
+        id: "o-cash-3",
+        status: "Ready",
+        paymentMethod: "cash",
+        paymentStatus: "unpaid",
+        total: 60
+      }
+    ]);
+
+    const html = document.getElementById("orders-list").innerHTML;
+    expect(html).toContain("Mark this cash order as paid");
+    expect(html).not.toContain('data-status="Collected"');
+    expect(html).toContain("Mark as Paid");
+  });
+});
+
+describe("markCashOrderAsPaid", () => {
+  test("writes paid status to the order and credits wallet_ledger with cash source", async () => {
+    dbModule.doc.mockImplementation((_db, collectionName, id) => ({ collectionName, id }));
+    dbModule.collection.mockImplementation((_db, name) => name);
+    dbModule.serverTimestamp.mockReturnValue("ts");
+    dbModule.updateDoc.mockResolvedValue();
+    dbModule.addDoc.mockResolvedValue({ id: "ledger-1" });
+
+    await markCashOrderAsPaid({
+      id: "order-9",
+      vendorId: "vendor-1",
+      vendorName: "Shop1",
+      total: 75
+    });
+
+    expect(dbModule.updateDoc).toHaveBeenCalledWith(
+      { collectionName: "orders", id: "order-9" },
+      expect.objectContaining({
+        paymentStatus: "paid",
+        paidAt: "ts",
+        updatedAt: "ts"
+      })
+    );
+
+    expect(dbModule.addDoc).toHaveBeenCalledWith(
+      "wallet_ledger",
+      expect.objectContaining({
+        type: "credit",
+        source: "cash",
+        vendorId: "vendor-1",
+        vendorName: "Shop1",
+        orderId: "order-9",
+        amount: 75,
+        status: "settled"
+      })
+    );
+  });
+});
+
+describe("mark-paid click delegation", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    document.body.innerHTML = `<section id="orders-list"></section>`;
+
+    dbModule.doc.mockImplementation((_db, collectionName, id) => ({ collectionName, id }));
+    dbModule.collection.mockImplementation((_db, name) => name);
+    dbModule.serverTimestamp.mockReturnValue("ts");
+    dbModule.updateDoc.mockResolvedValue();
+    dbModule.addDoc.mockResolvedValue({ id: "ledger-1" });
+  });
+
+  test("marks order paid, updates badge, and unlocks Collected button when clicked", async () => {
+    dbModule.getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        vendorId: "vendor-1",
+        vendorName: "Shop1",
+        status: "Ready",
+        paymentMethod: "cash",
+        paymentStatus: "unpaid",
+        total: 60
+      })
+    });
+
+    renderOrders([
+      {
+        id: "order-mp-1",
+        status: "Ready",
+        paymentMethod: "cash",
+        paymentStatus: "unpaid",
+        total: 60
+      }
+    ]);
+
+    attachOrderStatusListeners();
+
+    const article = document.querySelector('article[data-order-id="order-mp-1"]');
+    expect(article.querySelector(".cash-banner")).not.toBeNull();
+    expect(article.querySelector(".mark-paid-btn")).not.toBeNull();
+
+    article.querySelector(".mark-paid-btn").click();
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(dbModule.updateDoc).toHaveBeenCalledWith(
+      { collectionName: "orders", id: "order-mp-1" },
+      expect.objectContaining({ paymentStatus: "paid" })
+    );
+    expect(dbModule.addDoc).toHaveBeenCalledWith(
+      "wallet_ledger",
+      expect.objectContaining({ source: "cash", orderId: "order-mp-1" })
+    );
+
+    expect(article.dataset.paymentStatus).toBe("paid");
+    expect(article.querySelector(".cash-banner")).toBeNull();
+    expect(article.querySelector(".mark-paid-btn")).toBeNull();
+    expect(article.querySelector(".payment-badge").textContent).toContain("Cash • Paid");
+    expect(article.querySelector('[data-status="Collected"]')).not.toBeNull();
+  });
+
+  test("alerts and skips mutation when order no longer exists", async () => {
+    window.alert = jest.fn();
+
+    dbModule.getDoc.mockResolvedValue({ exists: () => false, data: () => ({}) });
+
+    renderOrders([
+      {
+        id: "order-missing",
+        status: "Ready",
+        paymentMethod: "cash",
+        paymentStatus: "unpaid",
+        total: 25
+      }
+    ]);
+
+    attachOrderStatusListeners();
+
+    document.querySelector(".mark-paid-btn").click();
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(window.alert).toHaveBeenCalledWith("Order no longer exists.");
+    expect(dbModule.updateDoc).not.toHaveBeenCalled();
+    expect(dbModule.addDoc).not.toHaveBeenCalled();
+  });
+
+  test("re-enables the button when marking as paid fails", async () => {
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    window.alert = jest.fn();
+
+    dbModule.getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        vendorId: "vendor-1",
+        vendorName: "Shop1",
+        status: "Ready",
+        paymentMethod: "cash",
+        paymentStatus: "unpaid",
+        total: 60
+      })
+    });
+    dbModule.updateDoc.mockRejectedValueOnce(new Error("boom"));
+
+    renderOrders([
+      {
+        id: "order-fail",
+        status: "Ready",
+        paymentMethod: "cash",
+        paymentStatus: "unpaid",
+        total: 60
+      }
+    ]);
+
+    attachOrderStatusListeners();
+
+    const btn = document.querySelector(".mark-paid-btn");
+    btn.click();
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(errorSpy).toHaveBeenCalled();
+    expect(window.alert).toHaveBeenCalledWith("Failed to mark order as paid.");
+    expect(btn.disabled).toBe(false);
+    expect(btn.textContent).toBe("Mark as Paid");
+
+    errorSpy.mockRestore();
+  });
+
+  test("ignores mark-paid clicks with missing order id", async () => {
+    document.getElementById("orders-list").innerHTML = `
+      <article>
+        <button class="mark-paid-btn">Mark as Paid</button>
+      </article>
+    `;
+
+    attachOrderStatusListeners();
+
+    document.querySelector(".mark-paid-btn").click();
+    await Promise.resolve();
+
+    expect(dbModule.getDoc).not.toHaveBeenCalled();
+    expect(dbModule.updateDoc).not.toHaveBeenCalled();
   });
   test("updates vendor dashboard title and subtitle", async () => {
   document.body.innerHTML = `

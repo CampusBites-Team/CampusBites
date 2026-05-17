@@ -568,7 +568,29 @@ document.getElementById("checkOut")?.addEventListener("click", () => {
     return;
   }
 
-  payfast.payNow();
+    const paymentMethod = document.querySelector(
+      'input[name="paymentMethod"]:checked'
+    )?.value || "card";
+
+    if (paymentMethod === "cash") {
+      cash.placeOrder();
+    } else {
+      paystack.payNow();
+    }
+  });
+
+  listenersAttached = true;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  attachEventListeners();
+  loadMenuItems();
+  updateCartCount();
+
+  if (window.location.hash === "#cart") {
+    document.getElementById("item-edit-modal")?.classList.remove("hidden");
+    updateCart();
+  }
 });
 
 onAuthStateChanged(auth, async (user) => {
@@ -636,6 +658,50 @@ const payfast = {
       console.error("Error starting payment:", error);
       alert("Could not start payment: " + error.message);
       if (btn) { btn.disabled = false; btn.textContent = "Pay Now"; }
+    }
+  }
+};
+
+const cash = {
+  placeOrder: async () => {
+    const btn = document.getElementById("checkOut");
+
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Placing order...";
+    }
+
+    try {
+      const res = await fetch("/api/orders/create-cash", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: currentUser.uid,
+          cart: cart.map((item) => ({ menuItemId: item.id }))
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Could not place order (${res.status})`);
+      }
+
+      cart = [];
+      saveCart();
+      updateCartCount();
+
+      document.getElementById("item-edit-modal")?.classList.add("hidden");
+
+      alert("Order placed! Pay the vendor in cash on collection.");
+      window.location.assign("customer-orders.html");
+    } catch (error) {
+      console.error("Error placing cash order:", error);
+      alert("Could not place order: " + error.message);
+
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = "Check Out";
+      }
     }
   }
 };
