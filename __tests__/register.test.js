@@ -15,6 +15,8 @@ jest.mock('../scripts/database.js', () => ({
   ref: jest.fn(),
   uploadBytes: jest.fn(),
   getDownloadURL: jest.fn(),
+  sendEmailVerification: jest.fn(),
+  signOut: jest.fn()
 }));
 
 global.lucide = { createIcons: jest.fn() };
@@ -40,7 +42,13 @@ document.body.innerHTML = `
   <button id="appleRegister"></button>
 `;
 
-const { buildUserObject } = require('../scripts/register.js');
+const {
+  buildUserObject,
+  initRegisterUI
+} = require('../scripts/register.js');
+const {
+  createUserWithEmailAndPassword
+} = require('../scripts/database.js');
 
 describe('buildUserObject', () => {
   test('builds customer object correctly', () => {
@@ -113,4 +121,128 @@ describe('buildUserObject', () => {
     const result = buildUserObject({ role: 'vendor', fullName: '', email: '' });
     expect(result.status).toBe('pending');
   });
+test("alerts when branch code is invalid", async () => {
+  document.body.innerHTML = `
+    <form id="registerForm"></form>
+
+    <input id="registerName" value="John"/>
+    <input id="registerEmail" value="john@test.com"/>
+    <input id="registerPassword" value="123456"/>
+
+    <select id="registerRole">
+      <option value="vendor" selected>vendor</option>
+    </select>
+
+    <input id="shop-name" value="My Shop"/>
+    <input id="shop-location" value="Campus"/>
+
+    <input id="logoInput" type="file"/>
+
+    <input id="bank-name" value="FNB"/>
+    <input id="account-holder" value="John"/>
+    <input id="account-number" value="123456"/>
+    <input id="branch-code" value="12"/>
+    <input id="account-type" value="Savings"/>
+  `;
+
+  window.alert = jest.fn();
+
+  initRegisterUI();
+
+  const logoInput = document.getElementById("logoInput");
+
+  const fakeLogo = new File(
+    ["dummy"],
+    "logo.png",
+    { type: "image/png" }
+  );
+
+  Object.defineProperty(logoInput, "files", {
+    value: [fakeLogo]
+  });
+
+  logoInput.dispatchEvent(
+    new Event("change")
+  );
+
+  document
+    .getElementById("registerForm")
+    .dispatchEvent(
+      new Event("submit", {
+        bubbles: true,
+        cancelable: true
+      })
+    );
+
+  await new Promise(r => setTimeout(r,0));
+
+  expect(window.alert)
+    .toHaveBeenCalledWith(
+      "Branch code must be exactly 6 digits."
+    );
+});
+test("handles registration failure", async()=>{
+
+ createUserWithEmailAndPassword
+   .mockRejectedValue(
+      new Error("firebase failed")
+   );
+
+ document.body.innerHTML=`
+ <form id="registerForm"></form>
+
+ <input id="registerName" value="John"/>
+ <input id="registerEmail" value="john@test.com"/>
+ <input id="registerPassword" value="123456"/>
+ <select id="registerRole">
+   <option value="customer" selected>
+      customer
+   </option>
+ </select>
+ `;
+
+ const spy=
+   jest.spyOn(console,"error")
+   .mockImplementation(()=>{});
+
+ window.alert=jest.fn();
+
+ initRegisterUI();
+
+ document
+   .getElementById("registerForm")
+   .dispatchEvent(
+      new Event(
+       "submit",
+       {bubbles:true,cancelable:true}
+      )
+   );
+
+ await new Promise(r=>setTimeout(r,0));
+
+ expect(spy)
+   .toHaveBeenCalled();
+
+ expect(window.alert)
+   .toHaveBeenCalledWith(
+      "firebase failed"
+   );
+});
+test("registers DOMContentLoaded listener", () => {
+  const spy = jest.spyOn(document, "addEventListener");
+
+  Object.defineProperty(document, "readyState", {
+    value: "loading",
+    configurable: true
+  });
+
+  jest.isolateModules(() => {
+    require("../scripts/register.js");
+  });
+
+  expect(spy).toHaveBeenCalledWith(
+    "DOMContentLoaded",
+    expect.any(Function)
+  );
+});
 });

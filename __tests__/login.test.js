@@ -27,7 +27,6 @@ import {
   initSocialLogins,
   initLoginPage
 } from '../scripts/login.js';
-
 import {
   signInWithEmailAndPassword,
   getDoc,
@@ -36,7 +35,9 @@ import {
   GoogleAuthProvider,
   FacebookAuthProvider,
   TwitterAuthProvider,
-  OAuthProvider
+  OAuthProvider,
+  sendEmailVerification,
+  signOut
 } from '../scripts/database.js';
 
 describe('navigateTo', () => {
@@ -346,4 +347,45 @@ describe('initLoginPage', () => {
 
     expect(global.lucide.createIcons).toHaveBeenCalled();
   });
+  test("requires email verification before login", async () => {
+  signInWithEmailAndPassword.mockResolvedValue({
+    user: {
+      uid: "abc123",
+      emailVerified: false,
+      reload: jest.fn().mockResolvedValue()
+    }
+  });
+
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "customer",
+      requiresEmailVerification: true
+    })
+  });
+
+  initLoginForm();
+
+  document
+    .getElementById("loginForm")
+    .dispatchEvent(
+      new Event("submit", {
+        bubbles: true,
+        cancelable: true
+      })
+    );
+
+  await new Promise(resolve=>setTimeout(resolve,0));
+
+  expect(sendEmailVerification)
+    .toHaveBeenCalled();
+
+  expect(signOut)
+    .toHaveBeenCalled();
+
+  expect(window.alert)
+    .toHaveBeenCalledWith(
+      "Please verify your email before logging in. A new verification email has been sent."
+    );
+});
 });
