@@ -275,5 +275,43 @@ test("shows error and resets when invalid logo is selected", async () => {
 
   expect(logoInput.value).toBe("");
 });
+test("successful registration signs out user after verification", async () => {
+  document.body.innerHTML = `
+    <form id="registerForm"></form>
 
+    <input id="registerName" value="John"/>
+    <input id="registerEmail" value="john@test.com"/>
+    <input id="registerPassword" value="123456"/>
+
+    <select id="registerRole">
+      <option value="customer" selected>customer</option>
+    </select>
+  `;
+
+
+
+
+  const db = require('../scripts/database.js');
+
+  db.createUserWithEmailAndPassword.mockResolvedValue({
+    user: { uid: "u1" }
+  });
+
+  db.setDoc.mockResolvedValue();
+  db.sendEmailVerification.mockResolvedValue();
+  db.signOut.mockResolvedValue();
+
+  initRegisterUI();
+
+  document
+    .getElementById("registerForm")
+    .dispatchEvent(
+      new Event("submit", { bubbles: true, cancelable: true })
+    );
+
+  await new Promise(r => setTimeout(r, 0));
+  expect(db.setDoc).toHaveBeenCalled();
+  expect(db.sendEmailVerification).toHaveBeenCalled();
+  expect(db.signOut).toHaveBeenCalled();
+});
 });

@@ -131,7 +131,7 @@ export function initRegisterUI() {
 
         await signOut(auth);
 
-        window.location.href = "login.html";
+        window.location.assign("login.html");
         return;
 
       } catch (err) {
@@ -238,7 +238,7 @@ async function handleSocialLogin(user) {
 
   if (!userSnap.exists()) {
     sessionStorage.setItem("newUserUID", user.uid);
-    window.location.href = "select-role.html";
+    window.location.assign("pending-approval.html");
     return;
   }
 
@@ -246,7 +246,7 @@ async function handleSocialLogin(user) {
 
   if (userData.role === "vendor") {
     if (userData.status === "pending") {
-      window.location.href = "pending-approval.html";
+      window.location.assign("pending-approval.html");
       return;
     }
 
@@ -263,7 +263,7 @@ function redirectUser(role) {
   if (role === "customer") {
     window.location.assign("customer-dashboard.html");
   } else if (role === "vendor") {
-    window.location.href = "pending-approval.html";
+    window.location.assign("pending-approval.html");
   } else if (role === "admin") {
     window.location.assign("admin-dashboard.html");
   }
