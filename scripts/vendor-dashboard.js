@@ -13,6 +13,14 @@ import {
   serverTimestamp
 } from "./database.js";
 
+import {
+  formatTimestamp
+} from "./orders.js";
+
+let doneOrders = [];
+let sortBy = "Default";
+let restrictions = [false, false, false, false];
+
 // ---------------- AUTH GUARD ----------------
 export function initVendorDashboard(locationObj = window.location, alertFn = alert) {
   onAuthStateChanged(auth, async (user) => {
@@ -52,6 +60,9 @@ export function initVendorDashboard(locationObj = window.location, alertFn = ale
     const orders = await fetchVendorOrders(user.uid);
     renderOrders(orders);
     attachOrderStatusListeners();
+    doneOrders = orders.filter(order => order.status === "Collected")
+    renderOrdersByStatus(doneOrders)
+    //listenToVendorOrders(user.uid, renderOrdersByStatus);
   });
 }
 
@@ -393,3 +404,240 @@ export function attachOrderStatusListeners() {
     }
   });
 }
+
+document.getElementById("closeHistoryModal")?.addEventListener("click", () => {
+    document.getElementById("order-history-modal")?.classList.add("hidden");
+});
+
+document.getElementById("history")?.addEventListener("click", () =>{
+    document.getElementById("order-history-modal")?.classList.remove("hidden");
+    
+
+});
+
+export function buildOrderHTML(order) {
+  const status = formatStatus(order.status);
+
+  const items = (order.menuItems || [])
+    .map((item) => `<p>- ${item.name} x${item.quantity ?? 1}</p>`)
+    .join("");
+
+  const paymentMethod = order.paymentMethod === "cash" ? "cash" : "card";
+  const paymentStatus = order.paymentStatus || (paymentMethod === "cash" ? "unpaid" : "paid");
+  const isUnpaidCash = paymentMethod === "cash" && paymentStatus === "unpaid";
+
+  const paymentBadge = paymentMethod === "cash"
+    ? `<span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${
+        isUnpaidCash ? "bg-yellow-100 text-yellow-700" : "bg-emerald-100 text-emerald-700"
+      }">${isUnpaidCash ? "Cash • Unpaid" : "Cash • Paid"}</span>`
+    : `<span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700">Card</span>`;
+
+  const cashBanner = isUnpaidCash
+    ? `
+      <section class="mt-2 bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs p-2 rounded-lg">
+        Awaiting cash payment — R${Number(order.total || 0).toFixed(2)}
+      </section>
+    `
+    : "";
+
+  const markPaidButton = isUnpaidCash
+    ? `
+      <button
+        type="button"
+        data-mark-paid-id="${order.id}"
+        class="mark-paid-btn mt-2 w-full bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700"
+      >
+        Mark as Paid
+      </button>
+    `
+    : "";
+
+  return `
+    <article
+      class="bg-white p-4 rounded-xl shadow mb-4 cursor-move"
+      draggable="${status !== "Collected"}"
+      data-order-id="${order.id}"
+      data-order-status="${status}"
+      data-payment-method="${paymentMethod}"
+      data-payment-status="${paymentStatus}"
+    >
+      <header>
+        <section class="flex justify-between items-start">
+          <h3 class="font-bold">Order #${order.dailyOrderNumber || "001"}</h3>
+          ${paymentBadge}
+        </section>
+
+        <p class="text-sm text-gray-500">
+          Customer: ${order.customerName || "Unknown Customer"}
+        </p>
+
+        <p class="text-sm text-gray-500">
+          Placed: ${formatTimestamp(order.createdAt)}
+        </p>
+
+        <p class="text-sm text-gray-500">
+          Updated: ${formatTimestamp(order.updatedAt)}
+        </p>
+      </header>
+
+      <section class="mt-2">
+        ${items}
+      </section>
+
+      <p class="mt-2 font-semibold">
+        Status: ${status}
+      </p>
+
+      
+    </article>
+  `;
+}
+
+async function enrichOrdersWithCustomerNames(orders) {
+  return Promise.all(
+    orders.map(async (order) => {
+      try {
+        const customerSnap = await getDoc(doc(db, "users", order.userId));
+        const customerData = customerSnap.exists() ? customerSnap.data() : {};
+
+        return {
+          ...order,
+          customerName: customerData.fullName || "Unknown Customer"
+        };
+      } catch (error) {
+        console.error("Failed to fetch customer name:", error);
+
+        return {
+          ...order,
+          customerName: "Unknown Customer"
+        };
+      }
+    })
+  );
+}
+
+async function renderOrdersByStatus(orders) {
+  const container = document.getElementById("orderList");
+  
+
+  if (!container) return;
+
+  const enrichedOrders = await enrichOrdersWithCustomerNames(orders);
+  //const numberedOrders = addDailyOrderNumbers(enrichedOrders);
+
+  container.innerHTML = enrichedOrders.length
+    ? enrichedOrders.map((order) => buildOrderHTML(order)).join("")
+    : `<p class="text-gray-500">No pending orders.</p>`;
+  lucide.createIcons();
+}
+
+document.getElementById("toggleFilters")?.addEventListener("click", () => {
+  document.getElementById("filterDropdown")?.classList.toggle("hidden");
+});
+
+function applyFilter(order) {
+  if(document.getElementById("orderDate").value != ""){
+    const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
+    const date = new Date(document.getElementById("orderDate").value + "T00:00:00");
+    if(orderDate.toDateString() != date.toDateString()) return false;
+      
+
+  }
+  if(restrictions[0]){
+    let passed = false;
+    for(let i = 0; i < order.menuItems.length; i++){
+      if ((order.menuItems[i].dietary).includes("Vegan")) passed = true;
+    }
+    if(!passed){
+      return false;
+    }
+  }
+  if(restrictions[1]){
+    let passed = false;
+    for(let i = 0; i < order.menuItems.length; i++){
+      if ((order.menuItems[i].dietary).includes("Vegetarian")) passed = true;
+    }
+    if(!passed){
+      return false;
+    }
+  }
+  if(restrictions[2]){
+    let passed = false;
+    for(let i = 0; i < order.menuItems.length; i++){
+      if (!(order.menuItems[i].allergens).includes("Gluten")) passed = true;
+    }
+    if(!passed){
+      return false;
+    }
+  }
+  if(restrictions[3]){
+    let passed = false;
+    for(let i = 0; i < order.menuItems.length; i++){
+      if ((order.menuItems[i].dietary).includes("Halal")) passed = true;
+    }
+    if(!passed){
+      return false;
+    }
+  }
+  
+
+  return true;
+}
+
+function sortOrders(orders) {
+  const sortedItems = [...orders];
+
+  if (sortBy === "PriceLowToHigh") {
+    sortedItems.sort((a, b) => Number(getTotalRevenue(a) || 0) - Number(getTotalRevenue(b) || 0));
+  }
+
+  if (sortBy === "PriceHighToLow") {
+    sortedItems.sort((a, b) => Number(getTotalRevenue(b) || 0) - Number(getTotalRevenue(a) || 0));
+  }
+
+  if (sortBy === "Oldest") {
+    sortedItems.sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0));
+  }
+
+  if (sortBy === "Newest") {
+    sortedItems.sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+  }
+
+  return sortedItems;
+}
+
+function getTotalRevenue(order){
+  let totalRevenue = 0;
+  for(let i = 0; i < order.menuItems.length; i++){
+    totalRevenue += order.menuItems[i].price; 
+  }
+  return totalRevenue;
+}
+
+document.getElementById("SortBy")?.addEventListener("change", (e) => {
+  sortBy = e.target.value;
+  renderOrdersByStatus(sortOrders(doneOrders).filter(applyFilter));
+});
+
+document.getElementById("Vegan")?.addEventListener("change", () => {
+  restrictions[0] = document.getElementById("Vegan").checked;
+  renderOrdersByStatus(sortOrders(doneOrders).filter(applyFilter));
+});
+
+document.getElementById("Vegetarian")?.addEventListener("change", () => {
+  restrictions[1] = document.getElementById("Vegetarian").checked;
+  renderOrdersByStatus(sortOrders(doneOrders).filter(applyFilter));
+});
+
+document.getElementById("Gluten-Free")?.addEventListener("change", () => {
+  restrictions[2] = document.getElementById("Gluten-Free").checked;
+  renderOrdersByStatus(sortOrders(doneOrders).filter(applyFilter));
+});
+
+document.getElementById("Halal")?.addEventListener("change", () => {
+  restrictions[3] = document.getElementById("Halal").checked;
+  renderOrdersByStatus(sortOrders(doneOrders).filter(applyFilter));
+});
+document.getElementById("orderDate")?.addEventListener("change", () => {
+  renderOrdersByStatus(sortOrders(doneOrders).filter(applyFilter));
+});

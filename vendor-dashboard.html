@@ -61,7 +61,7 @@
 
 </header>
 
-    <section class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+    <section class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-10">
 
       <article class="bg-white rounded-2xl shadow-md p-6">
         <header class="flex items-center gap-3 mb-4">
@@ -108,6 +108,21 @@
         </a>
       </article>
 
+      <article class="bg-white rounded-2xl shadow-md p-6 ">
+        <header class="flex items-center gap-3 mb-4">
+          <i data-lucide="clock" class="w-6 h-6 text-indigo-600"></i>
+          <h2 class="text-xl font-semibold text-gray-900">Order History</h2>
+        </header>
+
+        <p class="text-gray-600 mb-4">
+          View a list of all orders that have been made in the past
+        </p>
+
+        <button id = "history" class="text-indigo-600 font-semibold hover:underline">
+          View All Orders
+        </button>
+      </article>
+      
       <article class="bg-white rounded-2xl shadow-md p-6">
         <header class="flex items-center gap-3 mb-4">
           <i data-lucide="settings" class="w-6 h-6 text-indigo-600"></i>
@@ -165,6 +180,81 @@
         </section>
       </section>
 
+    </section>
+
+    <section id="order-history-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+      
+      <article class="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto p-6">
+        <section class="grid-cols-1 place-items-center">
+          <h1 class="font-semibold mb-4 flex items-center gap-2 text-4xl">
+            Past Orders
+          </h1>
+        <button id="toggleFilters" class="relative bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2 text-3xl">
+          <i data-lucide="filter" class="w-4 h-4"></i> Filters
+        </button>
+        </section>
+        
+        
+
+        <section id="filterDropdown" class="hidden bg-white p-4 rounded-xl shadow-sm">
+          <section class="mb-4">
+            <label for="orderDate">Select Date:</label>
+            <input type="date" id="orderDate" name="order-date">
+          </section>
+          
+          <section class="mb-4">
+            <label class="text-sm font-medium text-gray-700 mb-2 block">Sort by</label>
+            <select id="SortBy" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <option value="Default" selected>Default</option>
+              <option value="PriceLowToHigh">Revenue: Low to High</option>
+              <option value="PriceHighToLow">Revenue: High to Low</option>
+              <option value="Newest">Newest First</option>
+              <option value="Oldest">Oldest First</option>
+            </select>
+          </section>
+
+          <section class="mb-4">
+            <label class="text-sm font-medium text-gray-700 mb-2 block">Containing Dietary Restriction</label>
+
+            <section class="space-y-2">
+              <label class="flex items-center gap-2 text-sm">
+                <input id="Vegan" type="checkbox" class="rounded text-green-600">
+                Vegan
+              </label>
+
+              <label class="flex items-center gap-2 text-sm">
+                <input id="Vegetarian" type="checkbox" class="rounded text-green-600">
+                Vegetarian
+              </label>
+
+              <label class="flex items-center gap-2 text-sm">
+                <input id="Gluten-Free" type="checkbox" class="rounded text-green-600">
+                Gluten-Free
+              </label>
+
+              <label class="flex items-center gap-2 text-sm">
+                <input id="Halal" type="checkbox" class="rounded text-green-600">
+                Halal
+              </label>
+            </section>
+          </section>
+
+        </section>
+        <section id="orderList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></section>
+
+        
+
+        <p id="numOrders" class="text-sm text-gray-500 mt-3">
+          0 orders displayed
+        </p>
+
+        <section class="flex gap-3 mt-6">
+          <button type="button" id="closeHistoryModal" class="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50">
+            Close
+          </button>
+        </section>
+
+      </article>
     </section>
 
   </main>
