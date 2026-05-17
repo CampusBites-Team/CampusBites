@@ -580,7 +580,6 @@ document.getElementById("checkOut")?.addEventListener("click", () => {
   });
 
   listenersAttached = true;
-}
 
 document.addEventListener("DOMContentLoaded", () => {
   attachEventListeners();
