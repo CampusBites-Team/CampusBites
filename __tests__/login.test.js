@@ -3,14 +3,20 @@
 jest.mock('../scripts/database.js', () => ({
   auth: {},
   db: {},
+
   signInWithEmailAndPassword: jest.fn(),
   getDoc: jest.fn(),
   doc: jest.fn(),
+
   signInWithPopup: jest.fn(),
-  GoogleAuthProvider: jest.fn(() => ({ provider: 'google' })),
-  FacebookAuthProvider: jest.fn(() => ({ provider: 'facebook' })),
-  TwitterAuthProvider: jest.fn(() => ({ provider: 'twitter' })),
-  OAuthProvider: jest.fn((name) => ({ provider: name }))
+
+  GoogleAuthProvider: jest.fn(() => ({ provider:'google' })),
+  FacebookAuthProvider: jest.fn(() => ({ provider:'facebook' })),
+  TwitterAuthProvider: jest.fn(() => ({ provider:'twitter' })),
+  OAuthProvider: jest.fn(name => ({ provider:name })),
+
+  sendEmailVerification: jest.fn(),
+  signOut: jest.fn()
 }));
 
 import {
@@ -176,7 +182,7 @@ describe('initLoginForm', () => {
       </form>
     `;
 
-    global.alert = jest.fn();
+    window.alert = jest.fn();
   });
 
   test('does nothing if login form is missing', () => {
@@ -185,53 +191,68 @@ describe('initLoginForm', () => {
     expect(() => initLoginForm()).not.toThrow();
   });
 
-  test('submits login and reads user profile', async () => {
-    signInWithEmailAndPassword.mockResolvedValue({
-      user: { uid: 'abc123' }
-    });
-
-    doc.mockReturnValue({ id: 'mock-doc-ref' });
-
-    getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({ role: 'customer' })
-    });
-
-    initLoginForm();
-
-    const form = document.getElementById('loginForm');
-    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(signInWithEmailAndPassword).toHaveBeenCalledWith({}, 'test@example.com', '123456');
-    expect(doc).toHaveBeenCalled();
-    expect(getDoc).toHaveBeenCalled();
-    expect(global.alert).not.toHaveBeenCalled();
+test('submits login and reads user profile', async () => {
+  signInWithEmailAndPassword.mockResolvedValue({
+    user: {
+      uid: 'abc123',
+      reload: jest.fn().mockResolvedValue()
+    }
   });
 
-  test('alerts if user profile does not exist', async () => {
-    signInWithEmailAndPassword.mockResolvedValue({
-      user: { uid: 'abc123' }
-    });
+  doc.mockReturnValue({ id: 'mock-doc-ref' });
 
-    doc.mockReturnValue({ id: 'mock-doc-ref' });
-
-    getDoc.mockResolvedValue({
-      exists: () => false
-    });
-
-    initLoginForm();
-
-    const form = document.getElementById('loginForm');
-    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(global.alert).toHaveBeenCalledWith('User profile not found.');
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({ role: 'customer' })
   });
+
+  initLoginForm();
+
+  const form = document.getElementById('loginForm');
+  form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(signInWithEmailAndPassword).toHaveBeenCalledWith(
+    {},
+    'test@example.com',
+    '123456'
+  );
+
+  expect(doc).toHaveBeenCalled();
+  expect(getDoc).toHaveBeenCalled();
+  expect(global.alert).not.toHaveBeenCalled();
+});
+
+test('alerts if user profile does not exist', async () => {
+  signInWithEmailAndPassword.mockResolvedValue({
+    user:{
+      uid:'abc123',
+      reload:jest.fn().mockResolvedValue()
+    }
+  });
+
+  doc.mockReturnValue({id:'mock-doc-ref'});
+
+  getDoc.mockResolvedValue({
+    exists: () => false
+  });
+
+  initLoginForm();
+
+  document.getElementById('loginForm')
+    .dispatchEvent(
+      new Event('submit',{bubbles:true,cancelable:true})
+    );
+
+  await new Promise(resolve => setTimeout(resolve,0));
+
+  expect(global.alert)
+    .toHaveBeenCalledWith(
+      'User profile not found.'
+    );
+});
 
   test('alerts when login fails', async () => {
     signInWithEmailAndPassword.mockRejectedValue(new Error('Invalid credentials'));
@@ -260,7 +281,7 @@ describe('initSocialLogins', () => {
       <button type="button" id="appleLogin"></button>
     `;
 
-    global.alert = jest.fn();
+    window.alert = jest.fn();
 
     Object.defineProperty(window, 'sessionStorage', {
       value: {
