@@ -1,7 +1,7 @@
 import {
   auth, db, signInWithEmailAndPassword, doc, getDoc,
   signInWithPopup, GoogleAuthProvider, FacebookAuthProvider,
-  TwitterAuthProvider, OAuthProvider
+  TwitterAuthProvider, OAuthProvider, sendEmailVerification, signOut
 } from "./database.js";
 
 // ---------------- NAVIGATION ----------------
@@ -42,6 +42,16 @@ export function initLoginForm() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+
+      await user.reload();
+
+      if (!user.emailVerified) {
+        await sendEmailVerification(user);
+        await signOut(auth);
+
+        alert("Please verify your email before logging in. A new verification email has been sent.");
+        return;
+      }
 
       const userDocRef = doc(db, "users", user.uid);
       const userDocSnap = await getDoc(userDocRef);

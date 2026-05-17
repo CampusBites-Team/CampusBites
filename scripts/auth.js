@@ -27,6 +27,23 @@ export function initAuthUI() {
         return;
       }
 
+      await user.reload();
+
+      if (!user.emailVerified) {
+        CustomerdashboardLink?.classList.add("hidden");
+        RecommendationLink?.classList.add("hidden");
+        VendordashboardLink?.classList.add("hidden");
+        AdmindashboardLink?.classList.add("hidden");
+        CheckOutLink?.classList.add("hidden");
+        CustomerProfileLink?.classList.add("hidden");
+
+        logoutBtn?.classList.remove("hidden");
+        loginBtn?.classList.add("hidden");
+
+        console.log("User email is not verified.");
+        return;
+      }
+
     const userRef = doc(db, "users", user.uid);
     const userSnap = await getDoc(userRef);
 

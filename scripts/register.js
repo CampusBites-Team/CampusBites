@@ -14,7 +14,9 @@ import {
   serverTimestamp,
   ref,
   uploadBytes,
-  getDownloadURL
+  getDownloadURL,
+  sendEmailVerification,
+  signOut
 } from "./database.js";
 
 let selectedLogoFile = null;
@@ -122,11 +124,14 @@ export function initRegisterUI() {
           createdAt: serverTimestamp()
         });
 
-        if (role === "customer") {
-          window.location.assign("customer-dashboard.html");
-        } else {
-          window.location.href = "pending-approval.html";
-        }
+        await sendEmailVerification(user);
+
+        alert("Account created successfully. Please verify your email before logging in.");
+
+        await signOut(auth);
+
+        window.location.href = "login.html";
+        return;
 
       } catch (err) {
         console.error(err);
