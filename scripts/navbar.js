@@ -9,6 +9,7 @@ import {
 const NAV_LINKS = {
   guest: [
     { label: "Home", href: "index.html" },
+    { label: "Vendors", href: "multi-vendors.html" },
     { label: "Browse", href: "browse.html" }
 
   ],
@@ -41,6 +42,7 @@ const PROFILE_LINKS = {
     { label: "Home", href: "index.html" },
     { label: "Profile", href: "customer-profile.html" },
     { label: "For You", href: "recommendations.html" },
+    { label: "Vendors", href: "multi-vendors.html" }
   ],
   vendor: [
     { label: "Home", href: "index.html" },
