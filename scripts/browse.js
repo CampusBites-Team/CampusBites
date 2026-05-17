@@ -22,6 +22,7 @@ let restrictions = [false, false, false, false];
 let vendor = "AllVendors";
 let category = "AllCategories";
 let done = false;
+let listenersAttached = false;
 let maxPrice2 = Number.MAX_SAFE_INTEGER;
 function renderStars(rating) {
   const rounded = Math.round(rating);
@@ -62,12 +63,70 @@ function updateCartCount() {
     cartCount.textContent = cart.length;
   }
 }
+function showToast(message, type = "success") {
+  let toastContainer = document.getElementById("toast-container");
+
+  if (!toastContainer) {
+    toastContainer = document.createElement("section");
+    toastContainer.id = "toast-container";
+    toastContainer.className =
+      "fixed top-5 right-5 z-[9999] flex flex-col gap-3";
+    
+    document.body.appendChild(toastContainer);
+  }
+
+  const toast = document.createElement("article");
+
+  const styles = {
+    success: "bg-green-600",
+    error: "bg-red-600",
+    info: "bg-indigo-600"
+  };
+
+  toast.className = `
+    ${styles[type] || styles.success}
+    text-white px-4 py-3 rounded-xl shadow-lg
+    flex items-center gap-3
+    min-w-[250px]
+    animate-slide-in
+  `;
+
+  toast.innerHTML = `
+    <i data-lucide="check-circle" class="w-5 h-5"></i>
+    <span>${message}</span>
+  `;
+
+  toastContainer.appendChild(toast);
+
+  globalThis.lucide?.createIcons?.();
+
+  setTimeout(() => {
+    toast.classList.add("opacity-0", "translate-x-5");
+
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
+
+  }, 2500);
+}
 
 function addToCart(item) {
+  const vendorItems = cart.filter(
+    cartItem => cartItem.vendorName === item.vendorName
+  );
+
+  if (vendorItems.length >= 10) {
+    alert("You can order at most 10 items from the same vendor");
+    return;
+  }
+
   cart.push(item);
+
   saveCart();
   updateCart();
   updateCartCount();
+
+  showToast(`${item.name} added to cart`);
 }
 
 function applyFilter(item) {
@@ -88,6 +147,7 @@ function updateCart() {
   const container = document.getElementById("cartList");
   const numItemsCart = document.getElementById("numItemsCart");
   const cartWarning = document.getElementById("cartWarning");
+  const emptyBtn = document.getElementById("empty");
 
   if (!container) return;
 
@@ -95,6 +155,10 @@ function updateCart() {
 
   if (cartWarning) {
     cartWarning.classList.add("hidden");
+  }
+
+  if (emptyBtn) {
+    emptyBtn.classList.toggle("hidden", cart.length === 0);
   }
 
   if (!cart.length) {
@@ -112,9 +176,28 @@ function updateCart() {
     return;
   }
 
-  container.innerHTML = cart.map((item, index) => `
-    <article class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+  // ✅ Group duplicate items visually while keeping
+  // original cart structure for existing tests/payments
+  const groupedCart = {};
 
+  cart.forEach((item) => {
+    const key = item.id;
+
+    if (!groupedCart[key]) {
+      groupedCart[key] = {
+        ...item,
+        quantity: 1
+      };
+    } else {
+      groupedCart[key].quantity++;
+    }
+  });
+
+  const groupedItems = Object.values(groupedCart);
+
+  container.innerHTML = groupedItems.map((item) => `
+    <article class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+      
       <img 
         src="${item.image || item.imageUrl || "assets/default_vendor.jpg"}"
         alt="${item.name || "Menu item"}"
@@ -122,14 +205,35 @@ function updateCart() {
       >
 
       <section class="flex justify-between items-start mb-2">
+        
         <section>
-          <h3 class="text-lg font-semibold">${item.name || "Unnamed Item"}</h3>
-          <p class="text-sm text-gray-500">${item.vendorName || "Vendor"}</p>
+          
+          <section class="flex items-center gap-2">
+            <h3 class="text-lg font-semibold">
+              ${item.name || "Unnamed Item"}
+            </h3>
+
+            ${
+              item.quantity > 1
+                ? `
+                  <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded-full">
+                    x${item.quantity}
+                  </span>
+                `
+                : ""
+            }
+          </section>
+
+          <p class="text-sm text-gray-500">
+            ${item.vendorName || "Vendor"}
+          </p>
+
         </section>
 
         <span class="font-bold text-indigo-600">
           R${Number(item.price || 0).toFixed(2)}
         </span>
+
       </section>
 
       <p class="text-sm text-gray-600 mb-3 line-clamp-2">
@@ -148,7 +252,10 @@ function updateCart() {
 
       ${(item.allergens || []).length ? `
         <section class="flex flex-wrap gap-1 mb-3">
-          <span class="text-xs text-orange-500 font-medium mr-1">⚠ Contains:</span>
+          <span class="text-xs text-orange-500 font-medium mr-1">
+            ⚠ Contains:
+          </span>
+
           ${(item.allergens || []).map(a => `
             <span class="text-xs bg-orange-50 text-orange-600 border border-orange-200 px-2 py-0.5 rounded-full">
               ${a}
@@ -159,7 +266,7 @@ function updateCart() {
 
       <section class="flex gap-2">
         <button 
-          data-cart-index="${index}" 
+          data-cart-id="${item.id}" 
           class="remove-cart-btn flex-1 bg-red-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-red-700"
         >
           <i data-lucide="minus" class="w-4 h-4"></i>
@@ -170,13 +277,33 @@ function updateCart() {
     </article>
   `).join("");
 
+  // ✅ Keep original total item count
   if (numItemsCart) {
     numItemsCart.textContent =
-      cart.length === 1 ? "1 item in cart" : `${cart.length} items in cart`;
+      cart.length === 1
+        ? "1 item in cart"
+        : `${cart.length} items in cart`;
   }
 
   updateCartCount();
+
   globalThis.lucide?.createIcons?.();
+
+  // ✅ Remove ONE instance at a time
+  document.querySelectorAll(".remove-cart-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const itemId = btn.dataset.cartId;
+
+      const index = cart.findIndex(item => item.id === itemId);
+
+      if (index !== -1) {
+        cart.splice(index, 1);
+
+        saveCart();
+        updateCart();
+      }
+    });
+  });
 }
 
 function populateVendorFilter(items) {
@@ -361,6 +488,23 @@ const loadMenuItems = async () => {
   const availableItems = visibleItems.filter(item => applyFilter(item));
 
   const container = document.getElementById("menu");
+  if (!availableItems.length) {
+  container.innerHTML = `
+    <section class="col-span-full flex justify-center items-center py-16">
+      <p class="text-gray-500 text-lg font-medium">
+        No menu items found
+      </p>
+    </section>
+  `;
+
+  const numItems = document.getElementById("numItems");
+
+  if (numItems) {
+    numItems.textContent = "0 items found";
+  }
+
+  return;
+}
 
   if (!container) return;
   container.innerHTML = availableItems.map(item => {
@@ -452,7 +596,7 @@ const loadMenuItems = async () => {
   </label>
   <input id = "PriceSlider" type="range" min="0" max="${maxPrice}" value="${maxPrice}" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">`;
   priceSlider = document.getElementById("PriceSlider");
-  priceSlider.addEventListener("click", () => {
+  priceSlider.addEventListener("input", () => {
   document.getElementById("PriceLabel").textContent = `Max Price: ${priceSlider.value}`;
   maxPrice2 = priceSlider.value;
   loadMenuItems();
@@ -579,18 +723,6 @@ document.getElementById("checkOut")?.addEventListener("click", () => {
     }
   });
 
-  listenersAttached = true;
-
-document.addEventListener("DOMContentLoaded", () => {
-  attachEventListeners();
-  loadMenuItems();
-  updateCartCount();
-
-  if (window.location.hash === "#cart") {
-    document.getElementById("item-edit-modal")?.classList.remove("hidden");
-    updateCart();
-  }
-});
 
 onAuthStateChanged(auth, async (user) => {
   if (user) {
@@ -706,4 +838,8 @@ const cash = {
 };
 
 export const loadBrowseItems = loadMenuItems;
-export { loadMenuItems };
+
+export {
+  loadMenuItems,
+  addToCart
+};
