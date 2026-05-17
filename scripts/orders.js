@@ -9,6 +9,7 @@ import {
   onAuthStateChanged,
   onSnapshot,
   updateDoc,
+  addDoc,
   serverTimestamp
 } from "./database.js";
 
@@ -102,15 +103,50 @@ export function buildOrderHTML(order) {
     .map((item) => `<p>- ${item.name} x${item.quantity ?? 1}</p>`)
     .join("");
 
+  const paymentMethod = order.paymentMethod === "cash" ? "cash" : "card";
+  const paymentStatus = order.paymentStatus || (paymentMethod === "cash" ? "unpaid" : "paid");
+  const isUnpaidCash = paymentMethod === "cash" && paymentStatus === "unpaid";
+
+  const paymentBadge = paymentMethod === "cash"
+    ? `<span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${
+        isUnpaidCash ? "bg-yellow-100 text-yellow-700" : "bg-emerald-100 text-emerald-700"
+      }">${isUnpaidCash ? "Cash • Unpaid" : "Cash • Paid"}</span>`
+    : `<span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700">Card</span>`;
+
+  const cashBanner = isUnpaidCash
+    ? `
+      <section class="mt-2 bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs p-2 rounded-lg">
+        Awaiting cash payment — R${Number(order.total || 0).toFixed(2)}
+      </section>
+    `
+    : "";
+
+  const markPaidButton = isUnpaidCash
+    ? `
+      <button
+        type="button"
+        data-mark-paid-id="${order.id}"
+        class="mark-paid-btn mt-2 w-full bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700"
+      >
+        Mark as Paid
+      </button>
+    `
+    : "";
+
   return `
     <article
       class="bg-white p-4 rounded-xl shadow mb-4 cursor-move"
       draggable="${status !== "Collected"}"
       data-order-id="${order.id}"
       data-order-status="${status}"
+      data-payment-method="${paymentMethod}"
+      data-payment-status="${paymentStatus}"
     >
       <header>
-        <h3 class="font-bold">Order #${order.dailyOrderNumber || "001"}</h3>
+        <section class="flex justify-between items-start">
+          <h3 class="font-bold">Order #${order.dailyOrderNumber || "001"}</h3>
+          ${paymentBadge}
+        </section>
 
         <p class="text-sm text-gray-500">
           Customer: ${order.customerName || "Unknown Customer"}
@@ -132,8 +168,30 @@ export function buildOrderHTML(order) {
       <p class="mt-2 font-semibold">
         Status: ${status}
       </p>
+
+      ${cashBanner}
+      ${markPaidButton}
     </article>
   `;
+}
+
+export async function markCashOrderAsPaid(order) {
+  await updateDoc(doc(db, "orders", order.id), {
+    paymentStatus: "paid",
+    paidAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  });
+
+  await addDoc(collection(db, "wallet_ledger"), {
+    type: "credit",
+    source: "cash",
+    vendorId: order.vendorId,
+    vendorName: order.vendorName || "",
+    orderId: order.id,
+    amount: Number(order.total || 0),
+    status: "settled",
+    createdAt: serverTimestamp()
+  });
 }
 
 export async function enrichOrdersWithCustomerNames(orders) {
@@ -221,6 +279,8 @@ export function attachDragAndDropListeners() {
 
       event.dataTransfer.setData("orderId", orderCard.dataset.orderId);
       event.dataTransfer.setData("orderStatus", orderCard.dataset.orderStatus);
+      event.dataTransfer.setData("paymentMethod", orderCard.dataset.paymentMethod || "card");
+      event.dataTransfer.setData("paymentStatus", orderCard.dataset.paymentStatus || "paid");
     });
 
     column.addEventListener("dragover", (event) => {
@@ -232,13 +292,55 @@ export function attachDragAndDropListeners() {
 
       const orderId = event.dataTransfer.getData("orderId");
       const orderStatus = event.dataTransfer.getData("orderStatus");
+      const paymentMethod = event.dataTransfer.getData("paymentMethod");
+      const paymentStatus = event.dataTransfer.getData("paymentStatus");
       const nextStatus = getNextDropStatus(orderStatus, column.id);
 
       if (!orderId || !nextStatus) return;
 
+      if (
+        nextStatus === "Collected" &&
+        paymentMethod === "cash" &&
+        paymentStatus === "unpaid"
+      ) {
+        alert("Mark this cash order as paid before marking it collected.");
+        return;
+      }
+
       await updateOrderStatus(orderId, nextStatus);
     });
   });
+}
+
+if (typeof document !== "undefined" && !document.body?.dataset.markPaidListenerAttached) {
+  document.body?.addEventListener("click", async (event) => {
+    const btn = event.target.closest(".mark-paid-btn");
+    if (!btn) return;
+
+    const orderId = btn.dataset.markPaidId;
+    if (!orderId) return;
+
+    btn.disabled = true;
+    btn.textContent = "Marking as paid...";
+
+    try {
+      const snap = await getDoc(doc(db, "orders", orderId));
+      if (!snap.exists()) {
+        alert("Order no longer exists.");
+        return;
+      }
+      await markCashOrderAsPaid({ id: orderId, ...snap.data() });
+    } catch (err) {
+      console.error("Failed to mark order as paid:", err);
+      alert("Failed to mark order as paid.");
+      btn.disabled = false;
+      btn.textContent = "Mark as Paid";
+    }
+  });
+
+  if (document.body) {
+    document.body.dataset.markPaidListenerAttached = "true";
+  }
 }
 
 export function listenToVendorOrders(vendorId, callback) {

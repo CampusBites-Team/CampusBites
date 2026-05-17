@@ -889,4 +889,172 @@ describe("browse.js", () => {
 
     expect(document.getElementById("item-edit-modal").classList.contains("hidden")).toBe(false);
   });
+
+  test("closes cart modal when close button clicked", async () => {
+    await bootBrowse();
+
+    document.getElementById("cart").click();
+    expect(document.getElementById("item-edit-modal").classList.contains("hidden")).toBe(false);
+
+    document.getElementById("closeCartModal").click();
+    expect(document.getElementById("item-edit-modal").classList.contains("hidden")).toBe(true);
+  });
+
+  test("shows empty cart button when cart has items at open", async () => {
+    db.onAuthStateChanged.mockImplementation((auth, callback) => {
+      callback({ uid: "customer-1" });
+    });
+
+    await bootBrowse();
+
+    document.querySelector(".add-cart-btn").click();
+    document.getElementById("cart").click();
+
+    expect(document.getElementById("empty").classList.contains("hidden")).toBe(false);
+  });
+
+  test("resets location filter when selected location no longer exists", async () => {
+    document.getElementById("VendorLocations").innerHTML = `
+      <option value="GhostLocation">GhostLocation</option>
+    `;
+    document.getElementById("VendorLocations").value = "GhostLocation";
+
+    await bootBrowse();
+
+    expect(document.getElementById("VendorLocations").value).toBe("AllLocations");
+  });
+
+  test("alerts when Paystack response has no authorization_url", async () => {
+    db.onAuthStateChanged.mockImplementation((auth, callback) => {
+      callback({ uid: "customer-1" });
+    });
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ reference: "ref123" })
+    });
+
+    await bootBrowse();
+
+    document.querySelector(".add-cart-btn").click();
+    document.getElementById("checkOut").click();
+
+    await flush();
+    await flush();
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Payment provider did not return a redirect URL")
+    );
+    expect(document.getElementById("checkOut").disabled).toBe(false);
+  });
+
+  describe("cash payment flow", () => {
+    test("posts cart items to /api/orders/create-cash when cash selected", async () => {
+      db.onAuthStateChanged.mockImplementation((auth, callback) => {
+        callback({ uid: "customer-1" });
+      });
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ orderIds: ["o-1", "o-2"] })
+      });
+
+      await bootBrowse();
+
+      document.querySelector('.add-cart-btn[data-item-id="1"]').click();
+      document.querySelector('.add-cart-btn[data-item-id="2"]').click();
+
+      const paymentRadio = document.createElement("input");
+      paymentRadio.type = "radio";
+      paymentRadio.name = "paymentMethod";
+      paymentRadio.value = "cash";
+      paymentRadio.checked = true;
+      document.body.appendChild(paymentRadio);
+
+      document.getElementById("checkOut").click();
+
+      await flush();
+      await flush();
+      await flush();
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/orders/create-cash",
+        expect.objectContaining({
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: "customer-1",
+            cart: [{ menuItemId: "1" }, { menuItemId: "2" }]
+          })
+        })
+      );
+
+      expect(JSON.parse(localStorage.getItem("cart") || "[]")).toEqual([]);
+      expect(alertSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Pay the vendor in cash on collection")
+      );
+      expect(document.getElementById("item-edit-modal").classList.contains("hidden")).toBe(true);
+    });
+
+    test("alerts and re-enables button on cash order failure", async () => {
+      db.onAuthStateChanged.mockImplementation((auth, callback) => {
+        callback({ uid: "customer-1" });
+      });
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: async () => ({ error: "vendor offline" })
+      });
+
+      await bootBrowse();
+
+      document.querySelector(".add-cart-btn").click();
+
+      const paymentRadio = document.createElement("input");
+      paymentRadio.type = "radio";
+      paymentRadio.name = "paymentMethod";
+      paymentRadio.value = "cash";
+      paymentRadio.checked = true;
+      document.body.appendChild(paymentRadio);
+
+      document.getElementById("checkOut").click();
+
+      await flush();
+      await flush();
+
+      expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining("vendor offline"));
+      expect(document.getElementById("checkOut").disabled).toBe(false);
+    });
+
+    test("falls back to generic error message when cash response has no error body", async () => {
+      db.onAuthStateChanged.mockImplementation((auth, callback) => {
+        callback({ uid: "customer-1" });
+      });
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 502,
+        json: async () => { throw new Error("not json"); }
+      });
+
+      await bootBrowse();
+
+      document.querySelector(".add-cart-btn").click();
+
+      const paymentRadio = document.createElement("input");
+      paymentRadio.type = "radio";
+      paymentRadio.name = "paymentMethod";
+      paymentRadio.value = "cash";
+      paymentRadio.checked = true;
+      document.body.appendChild(paymentRadio);
+
+      document.getElementById("checkOut").click();
+
+      await flush();
+      await flush();
+
+      expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining("502"));
+    });
+  });
 });
