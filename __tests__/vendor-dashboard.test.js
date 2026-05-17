@@ -921,4 +921,22 @@ describe("mark-paid click delegation", () => {
     expect(dbModule.getDoc).not.toHaveBeenCalled();
     expect(dbModule.updateDoc).not.toHaveBeenCalled();
   });
+  test("updates vendor dashboard title and subtitle", async () => {
+  document.body.innerHTML = `
+    <h1 id="dashboardTitle"></h1>
+    <p id="dashboardSubtitle"></p>
+  `;
+
+  const mod = await import("../scripts/vendor-dashboard.js");
+
+  mod.updateDashboardTitle({
+    shopName: "Campus Café"
+  });
+
+  expect(document.getElementById("dashboardTitle").textContent)
+    .toBe("Campus Café's Dashboard");
+
+  expect(document.getElementById("dashboardSubtitle").textContent)
+    .toBe("Welcome to your dashboard!");
+});
 });

@@ -36,6 +36,14 @@ export function formatTimestamp(timestamp) {
   });
 }
 
+export function getDateKey(timestamp) {
+  if (!timestamp?.toDate) return "unknown-date";
+
+  const date = timestamp.toDate();
+
+  return date.toISOString().slice(0, 10);
+}
+
 export function normaliseStatus(status) {
   return String(status || "Pending").trim().toLowerCase();
 }
@@ -69,7 +77,26 @@ export function getNextDropStatus(currentStatus, targetColumnId) {
   return null;
 }
 
-export function buildOrderHTML(order, index) {
+export function formatDailyOrderNumber(number) {
+  return String(number).padStart(3, "0");
+}
+
+export function addDailyOrderNumbers(orders) {
+  const counters = {};
+
+  return orders.map((order) => {
+    const dateKey = getDateKey(order.createdAt);
+
+    counters[dateKey] = (counters[dateKey] || 0) + 1;
+
+    return {
+      ...order,
+      dailyOrderNumber: formatDailyOrderNumber(counters[dateKey])
+    };
+  });
+}
+
+export function buildOrderHTML(order) {
   const status = formatStatus(order.status);
 
   const items = (order.menuItems || [])
@@ -117,7 +144,7 @@ export function buildOrderHTML(order, index) {
     >
       <header>
         <section class="flex justify-between items-start">
-          <h3 class="font-bold">Order ${index + 1}</h3>
+          <h3 class="font-bold">Order  #${order.dailyOrderNumber || "001"}</h3>
           ${paymentBadge}
         </section>
 
@@ -199,26 +226,27 @@ export async function renderOrdersByStatus(orders) {
   if (!pendingContainer || !preparingContainer || !readyContainer || !collectedContainer) return;
 
   const enrichedOrders = await enrichOrdersWithCustomerNames(orders);
+  const numberedOrders = addDailyOrderNumbers(enrichedOrders);
 
-  const pendingOrders = enrichedOrders.filter((order) => formatStatus(order.status) === "Pending");
-  const preparingOrders = enrichedOrders.filter((order) => formatStatus(order.status) === "Preparing");
-  const readyOrders = enrichedOrders.filter((order) => formatStatus(order.status) === "Ready");
-  const collectedOrders = enrichedOrders.filter((order) => formatStatus(order.status) === "Collected");
+  const pendingOrders = numberedOrders.filter((order) => formatStatus(order.status) === "Pending");
+  const preparingOrders = numberedOrders.filter((order) => formatStatus(order.status) === "Preparing");
+  const readyOrders = numberedOrders.filter((order) => formatStatus(order.status) === "Ready");
+  const collectedOrders = numberedOrders.filter((order) => formatStatus(order.status) === "Collected");
 
   pendingContainer.innerHTML = pendingOrders.length
-    ? pendingOrders.map((order, index) => buildOrderHTML(order, index)).join("")
+    ? pendingOrders.map((order) => buildOrderHTML(order)).join("")
     : `<p class="text-gray-500">No pending orders.</p>`;
 
   preparingContainer.innerHTML = preparingOrders.length
-    ? preparingOrders.map((order, index) => buildOrderHTML(order, index)).join("")
+    ? preparingOrders.map((order) => buildOrderHTML(order)).join("")
     : `<p class="text-gray-500">No preparing orders.</p>`;
 
   readyContainer.innerHTML = readyOrders.length
-    ? readyOrders.map((order, index) => buildOrderHTML(order, index)).join("")
+    ? readyOrders.map((order) => buildOrderHTML(order)).join("")
     : `<p class="text-gray-500">No ready orders.</p>`;
 
   collectedContainer.innerHTML = collectedOrders.length
-    ? collectedOrders.map((order, index) => buildOrderHTML(order, index)).join("")
+    ? collectedOrders.map((order) => buildOrderHTML(order)).join("")
     : `<p class="text-gray-500">No collected orders.</p>`;
 
   attachDragAndDropListeners();
@@ -330,7 +358,7 @@ export function listenToVendorOrders(vendorId, callback) {
     orders.sort((a, b) => {
       const aTime = a.createdAt?.seconds || 0;
       const bTime = b.createdAt?.seconds || 0;
-      return bTime - aTime;
+      return aTime - bTime;
     });
 
     callback(orders);
