@@ -121,7 +121,8 @@ export function initRegisterUI() {
           image: logoURL,
           bankDetails,
           status: role === "vendor" ? "pending" : "approved",
-          createdAt: serverTimestamp()
+          createdAt: serverTimestamp(),
+          requiresEmailVerification: true,
         });
 
         await sendEmailVerification(user);
