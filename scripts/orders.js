@@ -144,7 +144,7 @@ export function buildOrderHTML(order) {
     >
       <header>
         <section class="flex justify-between items-start">
-          <h3 class="font-bold">Order  #${order.dailyOrderNumber || "001"}</h3>
+          <h3 class="font-bold">Order #${order.dailyOrderNumber || "001"}</h3>
           ${paymentBadge}
         </section>
 
