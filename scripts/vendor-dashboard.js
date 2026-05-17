@@ -454,16 +454,11 @@ export function buildOrderHTML(order) {
   return `
     <article
       class="bg-white p-4 rounded-xl shadow mb-4 cursor-move"
-      draggable="${status !== "Collected"}"
       data-order-id="${order.id}"
-      data-order-status="${status}"
-      data-payment-method="${paymentMethod}"
-      data-payment-status="${paymentStatus}"
     >
       <header>
         <section class="flex justify-between items-start">
-          <h3 class="font-bold">Order #${order.dailyOrderNumber || "001"}</h3>
-          ${paymentBadge}
+          Payment: ${paymentBadge}
         </section>
 
         <p class="text-sm text-gray-500">
