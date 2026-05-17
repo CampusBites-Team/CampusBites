@@ -486,6 +486,11 @@ export function buildOrderHTML(order) {
       <p class="mt-2 font-semibold">
         Status: ${status}
       </p>
+
+      <p class="mt-2 font-semibold">
+        Total Revenue: R${getTotalRevenue(order)}
+      </p>
+
       ${detailsButton}
       
     </article>
