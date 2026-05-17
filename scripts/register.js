@@ -14,7 +14,9 @@ import {
   serverTimestamp,
   ref,
   uploadBytes,
-  getDownloadURL
+  getDownloadURL,
+  sendEmailVerification,
+  signOut
 } from "./database.js";
 
 let selectedLogoFile = null;
@@ -119,14 +121,18 @@ export function initRegisterUI() {
           image: logoURL,
           bankDetails,
           status: role === "vendor" ? "pending" : "approved",
-          createdAt: serverTimestamp()
+          createdAt: serverTimestamp(),
+          requiresEmailVerification: true,
         });
 
-        if (role === "customer") {
-          window.location.assign("customer-dashboard.html");
-        } else {
-          window.location.href = "pending-approval.html";
-        }
+        await sendEmailVerification(user);
+
+        alert("Account created successfully. Please verify your email before logging in.");
+
+        await signOut(auth);
+
+        window.location.assign("login.html");
+        return;
 
       } catch (err) {
         console.error(err);
@@ -232,7 +238,7 @@ async function handleSocialLogin(user) {
 
   if (!userSnap.exists()) {
     sessionStorage.setItem("newUserUID", user.uid);
-    window.location.href = "select-role.html";
+    window.location.assign("pending-approval.html");
     return;
   }
 
@@ -240,7 +246,7 @@ async function handleSocialLogin(user) {
 
   if (userData.role === "vendor") {
     if (userData.status === "pending") {
-      window.location.href = "pending-approval.html";
+      window.location.assign("pending-approval.html");
       return;
     }
 
@@ -257,7 +263,7 @@ function redirectUser(role) {
   if (role === "customer") {
     window.location.assign("customer-dashboard.html");
   } else if (role === "vendor") {
-    window.location.href = "pending-approval.html";
+    window.location.assign("pending-approval.html");
   } else if (role === "admin") {
     window.location.assign("admin-dashboard.html");
   }

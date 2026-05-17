@@ -283,6 +283,13 @@
             <header class="text-center mb-12">
                 <p class="text-orange-500 font-bold uppercase tracking-wide mb-2">
                     How it works
+            <article id="BrowseVendors" class="text-center p-6 rounded-xl bg-gray-50 hover:shadow-lg transition">
+                <figure class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="store" class="w-8 h-8 text-orange-600"></i>
+                </figure>
+                <h3 class="text-xl font-semibold mb-2">Multi-Vendor</h3>
+                <p class="text-gray-600">
+                    Order from multiple vendors in one transaction.
                 </p>
 
                 <h2 class="text-4xl md:text-5xl font-extrabold text-indigo-950">
@@ -384,6 +391,9 @@
     lucide.createIcons();
 
     document.getElementById("logoutBtn")?.addEventListener("click", logout);
+    document.getElementById("BrowseVendors")?.addEventListener("click", () => {
+      window.location.href = "multi-vendors.html";
+    }); 
   </script>
 </body>
 </html>
