@@ -244,15 +244,43 @@
 
         
 
-        <p id="numOrders" class="text-sm text-gray-500 mt-3">
-          0 orders displayed
-        </p>
+        
 
         <section class="flex gap-3 mt-6">
           <button type="button" id="closeHistoryModal" class="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50">
             Close
           </button>
         </section>
+
+      </article>
+    </section>
+
+    <section
+      id="order-details-modal"
+      class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+      <article class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto slide-in p-6">
+
+        <header class="flex justify-center">
+          <h3 class="text-xl font-bold mb-4" id="modal-title">
+            Order Details
+          </h3>
+        </header>
+
+        <section id="itemList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></section>
+
+        <section class="flex gap-3 mt-6">
+          <button
+            type="button"
+            onclick="document.getElementById('order-details-modal').classList.add('hidden')"
+            class="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50"
+          >
+            Close
+          </button>
+        </section>
+
+        <p id="numItemsOrder" class="text-sm text-gray-500">
+          0 items in order
+        </p>
 
       </article>
     </section>
