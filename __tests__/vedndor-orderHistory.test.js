@@ -615,4 +615,146 @@ test("does nothing when order is not found", async () => {
       .classList.contains("hidden")
   ).toBe(true);
 });
+test("falls back when customer document does not exist", async () => {
+
+  getDoc
+    .mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        role: "vendor"
+      })
+    })
+    .mockResolvedValueOnce({
+      exists: () => false
+    });
+
+  getDocs.mockResolvedValue({
+    docs: [
+      {
+        id: "o1",
+        data: () => ({
+          status: "Collected",
+          userId: "missing-user",
+          total: 20,
+          createdAt: {
+            seconds: 1
+          },
+          menuItems: []
+        })
+      }
+    ]
+  });
+
+  await setupPage();
+  await triggerAuth();
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(
+    document.getElementById("orderList").innerHTML
+  ).toContain("Unknown Customer");
+});
+test("sorts by lowest price", async () => {
+
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor"
+    })
+  });
+
+  getDocs.mockResolvedValue({
+    docs: [
+      {
+        id: "o1",
+        data: () => ({
+          status: "Collected",
+          total: 500,
+          createdAt: {
+            seconds: 2
+          },
+          menuItems: []
+        })
+      },
+      {
+        id: "o2",
+        data: () => ({
+          status: "Collected",
+          total: 20,
+          createdAt: {
+            seconds: 1
+          },
+          menuItems: []
+        })
+      }
+    ]
+  });
+
+  await setupPage();
+  await triggerAuth();
+
+  document.getElementById("SortBy").value =
+    "PriceLowToHigh";
+
+  document
+    .getElementById("SortBy")
+    .dispatchEvent(new Event("change"));
+
+  expect(
+    document.getElementById("orderList").innerHTML
+  ).toContain("Collected");
+});
+test("filters customer search", async () => {
+
+  getDoc
+    .mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        role: "vendor"
+      })
+    })
+    .mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        fullName: "John Doe"
+      })
+    });
+
+  getDocs.mockResolvedValue({
+    docs: [
+      {
+        id: "o1",
+        data: () => ({
+          status: "Collected",
+          userId: "u1",
+          total: 20,
+          createdAt: {
+            seconds: 1
+          },
+          menuItems: []
+        })
+      }
+    ]
+  });
+
+  await setupPage();
+  await triggerAuth();
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  const search =
+    document.getElementById("customerSearch");
+
+  search.value = "john";
+
+  search.dispatchEvent(
+    new Event("input")
+  );
+
+  expect(
+    document.getElementById("orderList").innerHTML
+  ).toContain("John Doe");
+});
 });
