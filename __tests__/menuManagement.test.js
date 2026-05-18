@@ -471,4 +471,21 @@ describe("menuManagement.js", () => {
 
     expect(console.log).toHaveBeenCalledWith("No user is signed in.");
   });
+  test("saveItem rejects price above R1000", async () => {
+    await loadModule();
+
+    document.getElementById("item-name").value = "Burger";
+    document.getElementById("item-description").value = "Nice";
+    document.getElementById("item-price").value = "1200";
+    document.getElementById("item-category").value = "Fast Food";
+
+    await window.vendorActions.saveItem({
+      preventDefault: jest.fn()
+    });
+
+    expect(global.alert)
+      .toHaveBeenCalledWith("Price cannot exceed R1000");
+
+    expect(addDoc).not.toHaveBeenCalled();
+  });
 });
