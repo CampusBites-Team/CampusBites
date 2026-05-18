@@ -53,6 +53,16 @@
     transform: translateX(0);
   }
 }
+
+@keyframes floatSoft {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-14px) rotate(3deg); }
+}
+
+.float-soft {
+  animation: floatSoft 5s ease-in-out infinite;
+}
+
 </style>
 
 <body class="bg-white text-slate-900">
@@ -96,8 +106,23 @@
 
     <section class="relative overflow-hidden bg-white">
 
-        <section class="absolute top-0 right-0 w-[700px] h-[700px] bg-indigo-100 rounded-full blur-3xl opacity-40"></section>
-        <section class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-orange-100 rounded-full blur-3xl opacity-30"></section>
+        <section class="absolute -left-28 top-24 w-[420px] h-[340px] bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
+<section class="absolute -right-24 top-40 w-[520px] h-[420px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-60"></section>
+<section class="absolute left-24 bottom-10 w-[360px] h-[260px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-60 rotate-[-10deg]"></section>
+<section class="absolute right-36 bottom-20 w-[500px] h-[330px] bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-55 rotate-[8deg]"></section>
+<section class="absolute left-[42%] top-24 w-52 h-40 bg-white/70 rounded-[45%_55%_60%_40%] opacity-80 border border-indigo-100"></section>
+
+<span class="absolute left-20 top-36 text-indigo-500 text-6xl font-bold float-soft">+</span>
+<span class="absolute left-72 bottom-36 text-orange-500 text-5xl font-bold float-soft">✦</span>
+<span class="absolute right-72 top-28 text-orange-500 text-5xl font-bold float-soft">✦</span>
+<span class="absolute right-20 bottom-44 text-indigo-500 text-6xl font-bold float-soft">+</span>
+<span class="absolute left-[48%] bottom-28 text-indigo-400 text-4xl font-bold float-soft">↝</span>
+
+<i data-lucide="hamburger" class="absolute top-16 right-16 w-14 h-14 text-indigo-600 float-soft"></i>
+<i data-lucide="coffee" class="absolute right-16 bottom-56 w-24 h-24 text-orange-500 float-soft"></i>
+<i data-lucide="pizza" class="absolute left-28 bottom-28 w-24 h-24 text-indigo-600 float-soft"></i>
+<i data-lucide="shopping-bag" class="absolute left-[42%] top-20 w-16 h-16 text-orange-500 float-soft"></i>
+<i data-lucide="utensils-crossed" class="absolute right-[38%] bottom-20 w-20 h-20 text-indigo-500 float-soft"></i>
 
         <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[88vh] grid lg:grid-cols-2 gap-16 items-center pt-20 pb-16">
 
@@ -175,11 +200,10 @@
 
         <section class="absolute w-[720px] h-[540px] bg-indigo-100 rounded-[45%_55%_50%_50%] opacity-70 -translate-x-10"></section>
 
-        <i data-lucide="hamburger" class="absolute top-16 right-16 w-14 h-14 text-indigo-600"></i>
         <i data-lucide="coffee" class="absolute top-56 right-0 w-14 h-14 text-orange-500"></i>
         <i data-lucide="pizza" class="absolute bottom-24 right-20 w-14 h-14 text-indigo-600"></i>
 
-        <span class="absolute top-24 left-10 text-indigo-400 text-4xl font-bold">+</span>
+        <span class="absolute top-25 left-10 text-indigo-400 text-4xl font-bold">+</span>
         <span class="absolute top-64 right-32 text-orange-500 text-2xl font-bold">✦</span>
         <span class="absolute bottom-24 left-20 text-indigo-400 text-2xl font-bold">✦</span>
 
@@ -223,8 +247,18 @@
     </section>
 
     <!-- FEATURES SECTION -->
-    <section class="py-20 bg-white">
-        <section id="FeaturesSection" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section class="relative overflow-hidden py-20 bg-white">
+      <section class="absolute -left-20 top-20 w-72 h-56 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-60"></section>
+<section class="absolute right-10 top-32 w-64 h-48 bg-orange-100 rounded-[55%_45%_40%_60%] opacity-60 rotate-[8deg]"></section>
+<section class="absolute left-[45%] bottom-10 w-52 h-40 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-50"></section>
+
+<span class="absolute left-20 top-28 text-indigo-500 text-5xl font-bold float-soft">+</span>
+<span class="absolute right-32 top-40 text-orange-500 text-4xl font-bold float-soft">✦</span>
+<span class="absolute left-[52%] bottom-20 text-indigo-400 text-4xl font-bold float-soft">↝</span>
+
+<i data-lucide="utensils-crossed" class="absolute left-32 bottom-28 w-20 h-20 text-orange-500 float-soft"></i>
+<i data-lucide="coffee" class="absolute right-48 bottom-20 w-20 h-20 text-indigo-500 float-soft"></i>
+        <section id="FeaturesSection" class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             <header class="text-center mb-12">
                 <p class="text-orange-500 font-bold uppercase tracking-wide mb-2">
@@ -278,7 +312,13 @@
         </section>
 
         <!-- SERVICES SECTION -->
-        <section id="ServicesSection" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
+        <section id="ServicesSection" class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-20 overflow-hidden py-10">
+
+          <section class="absolute -left-24 top-10 w-80 h-64 bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70 -z-10 rotate-[-8deg]"></section>
+<section class="absolute -right-24 top-40 w-96 h-72 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70 -z-10 rotate-[10deg]"></section>
+<section class="absolute left-[42%] bottom-0 w-80 h-56 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-60 -z-10"></section>
+<section class="absolute left-[30%] top-36 w-52 h-40 bg-orange-50 rounded-[55%_45%_40%_60%] opacity-80 -z-10"></section>
+
 
             <header class="text-center mb-12">
                 <p class="text-orange-500 font-bold uppercase tracking-wide mb-2">

@@ -29,6 +29,15 @@
 .animate-slide-in {
   animation: slide-in 0.3s ease;
 }
+
+@keyframes floatSoft {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-14px) rotate(3deg); }
+}
+
+.float-soft {
+  animation: floatSoft 5s ease-in-out infinite;
+}
 </style>
 
 <body class="bg-white text-slate-900">
@@ -71,20 +80,23 @@
 
  <main class="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50 to-white px-4 sm:px-6 lg:px-8 pt-24 pb-12">
 
-   <section class="absolute -left-28 top-32 w-96 h-80 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
-<section class="absolute -right-20 bottom-6 w-[430px] h-[360px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
-<section class="absolute right-56 top-24 w-60 h-48 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-80"></section>
-<section class="absolute left-10 bottom-10 w-72 h-56 bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70 rotate-[-12deg]"></section>
+<section class="absolute -left-28 top-24 w-[420px] h-[340px] bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
+<section class="absolute -right-24 top-40 w-[360px] h-[300px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
+<section class="absolute left-24 bottom-10 w-[360px] h-[260px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-60 rotate-[-10deg]"></section>
+<section class="absolute right-36 bottom-20 w-[460px] h-[300px] bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-60 rotate-[8deg]"></section>
+<section class="absolute left-[38%] top-32 w-52 h-40 bg-white/70 rounded-[45%_55%_60%_40%] opacity-80 border border-indigo-100"></section>
 
-<span class="absolute left-28 top-40 text-indigo-500 text-5xl font-bold">+</span>
-<span class="absolute left-72 bottom-40 text-indigo-500 text-5xl font-bold">+</span>
-<span class="absolute right-72 bottom-24 text-indigo-500 text-5xl font-bold">+</span>
-<span class="absolute right-80 top-72 text-orange-500 text-4xl font-bold">✦</span>
-<span class="absolute left-[22rem] bottom-64 text-orange-500 text-4xl font-bold">✦</span>
+<span class="absolute left-20 top-36 text-indigo-500 text-6xl font-bold float-soft">+</span>
+<span class="absolute left-72 bottom-36 text-orange-500 text-5xl font-bold float-soft">✦</span>
+<span class="absolute right-72 top-28 text-orange-500 text-5xl font-bold float-soft">✦</span>
+<span class="absolute right-20 bottom-44 text-indigo-500 text-6xl font-bold float-soft">+</span>
+<span class="absolute left-[48%] bottom-28 text-indigo-400 text-4xl font-bold float-soft">↝</span>
 
-<i data-lucide="hamburger" class="absolute right-72 top-36 w-24 h-24 text-indigo-600"></i>
-<i data-lucide="coffee" class="absolute right-28 bottom-48 w-24 h-24 text-orange-500"></i>
-<i data-lucide="shopping-bag" class="absolute left-32 bottom-28 w-24 h-24 text-orange-500"></i>
+<i data-lucide="hamburger" class="absolute right-64 top-36 w-20 h-20 text-indigo-600 float-soft"></i>
+<i data-lucide="coffee" class="absolute right-16 bottom-56 w-24 h-24 text-orange-500 float-soft"></i>
+<i data-lucide="pizza" class="absolute left-28 bottom-28 w-24 h-24 text-indigo-600 float-soft"></i>
+<i data-lucide="shopping-bag" class="absolute left-[42%] top-20 w-16 h-16 text-orange-500 float-soft"></i>
+<i data-lucide="utensils-crossed" class="absolute right-[38%] bottom-20 w-20 h-20 text-indigo-500 float-soft"></i>
     <section class="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row gap-6">
 
       <aside class="w-full md:w-64 space-y-6">

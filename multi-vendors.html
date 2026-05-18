@@ -12,7 +12,7 @@
   <meta name="theme-color" content="#4f46e5">
 </head>
 
-<body class="min-h-screen bg-gray-100">
+<body class="min-h-screen bg-white text-slate-900 overflow-x-hidden">
 
   <nav class="bg-white border-b border-gray-200 shadow-sm">
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
@@ -48,28 +48,45 @@
     </section>
   </nav>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <main class="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50 to-white px-4 sm:px-6 lg:px-8 py-12">
 
-    <header class="mb-8">
-      <h1 class="text-3xl md:text-4xl font-bold text-indigo-950">
+    <section class="absolute -left-28 top-32 w-96 h-80 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
+<section class="absolute -right-20 bottom-6 w-[430px] h-[360px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
+<section class="absolute right-56 top-24 w-60 h-48 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-80"></section>
+<section class="absolute left-10 bottom-10 w-72 h-56 bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70 rotate-[-12deg]"></section>
+
+<span class="absolute left-28 top-40 text-indigo-500 text-5xl font-bold">+</span>
+<span class="absolute left-72 bottom-40 text-indigo-500 text-5xl font-bold">+</span>
+<span class="absolute right-72 bottom-24 text-indigo-500 text-5xl font-bold">+</span>
+<span class="absolute right-80 top-72 text-orange-500 text-4xl font-bold">✦</span>
+<span class="absolute left-[22rem] bottom-64 text-orange-500 text-4xl font-bold">✦</span>
+
+<i data-lucide="store" class="absolute right-72 top-36 w-24 h-24 text-indigo-600"></i>
+<i data-lucide="coffee" class="absolute right-28 bottom-48 w-24 h-24 text-orange-500"></i>
+<i data-lucide="shopping-bag" class="absolute left-32 bottom-28 w-24 h-24 text-orange-500"></i>
+
+<section class="relative z-10 max-w-7xl mx-auto">
+
+    <header class="mb-8 bg-white/95 backdrop-blur rounded-[1.7rem] p-8 shadow-xl shadow-indigo-100 border border-indigo-100">
+      <h1 class="text-4xl md:text-5xl font-extrabold text-indigo-950">
         Available Vendors
       </h1>
-      <p class="mt-2 font-bold text-orange-500">
+      <p class="mt-3 text-lg font-semibold text-slate-600">
         Browse all approved vendors currently available on CampusBites.
       </p>
     </header>
 
-    <section class="mb-6 flex flex-col md:flex-row gap-4">
+    <section class="mb-8 bg-white/95 backdrop-blur rounded-[1.7rem] p-5 shadow-xl shadow-indigo-100 border border-indigo-100 flex flex-col md:flex-row gap-4">
       <input
         id="vendorSearch"
         type="text"
         placeholder="Search vendors..."
-        class="w-full md:w-1/2 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        class="w-full md:w-1/2 border border-indigo-100 rounded-2xl px-4 py-3 bg-indigo-50/40 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
       />
 
       <select
         id="categoryFilter"
-        class="w-full md:w-64 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        class="w-full md:w-64 border border-indigo-100 rounded-2xl px-4 py-3 bg-indigo-50/40 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
       >
         <option value="all">All Categories</option>
       </select>
@@ -79,9 +96,12 @@
       id="vendorsGrid"
       class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
     >
-      <p class="text-gray-500 col-span-full">Loading vendors...</p>
+      <p class="text-slate-600 font-semibold col-span-full bg-white/95 rounded-2xl p-6 shadow border border-indigo-100">
+  Loading vendors...
+</p>
     </section>
 
+  </section>
   </main>
 
   <script src="scripts/pwa.js"></script>
@@ -105,12 +125,12 @@
     function renderVendors(vendors) {
       if (!vendors.length) {
         vendorsGrid.innerHTML = `
-          <section class="col-span-full flex flex-col items-center justify-center text-center py-20">
-            <i data-lucide="store-x" class="w-16 h-16 text-gray-400 mb-4"></i>
-            <h2 class="text-xl font-semibold text-gray-800 mb-2">
+          <section class="col-span-full flex flex-col items-center justify-center text-center py-20 bg-white/95 backdrop-blur rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100">
+            <i data-lucide="store-x" class="w-16 h-16 text-orange-500 mb-4"></i>
+            <h2 class="text-xl font-extrabold text-indigo-950 mb-2">
               No vendors found
             </h2>
-            <p class="text-gray-500">
+            <p class="text-slate-600">
               Try changing your search or category filter.
             </p>
           </section>
@@ -122,7 +142,7 @@
 
       vendorsGrid.innerHTML = vendors.map((vendor) => `
         <article
-          class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition cursor-pointer"
+          class="bg-white/95 backdrop-blur rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100 overflow-hidden hover:-translate-y-1 hover:shadow-2xl transition cursor-pointer"
           data-vendor-id="${vendor.id}"
         >
           <img
@@ -133,26 +153,26 @@
 
           <section class="p-6">
             <section class="flex justify-between items-start gap-3 mb-2">
-              <h2 class="text-xl font-bold text-gray-900">
+              <h2 class="text-xl font-extrabold text-indigo-950">
                 ${vendor.shopName || vendor.fullName || "Vendor"}
               </h2>
 
-              <span class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-semibold">
+              <span class="text-xs bg-orange-100 text-orange-600 px-3 py-1 rounded-full font-bold">
                 Approved
               </span>
             </section>
 
-            <p class="text-sm text-gray-500 mb-3">
+            <p class="text-sm text-slate-500 mb-3 font-medium">
               ${vendor.storeCategory || "Food"} • ${vendor.location || "Campus"}
             </p>
 
-            <p class="text-gray-700 mb-4">
+            <p class="text-slate-600 mb-4">
               ${vendor.storeSlogan || "Delicious meals available on CampusBites."}
             </p>
 
             <a
               href="vendor-profile.html?vendorId=${vendor.id}"
-              class="inline-flex items-center gap-2 text-indigo-600 font-semibold hover:underline"
+              class="inline-flex items-center gap-2 text-indigo-600 font-bold hover:text-orange-500 transition"
             >
               View vendor
               <i data-lucide="arrow-right" class="w-4 h-4"></i>
@@ -233,7 +253,7 @@
         console.error("Failed to load vendors:", error);
 
         vendorsGrid.innerHTML = `
-          <p class="text-red-500 col-span-full">
+          <p class="text-red-500 font-semibold col-span-full bg-white/95 rounded-2xl p-6 shadow border border-red-100">
             Failed to load vendors.
           </p>
         `;
