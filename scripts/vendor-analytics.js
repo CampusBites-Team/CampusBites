@@ -13,6 +13,8 @@ import Papa from "https://cdn.jsdelivr.net/npm/papaparse@5.4.1/+esm";
 
 let allVendorOrders = [];
 let analyticsChart;
+let peakChart;
+let itemsChart;
 let currentFilteredOrders = [];
 
 onAuthStateChanged(auth, async (user) => {
@@ -78,10 +80,87 @@ function updateAnalytics(orders) {
   document.getElementById("totalRevenue").textContent = `R${totalRevenue.toFixed(2)}`;
 
   updateAnalyticsChart(orders);
+  updateAdditionalCharts(orders);
   updateCustomReport(orders);
 
   document.getElementById("analyticsMessage").textContent =
     `Showing ${totalOrders} orders, with ${collectedOrders.length} collected orders and R${totalRevenue.toFixed(2)} revenue.`;
+}
+
+function updateAdditionalCharts(orders) {
+  const peakCanvas = document.getElementById("peakChart");
+  const itemsCanvas = document.getElementById("itemsChart");
+
+  if (!peakCanvas || !itemsCanvas) return;
+
+  const hourlyOrders = {};
+
+  orders.forEach((order) => {
+    const orderDate = getOrderDate(order);
+
+    if (!orderDate) return;
+
+    const hour = orderDate.getHours();
+
+    hourlyOrders[hour] = (hourlyOrders[hour] || 0) + 1;
+  });
+
+  const peakLabels = Object.keys(hourlyOrders).sort((a, b) => a - b);
+  const peakData = peakLabels.map((hour) => hourlyOrders[hour]);
+
+  if (peakChart) {
+    peakChart.destroy();
+  }
+
+  peakChart = new Chart(peakCanvas, {
+    type: "line",
+    data: {
+      labels: peakLabels,
+      datasets: [{
+        label: "Orders",
+        data: peakData,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
+
+  const itemCounts = {};
+
+  orders.forEach((order) => {
+    (order.menuItems || []).forEach((item) => {
+      itemCounts[item.name] =
+        (itemCounts[item.name] || 0) + Number(item.quantity || 1);
+    });
+  });
+
+  const sortedItems = Object.entries(itemCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  const itemLabels = sortedItems.map(([name]) => name);
+  const itemData = sortedItems.map(([, qty]) => qty);
+
+  if (itemsChart) {
+    itemsChart.destroy();
+  }
+
+  itemsChart = new Chart(itemsCanvas, {
+    type: "doughnut",
+    data: {
+      labels: itemLabels,
+      datasets: [{
+        data: itemData
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
 }
 
 function updateAnalyticsChart(orders) {
