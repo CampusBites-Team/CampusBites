@@ -1065,4 +1065,20 @@ describe("browse.js", () => {
   expect(document.getElementById("toast-container").innerHTML)
     .toContain("added to cart");
 });
+test("shows toast when item is added to cart", async () => {
+  await bootBrowse();
+
+  // ensure container does not exist yet
+  document.getElementById("toast-container")?.remove();
+
+  const addButton = document.querySelector(".add-cart-btn");
+
+  addButton.click();
+
+  const toastContainer = document.getElementById("toast-container");
+
+  expect(toastContainer).not.toBeNull();
+
+  expect(toastContainer.innerHTML).toContain("added to cart");
+});
 });
