@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CampusBites - Vendor Order History</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="CampusBites">
+</head>
+
+<body class="min-h-screen bg-gray-100">
+
+<nav class="bg-white border-b border-gray-200 shadow-sm">
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+    <a href="index.html" class="flex items-center gap-2">
+      <i data-lucide="utensils" class="w-7 h-7 text-indigo-600"></i>
+      <span class="text-xl font-bold text-gray-900">CampusBites</span>
+    </a>
+
+    <section id="navLinks" class="flex items-center gap-6 mx-auto">
+      <!-- Populated by navbar.js -->
+    </section>
+
+        <section id="profileMenuContainer" class="relative hidden">
+        <button id="profileMenuBtn" class="flex items-center gap-2">
+            <img
+            id="profileAvatar"
+             src="assets/default-icon.png"
+            alt="Profile"
+            class="w-10 h-10 rounded-full object-cover border-2 border-indigo-500"
+            />
+        </button>
+
+        <section
+            id="profileDropdown"
+            class="hidden absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50"
+        ></section>
+        </section>
+  </section>
+</nav>
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+  <section class="mb-8">
+    <h1 class="text-4xl font-extrabold text-indigo-950">
+      Order History
+    </h1>
+
+    <p class="text-gray-600 mt-2">
+      View all collected customer orders.
+    </p>
+  </section>
+
+  <!-- Filters -->
+  <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 mb-6">
+    
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+      <section>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Sort By
+        </label>
+
+        <select
+          id="SortBy"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2"
+        >
+          <option value="Newest">Newest</option>
+          <option value="Oldest">Oldest</option>
+          <option value="PriceHighToLow">Revenue High → Low</option>
+          <option value="PriceLowToHigh">Revenue Low → High</option>
+        </select>
+      </section>
+
+      <section>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Order Date
+        </label>
+
+        <input
+          type="date"
+          id="orderDate"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2"
+        >
+      </section>
+      <section>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+            Search Customer
+        </label>
+
+        <input
+            type="text"
+            id="customerSearch"
+            placeholder="Search by customer name..."
+            class="w-full border border-gray-300 rounded-lg px-3 py-2"
+        >
+        </section>
+
+    </section>
+
+  </section>
+
+  <!-- Orders -->
+  <section
+    id="orderList"
+    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+  ></section>
+
+</main>
+
+<!-- Details Modal -->
+<section
+  id="order-details-modal"
+  class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+>
+  <section class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6">
+
+    <section class="flex justify-between items-center mb-6">
+      <h2
+        id="modal-title"
+        class="text-2xl font-bold text-gray-900"
+      >
+        Order Details
+      </h2>
+
+      <button
+        id="closeOrderModal"
+        class="text-gray-500 hover:text-gray-700"
+      >
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+    </section>
+
+    <p
+      id="numItemsOrder"
+      class="text-sm text-gray-500 mb-4"
+    ></p>
+
+    <section
+      id="itemList"
+      class="grid grid-cols-1 md:grid-cols-2 gap-4"
+    ></section>
+
+  </section>
+</section>
+
+<script type="module" src="scripts/navbar.js"></script>
+<script type="module" src="scripts/pwa.js"></script>
+<script type="module" src="scripts/vendor-orderHistory.js"></script>
+</body>
+</html>

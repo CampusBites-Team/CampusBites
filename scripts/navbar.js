@@ -47,6 +47,7 @@ const PROFILE_LINKS = {
   vendor: [
     { label: "Home", href: "index.html" },
     { label: "Menu", href: "menu-management.html" },
+    { label: "Order History", href: "vendor-orderHistory.html" },
     { label: "Analytics", href: "vendor-analytics.html" },
     { label: "Store Settings", href: "vendor-settings.html" }
   ],
@@ -76,7 +77,8 @@ const AUTH_BUTTON_PAGES = [
   "customer-orders.html",
   "recommendations.html",
   "vendor-analytics.html",
-  "vendor-profile.html"
+  "vendor-profile.html",
+  "vendor-orderHistory.html"
 
 ];
 

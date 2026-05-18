@@ -13,6 +13,10 @@ import {
   serverTimestamp
 } from "./database.js";
 
+import {
+  formatTimestamp
+} from "./orders.js";
+
 // ---------------- AUTH GUARD ----------------
 export function initVendorDashboard(locationObj = window.location, alertFn = alert) {
   onAuthStateChanged(auth, async (user) => {
@@ -52,6 +56,7 @@ export function initVendorDashboard(locationObj = window.location, alertFn = ale
     const orders = await fetchVendorOrders(user.uid);
     renderOrders(orders);
     attachOrderStatusListeners();
+    //listenToVendorOrders(user.uid, renderOrdersByStatus);
   });
 }
 
