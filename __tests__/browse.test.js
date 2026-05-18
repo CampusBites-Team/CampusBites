@@ -207,7 +207,7 @@ describe("browse.js", () => {
       <input id="Vegetarian" type="checkbox" />
       <input id="Gluten-Free" type="checkbox" />
       <input id="Halal" type="checkbox" />
-
+      <section id="toast-container"></section>
       <label id="PriceLabel"></label>
       <input id="PriceSlider" type="range" />
 
@@ -1057,4 +1057,12 @@ describe("browse.js", () => {
       expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining("502"));
     });
   });
+  test("shows toast when item added to cart", async () => {
+  await bootBrowse();
+
+  document.querySelector(".add-cart-btn").click();
+
+  expect(document.getElementById("toast-container").innerHTML)
+    .toContain("added to cart");
+});
 });

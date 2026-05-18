@@ -11,7 +11,10 @@
   <meta name="apple-mobile-web-app-title" content="CampusBites">
 </head>
 <style>
-  @keyframes slide-in {
+  #toast-container article {
+  animation: toast-slide-in 0.25s ease;
+}
+  @keyframes toast-slide-in {
   from {
     opacity: 0;
     transform: translateX(40px);
