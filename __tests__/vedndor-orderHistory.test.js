@@ -47,6 +47,7 @@ describe("vendor-orderHistory.js", () => {
         <option value="Newest">Newest</option>
         <option value="Oldest">Oldest</option>
         <option value="PriceHighToLow">Price High To Low</option>
+        <option value="PriceLowToHigh">Price Low To High</option>
       </select>
 
       <input id="orderDate" type="date">
@@ -501,56 +502,6 @@ test("falls back to Unknown Customer when customer fetch fails", async () => {
     document.getElementById("orderList").innerHTML
   ).toContain("Unknown Customer");
 });
-test("sorts orders by lowest price", async () => {
-
-  getDoc.mockResolvedValue({
-    exists: () => true,
-    data: () => ({
-      role: "vendor"
-    })
-  });
-
-  getDocs.mockResolvedValue({
-    docs: [
-      {
-        id: "o1",
-        data: () => ({
-          status: "Collected",
-          total: 500,
-          createdAt: {
-            seconds: 1
-          },
-          menuItems: []
-        })
-      },
-      {
-        id: "o2",
-        data: () => ({
-          status: "Collected",
-          total: 20,
-          createdAt: {
-            seconds: 2
-          },
-          menuItems: []
-        })
-      }
-    ]
-  });
-
-  await setupPage();
-  await triggerAuth();
-
-  document.getElementById("SortBy").value =
-    "PriceLowToHigh";
-
-  document
-    .getElementById("SortBy")
-    .dispatchEvent(new Event("change"));
-
-  expect(
-    document.getElementById("orderList").innerHTML
-  ).toContain("Collected");
-});
 test("renders orders when customer search is empty", async () => {
 
   getDoc.mockResolvedValue({
@@ -654,56 +605,6 @@ test("falls back when customer document does not exist", async () => {
   expect(
     document.getElementById("orderList").innerHTML
   ).toContain("Unknown Customer");
-});
-test("sorts by lowest price", async () => {
-
-  getDoc.mockResolvedValue({
-    exists: () => true,
-    data: () => ({
-      role: "vendor"
-    })
-  });
-
-  getDocs.mockResolvedValue({
-    docs: [
-      {
-        id: "o1",
-        data: () => ({
-          status: "Collected",
-          total: 500,
-          createdAt: {
-            seconds: 2
-          },
-          menuItems: []
-        })
-      },
-      {
-        id: "o2",
-        data: () => ({
-          status: "Collected",
-          total: 20,
-          createdAt: {
-            seconds: 1
-          },
-          menuItems: []
-        })
-      }
-    ]
-  });
-
-  await setupPage();
-  await triggerAuth();
-
-  document.getElementById("SortBy").value =
-    "PriceLowToHigh";
-
-  document
-    .getElementById("SortBy")
-    .dispatchEvent(new Event("change"));
-
-  expect(
-    document.getElementById("orderList").innerHTML
-  ).toContain("Collected");
 });
 test("filters customer search", async () => {
 
