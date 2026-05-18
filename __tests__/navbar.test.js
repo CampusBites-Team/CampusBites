@@ -16,6 +16,17 @@ jest.mock("../scripts/database.js", () => ({
 }));
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+async function loadNavbar() {
+  jest.isolateModules(() => {
+    require("../scripts/navbar.js");
+  });
+
+  document.dispatchEvent(
+    new Event("DOMContentLoaded")
+  );
+
+  await flush();
+}
 
 describe("navbar.js", () => {
   let database;
@@ -42,14 +53,14 @@ describe("navbar.js", () => {
     `;
   }
 
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.resetModules();
     jest.clearAllMocks();
 
     setupDom();
     setPath("/index.html");
 
-    database = await import("../scripts/database.js");
+    database = require("../scripts/database.js");
 
     database.auth.signOut.mockResolvedValue();
 
@@ -72,10 +83,8 @@ describe("navbar.js", () => {
   });
 
   test("renders guest links and sign in option when user is not logged in", async () => {
-    await import("../scripts/navbar.js");
 
-    document.dispatchEvent(new Event("DOMContentLoaded"));
-    await flush();
+    await loadNavbar();
 
     const navHtml = document.getElementById("navLinks").innerHTML;
     const dropdownHtml = document.getElementById("profileDropdown").innerHTML;
@@ -102,10 +111,7 @@ describe("navbar.js", () => {
       })
     });
 
-    await import("../scripts/navbar.js");
-
-    document.dispatchEvent(new Event("DOMContentLoaded"));
-    await flush();
+    await loadNavbar();
 
     const navHtml = document.getElementById("navLinks").innerHTML;
     const dropdownHtml = document.getElementById("profileDropdown").innerHTML;
@@ -132,10 +138,7 @@ describe("navbar.js", () => {
       })
     });
 
-    await import("../scripts/navbar.js");
-
-    document.dispatchEvent(new Event("DOMContentLoaded"));
-    await flush();
+    await loadNavbar();
 
     const navHtml = document.getElementById("navLinks").innerHTML;
     const dropdownHtml = document.getElementById("profileDropdown").innerHTML;
@@ -163,10 +166,7 @@ describe("navbar.js", () => {
       })
     });
 
-    await import("../scripts/navbar.js");
-
-    document.dispatchEvent(new Event("DOMContentLoaded"));
-    await flush();
+    await loadNavbar();
 
     const navHtml = document.getElementById("navLinks").innerHTML;
     const dropdownHtml = document.getElementById("profileDropdown").innerHTML;
@@ -183,7 +183,7 @@ describe("navbar.js", () => {
   });
 
   test("hides profile menu on pages not listed for auth controls", async () => {
-    setPath("/menu-management.html");
+    setPath("/pending-approval.html");
 
     database.onAuthStateChanged.mockImplementation((auth, callback) => {
       callback({ uid: "vendor123" });
@@ -196,10 +196,7 @@ describe("navbar.js", () => {
       })
     });
 
-    await import("../scripts/navbar.js");
-
-    document.dispatchEvent(new Event("DOMContentLoaded"));
-    await flush();
+    await loadNavbar();
 
     expect(document.getElementById("profileMenuContainer").classList.contains("hidden"))
       .toBe(true);
@@ -219,10 +216,7 @@ describe("navbar.js", () => {
       })
     });
 
-    await import("../scripts/navbar.js");
-
-    document.dispatchEvent(new Event("DOMContentLoaded"));
-    await flush();
+    await loadNavbar();
 
     expect(document.getElementById("profileMenuContainer").classList.contains("hidden"))
       .toBe(false);
@@ -241,10 +235,7 @@ describe("navbar.js", () => {
       data: () => ({})
     });
 
-    await import("../scripts/navbar.js");
-
-    document.dispatchEvent(new Event("DOMContentLoaded"));
-    await flush();
+    await loadNavbar();
 
     const navHtml = document.getElementById("navLinks").innerHTML;
 
@@ -260,10 +251,7 @@ describe("navbar.js", () => {
 
     database.getDoc.mockRejectedValueOnce(new Error("Firestore failed"));
 
-    await import("../scripts/navbar.js");
-
-    document.dispatchEvent(new Event("DOMContentLoaded"));
-    await flush();
+    await loadNavbar();
 
     const navHtml = document.getElementById("navLinks").innerHTML;
 
@@ -288,10 +276,7 @@ describe("navbar.js", () => {
       })
     });
 
-    await import("../scripts/navbar.js");
-
-    document.dispatchEvent(new Event("DOMContentLoaded"));
-    await flush();
+    await loadNavbar();
 
     const dropdown = document.getElementById("profileDropdown");
     const button = document.getElementById("profileMenuBtn");
@@ -317,10 +302,7 @@ test("closes dropdown when clicking outside", async () => {
     })
   });
 
-  await import("../scripts/navbar.js");
-
-  document.dispatchEvent(new Event("DOMContentLoaded"));
-  await flush();
+  await loadNavbar();
 
   const dropdown = document.getElementById("profileDropdown");
 
@@ -345,10 +327,7 @@ test("closes dropdown when clicking outside", async () => {
       })
     });
 
-    await import("../scripts/navbar.js");
-
-    document.dispatchEvent(new Event("DOMContentLoaded"));
-    await flush();
+    await loadNavbar();
 
     expect(document.getElementById("profileAvatar").src)
       .toContain("default-icon.png");
@@ -370,10 +349,7 @@ test("closes dropdown when clicking outside", async () => {
       })
     });
 
-    await import("../scripts/navbar.js");
-
-    document.dispatchEvent(new Event("DOMContentLoaded"));
-    await flush();
+    await loadNavbar();
 
     expect(document.getElementById("profileAvatar").src)
       .toContain("custom.png");
@@ -394,10 +370,7 @@ test("closes dropdown when clicking outside", async () => {
       })
     });
 
-    await import("../scripts/navbar.js");
-
-    document.dispatchEvent(new Event("DOMContentLoaded"));
-    await flush();
+    await loadNavbar();
 
     expect(document.getElementById("profileAvatar").src)
       .toContain("photo.png");
@@ -416,10 +389,7 @@ test("closes dropdown when clicking outside", async () => {
       })
     });
 
-    await import("../scripts/navbar.js");
-
-    document.dispatchEvent(new Event("DOMContentLoaded"));
-    await flush();
+    await loadNavbar();
 
     expect(document.getElementById("profileAvatar").src)
       .toContain("logo.png");
@@ -437,10 +407,7 @@ test("closes dropdown when clicking outside", async () => {
       })
     });
 
-    await import("../scripts/navbar.js");
-
-    document.dispatchEvent(new Event("DOMContentLoaded"));
-    await flush();
+    await loadNavbar();
 
     document.getElementById("dropdownLogoutBtn").click();
 
@@ -465,10 +432,7 @@ test("closes dropdown when clicking outside", async () => {
       })
     });
 
-    await import("../scripts/navbar.js");
-
-    document.dispatchEvent(new Event("DOMContentLoaded"));
-    await flush();
+    await loadNavbar();
 
     document.getElementById("dropdownLogoutBtn").click();
 
@@ -492,10 +456,7 @@ test("closes dropdown when clicking outside", async () => {
       })
     });
 
-    await import("../scripts/navbar.js");
-
-    document.dispatchEvent(new Event("DOMContentLoaded"));
-    await flush();
+    await loadNavbar();
 
     document.getElementById("logoutBtn").click();
 
@@ -509,10 +470,7 @@ test("closes dropdown when clicking outside", async () => {
       new Error("logout failed")
     );
 
-    await import("../scripts/navbar.js");
-
-    document.dispatchEvent(new Event("DOMContentLoaded"));
-    await flush();
+    await loadNavbar();
 
     document.getElementById("logoutBtn").click();
 
@@ -533,10 +491,7 @@ test("closes dropdown when clicking outside", async () => {
       </section>
     `;
 
-    await import("../scripts/navbar.js");
-
-    document.dispatchEvent(new Event("DOMContentLoaded"));
-    await flush();
+    await loadNavbar();
 
     expect(document.getElementById("navLinks")).toBeNull();
   });
@@ -546,10 +501,7 @@ test("closes dropdown when clicking outside", async () => {
       <section id="navLinks"></section>
     `;
 
-    await import("../scripts/navbar.js");
-
-    document.dispatchEvent(new Event("DOMContentLoaded"));
-    await flush();
+    await loadNavbar();
 
     expect(document.getElementById("navLinks").innerHTML)
       .toContain("Home");
