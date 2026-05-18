@@ -22,6 +22,7 @@ jest.mock("../scripts/database.js", () => ({
 describe("adminAnalytics.js", () => {
   let database;
   let analytics;
+  let setReportGenerated;
 
   beforeEach(async () => {
     jest.resetModules();
@@ -105,8 +106,10 @@ describe("adminAnalytics.js", () => {
         unparse: jest.fn(() => "csv-content")
       }
     }), { virtual: true });
-
-    ({ analytics } = await import("../scripts/adminAnalytics.js"));
+    ({
+      analytics,
+      __setReportGenerated: setReportGenerated
+    } = await import("../scripts/adminAnalytics.js"));
   });
 
   afterEach(() => {
@@ -295,7 +298,7 @@ describe("adminAnalytics.js", () => {
           }
         ]
       });
-
+      setReportGenerated(true);
     await analytics.exportCSV();
 
     expect(global.URL.createObjectURL).toHaveBeenCalled();
@@ -333,7 +336,7 @@ describe("adminAnalytics.js", () => {
           }
         ]
       });
-
+      setReportGenerated(true);
     await analytics.exportPDF();
 
     expect(window.jspdf.jsPDF).toHaveBeenCalled();
@@ -503,7 +506,7 @@ test("exportPDF blocks when jsPDF is missing", async () => {
     exists: () => true,
     data: () => ({ role: "admin" })
   });
-
+  setReportGenerated(true);
   delete window.jspdf;
 
   await analytics.exportPDF();
