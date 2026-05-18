@@ -507,3 +507,6 @@ export function initAnalyticsPage() {
   });
   });
 }
+export function __setReportGenerated(value) {
+  reportGenerated = value;
+}
