@@ -280,5 +280,185 @@ describe("vendor-orderHistory.js", () => {
       document.getElementById("orderList").innerHTML
     ).toContain("Collected");
   });
+test("sorts orders by oldest", async () => {
 
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor"
+    })
+  });
+
+  getDocs.mockResolvedValue({
+    docs: [
+      {
+        id: "o1",
+        data: () => ({
+          status: "Collected",
+          total: 20,
+          createdAt: {
+            seconds: 50
+          },
+          menuItems: []
+        })
+      },
+      {
+        id: "o2",
+        data: () => ({
+          status: "Collected",
+          total: 100,
+          createdAt: {
+            seconds: 1
+          },
+          menuItems: []
+        })
+      }
+    ]
+  });
+
+  await setupPage();
+  await triggerAuth();
+
+  document.getElementById("SortBy").value =
+    "Oldest";
+
+  document
+    .getElementById("SortBy")
+    .dispatchEvent(new Event("change"));
+
+  expect(
+    document.getElementById("orderList").innerHTML
+  ).toContain("Collected");
+});
+test("sorts orders by lowest price", async () => {
+
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor"
+    })
+  });
+
+  getDocs.mockResolvedValue({
+    docs: [
+      {
+        id: "o1",
+        data: () => ({
+          status: "Collected",
+          total: 500,
+          createdAt: {
+            seconds: 1
+          },
+          menuItems: []
+        })
+      },
+      {
+        id: "o2",
+        data: () => ({
+          status: "Collected",
+          total: 20,
+          createdAt: {
+            seconds: 2
+          },
+          menuItems: []
+        })
+      }
+    ]
+  });
+
+  await setupPage();
+  await triggerAuth();
+
+  document.getElementById("SortBy").value =
+    "PriceLowToHigh";
+
+  document
+    .getElementById("SortBy")
+    .dispatchEvent(new Event("change"));
+
+  expect(
+    document.getElementById("orderList").innerHTML
+  ).toContain("Collected");
+});
+test("filters orders by date", async () => {
+
+getDoc
+  .mockResolvedValueOnce({
+    exists: () => true,
+    data: () => ({
+      role: "vendor"
+    })
+  })
+  .mockResolvedValueOnce({
+    exists: () => true,
+    data: () => ({
+      fullName: "John Doe"
+    })
+  });
+
+  getDocs.mockResolvedValue({
+    docs: [
+      {
+        id: "o1",
+        data: () => ({
+          status: "Collected",
+          userId: "u1",
+          total: 20,
+          createdAt: {
+            toDate: () => new Date("2025-05-10")
+          },
+          menuItems: []
+        })
+      }
+    ]
+  });
+
+  await setupPage();
+  await triggerAuth();
+
+  const input =
+    document.getElementById("orderDate");
+
+  input.value = "2025-05-10";
+
+  input.dispatchEvent(
+    new Event("change")
+  );
+
+  expect(
+    document.getElementById("orderList").innerHTML
+  ).toContain("John Doe");
+});
+test("handles missing customer name", async () => {
+
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor"
+    })
+  });
+
+  getDocs.mockResolvedValue({
+    docs: [
+      {
+        id: "o1",
+        data: () => ({
+          status: "Collected",
+          total: 20,
+          createdAt: {
+            seconds: 1
+          },
+          menuItems: []
+        })
+      }
+    ]
+  });
+
+  await setupPage();
+  await triggerAuth();
+
+  expect(
+    document.getElementById("orderList").innerHTML
+  ).toContain("Customer");
+});
 });
