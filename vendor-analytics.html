@@ -12,6 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="CampusBites">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 
 <body class="min-h-screen bg-gray-100">
@@ -52,13 +53,79 @@
 </nav>
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <header class="mb-10">
-      <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Vendor Analytics</h1>
-      <p class="mt-2 text-gray-600">
-        Monitor total orders, revenue, and performance across selected dates.
-      </p>
-    </header>
+    <header class="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <section>
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Vendor Analytics</h1>
+        <p class="mt-2 text-gray-600">
+          Monitor total orders, revenue, and performance across selected dates.
+        </p>
+      </section>
 
+    <section class="flex gap-2">
+      <button
+        type="button"
+        id="exportCsvBtn"
+        class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2 text-sm"
+      >
+        <i data-lucide="download" class="w-4 h-4"></i>
+      Export CSV
+    </button>
+
+    <button
+      type="button"
+      id="exportPdfBtn"
+      class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2 text-sm"
+    >
+      <i data-lucide="file-text" class="w-4 h-4"></i>
+      Export PDF
+    </button>
+  </section>
+</header>
+
+<section class="bg-white rounded-2xl shadow-md p-6 mb-10">
+  <header class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">Custom Report</h2>
+    <p class="text-gray-600 mt-1">Detailed report for the selected vendor order data.</p>
+  </header>
+
+  <section class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-2 text-left">Date</th>
+          <th class="px-4 py-2 text-right">Orders</th>
+          <th class="px-4 py-2 text-right">Collected</th>
+          <th class="px-4 py-2 text-right">Revenue</th>
+          <th class="px-4 py-2 text-right">Avg Order Value</th>
+        </tr>
+      </thead>
+      <tbody id="customReportBody" class="divide-y divide-gray-200"></tbody>
+    </table>
+  </section>
+</section>
+
+    <section class="bg-white rounded-2xl shadow-md p-6 mb-10">
+  <header class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">Custom Report</h2>
+    <p class="text-gray-600 mt-1">Detailed report for the selected vendor order data.</p>
+  </header>
+
+    <section class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-2 text-left">Date</th>
+            <th class="px-4 py-2 text-right">Orders</th>
+            <th class="px-4 py-2 text-right">Collected</th>
+            <th class="px-4 py-2 text-right">Revenue</th>
+            <th class="px-4 py-2 text-right">Avg Order Value</th>
+          </tr>
+        </thead>
+        <tbody id="customReportBody" class="divide-y divide-gray-200"></tbody>
+      </table>
+    </section>
+  </section>
+    
     <section class="bg-white rounded-2xl shadow-md p-6 mb-10">
       <header class="mb-6">
         <h2 class="text-2xl font-bold text-gray-900">Filter Analytics</h2>
