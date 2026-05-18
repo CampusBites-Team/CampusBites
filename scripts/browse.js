@@ -68,7 +68,54 @@ function getVendorRating(vendorData = {}) {
 function saveCart() {
   localStorage.setItem("cart", JSON.stringify(cart));
 }
+function showToast(message, type = "success") {
+  let toastContainer = document.getElementById("toast-container");
 
+  if (!toastContainer) {
+    toastContainer = document.createElement("section");
+
+    toastContainer.id = "toast-container";
+
+    toastContainer.className =
+      "fixed top-5 right-5 z-[9999] flex flex-col gap-3";
+
+    document.body.appendChild(toastContainer);
+  }
+
+  const toast = document.createElement("article");
+
+  const styles = {
+    success: "bg-green-600",
+    error: "bg-red-600",
+    info: "bg-indigo-600"
+  };
+
+  toast.className = `
+    ${styles[type] || styles.success}
+    text-white px-4 py-3 rounded-xl shadow-lg
+    flex items-center gap-2
+    min-w-[250px]
+    transition-all duration-300
+  `;
+
+  toast.innerHTML = `
+    <i data-lucide="check-circle" class="w-5 h-5"></i>
+    <span>${message}</span>
+  `;
+
+  toastContainer.appendChild(toast);
+
+  globalThis.lucide?.createIcons?.();
+
+  setTimeout(() => {
+    toast.classList.add("opacity-0", "translate-x-5");
+
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
+
+  }, 2500);
+}
 function updateCartCount() {
   const cartCount = document.getElementById("cartCount");
   if (cartCount) cartCount.textContent = cart.length;
@@ -173,15 +220,18 @@ function addToCart(item) {
     }
   }
 
-  if (vendorNum === 10) {
+  if (vendorNum >= 10) {
     alert("You can order at most 10 items from the same vendor");
     return;
   }
 
   cart.push(item);
+
   saveCart();
   updateCart();
   updateCartCount();
+
+  showToast(`${item.name || "Item"} added to cart`);
 }
 
 function applyFilter(item) {
@@ -297,11 +347,20 @@ function setupPriceSlider(items) {
     ...items.map(item => Number(item.price || 0))
   );
 
+  // ✅ only update max attribute
   priceSlider.max = highestPrice;
-  priceSlider.value = highestPrice;
-  maxPrice = highestPrice;
 
-  priceLabel.textContent = `Max Price: R${highestPrice}`;
+  // ✅ preserve current value if possible
+  if (!priceSlider.dataset.initialized) {
+    priceSlider.value = highestPrice;
+    maxPrice = highestPrice;
+
+    priceSlider.dataset.initialized = "true";
+  } else {
+    maxPrice = Number(priceSlider.value);
+  }
+
+  priceLabel.textContent = `Max Price: R${maxPrice}`;
 }
 
 function updatePriceLabel() {
@@ -602,7 +661,9 @@ async function loadMenuItems() {
 }
 
 function attachEventListeners() {
-  if (listenersAttached) return;
+  if (listenersAttached && menuList?.dataset.listenersAttached === "true") {
+  return;
+}
 
   vegan?.addEventListener("change", () => {
     restrictions[0] = vegan.checked;
@@ -738,6 +799,9 @@ function attachEventListeners() {
   });
 
   listenersAttached = true;
+  if (menuList) {
+  menuList.dataset.listenersAttached = "true";
+}
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -746,20 +810,24 @@ document.addEventListener("DOMContentLoaded", () => {
   updateCartCount();
 
   if (window.location.hash === "#cart") {
-    document.getElementById("item-edit-modal")?.classList.remove("hidden");
+    document.getElementById("item-edit-modal")
+      ?.classList.remove("hidden");
+
     updateCart();
   }
 });
 
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    currentUser = user;
-    loggedIn = true;
-  } else {
-    currentUser = null;
-    loggedIn = false;
-  }
-});
+if (typeof onAuthStateChanged === "function") {
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      loggedIn = true;
+    } else {
+      currentUser = null;
+      loggedIn = false;
+    }
+  });
+}
 
 const paystack = {
   payNow: async () => {
