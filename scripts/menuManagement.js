@@ -181,6 +181,11 @@ saveItem: async (event) => {
     const priceInput = document.getElementById('item-price').value.trim();
     const price = parseFloat(priceInput);
 
+    if(price > 1000){
+        alert("Price cannot exceed R1000");
+        return;
+    }
+
     if (Number.isNaN(price) || price <= 0) {
         alert("Price must be a positive amount greater than 0.");
         return;
