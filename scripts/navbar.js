@@ -78,7 +78,9 @@ const AUTH_BUTTON_PAGES = [
   "recommendations.html",
   "vendor-analytics.html",
   "vendor-profile.html",
-  "vendor-orderHistory.html"
+  "vendor-orderHistory.html",
+  "menu-management.html",
+  "multi-vendors.html"
 
 ];
 
