@@ -461,4 +461,158 @@ test("handles missing customer name", async () => {
     document.getElementById("orderList").innerHTML
   ).toContain("Customer");
 });
+test("falls back to Unknown Customer when customer fetch fails", async () => {
+
+  getDoc
+    .mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        role: "vendor"
+      })
+    })
+    .mockRejectedValueOnce(
+      new Error("Firestore failed")
+    );
+
+  getDocs.mockResolvedValue({
+    docs: [
+      {
+        id: "o1",
+        data: () => ({
+          status: "Collected",
+          userId: "bad-user",
+          total: 20,
+          createdAt: {
+            seconds: 1
+          },
+          menuItems: []
+        })
+      }
+    ]
+  });
+
+  await setupPage();
+  await triggerAuth();
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(
+    document.getElementById("orderList").innerHTML
+  ).toContain("Unknown Customer");
+});
+test("sorts orders by lowest price", async () => {
+
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor"
+    })
+  });
+
+  getDocs.mockResolvedValue({
+    docs: [
+      {
+        id: "o1",
+        data: () => ({
+          status: "Collected",
+          total: 500,
+          createdAt: {
+            seconds: 1
+          },
+          menuItems: []
+        })
+      },
+      {
+        id: "o2",
+        data: () => ({
+          status: "Collected",
+          total: 20,
+          createdAt: {
+            seconds: 2
+          },
+          menuItems: []
+        })
+      }
+    ]
+  });
+
+  await setupPage();
+  await triggerAuth();
+
+  document.getElementById("SortBy").value =
+    "PriceLowToHigh";
+
+  document
+    .getElementById("SortBy")
+    .dispatchEvent(new Event("change"));
+
+  expect(
+    document.getElementById("orderList").innerHTML
+  ).toContain("Collected");
+});
+test("renders orders when customer search is empty", async () => {
+
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor"
+    })
+  });
+
+  getDocs.mockResolvedValue({
+    docs: [
+      {
+        id: "o1",
+        data: () => ({
+          status: "Collected",
+          userId: "u1",
+          total: 20,
+          createdAt: {
+            seconds: 1
+          },
+          menuItems: []
+        })
+      }
+    ]
+  });
+
+  await setupPage();
+  await triggerAuth();
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(
+    document.getElementById("orderList").innerHTML
+  ).toContain("Collected");
+});
+test("does nothing when order is not found", async () => {
+
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor"
+    })
+  });
+
+  getDocs.mockResolvedValue({
+    docs: []
+  });
+
+  await setupPage();
+  await triggerAuth();
+
+  document.body.dispatchEvent(
+    new MouseEvent("click", {
+      bubbles: true
+    })
+  );
+
+  expect(
+    document
+      .getElementById("order-details-modal")
+      .classList.contains("hidden")
+  ).toBe(true);
+});
 });
