@@ -175,6 +175,30 @@
         <p class="text-sm text-gray-500">Collected, cancelled and refunded orders</p>
       </section>
     </header>
+    <section class="mt-6 bg-white border border-gray-200 rounded-2xl p-4 flex flex-col md:flex-row gap-4">
+  <section class="flex-1">
+    <label for="orderDateFilter" class="block text-sm font-semibold text-gray-700 mb-1">
+      Filter by date
+    </label>
+    <input
+      type="date"
+      id="orderDateFilter"
+      class="w-full border border-gray-300 rounded-lg px-3 py-2"
+    />
+  </section>
+
+  <section class="flex-1">
+    <label for="vendorFilter" class="block text-sm font-semibold text-gray-700 mb-1">
+      Filter by vendor
+    </label>
+    <select
+      id="vendorFilter"
+      class="w-full border border-gray-300 rounded-lg px-3 py-2"
+    >
+      <option value="all">All Vendors</option>
+    </select>
+  </section>
+</section>
 
     <section id="order-history" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></section>
   </section>
