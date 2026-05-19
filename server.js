@@ -1,3 +1,6 @@
+require('dotenv').config();
+
+
 const express = require('express');
 const path = require('path');
 
@@ -20,11 +23,11 @@ app.post("/api/paystack/refund", require("./api/paystack/refund"));
 app.post("/api/paystack/update-bank-details", require("./api/paystack/update-bank-details"));
 
 // Static files — `extensions: ["html"]` gives you clean URLs (/login → login.html)
-//app.use(express.static(__dirname, { extensions: ["html"] }));
+app.use(express.static(__dirname, { extensions: ["html"] }));
 
 
 // SPA-style fallback for unknown paths (optional, keeps refresh from 404ing)
-app.get("*", (req, res, next) => {
+app.get(/.*/, (req, res, next) => {
   if (req.path.startsWith("/api/")) return next();
   res.sendFile(path.join(__dirname, "index.html"));
 });
