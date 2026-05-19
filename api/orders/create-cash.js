@@ -93,24 +93,46 @@ async function handler(req, res) {
   const batch = db.batch();
   const orderIds = [];
 
-  for (const v of vendorBreakdown) {
-    const orderRef = db.collection("orders").doc();
+const customerName =
+  userData.fullName ||
+  userData.name ||
+  userData.displayName ||
+  userData.email ||
+  "A customer";
 
-    batch.set(orderRef, {
-      userId,
-      vendorId: v.vendorId,
-      vendorName: v.vendorName,
-      menuItems: v.items,
-      status: "Pending",
-      paymentMethod: "cash",
-      paymentStatus: "unpaid",
-      total: v.subtotal,
-      createdAt: now,
-      updatedAt: now
-    });
+for (const v of vendorBreakdown) {
+  const orderRef = db.collection("orders").doc();
+  const notificationRef = db.collection("notifications").doc();
 
-    orderIds.push(orderRef.id);
-  }
+  const orderSummary = v.items
+    .map((item) => `${item.name} - R${Number(item.price || 0).toFixed(2)}`)
+    .join(", ");
+
+  batch.set(orderRef, {
+    userId,
+    vendorId: v.vendorId,
+    vendorName: v.vendorName,
+    menuItems: v.items,
+    status: "Pending",
+    paymentMethod: "cash",
+    paymentStatus: "unpaid",
+    total: v.subtotal,
+    createdAt: now,
+    updatedAt: now
+  });
+
+  batch.set(notificationRef, {
+    userId: v.vendorId,
+    title: "New Order Received",
+    message: `${customerName} placed an order: ${orderSummary}`,
+    type: "new-order",
+    orderId: orderRef.id,
+    read: false,
+    createdAt: now
+  });
+
+  orderIds.push(orderRef.id);
+}
 
   await batch.commit();
 

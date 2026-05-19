@@ -2,6 +2,10 @@
  * @jest-environment jsdom
  */
 
+jest.mock("../scripts/orders.js", () => ({
+  formatTimestamp: jest.fn(() => "Today")
+}));
+
 jest.mock("../scripts/database.js", () => ({
   auth: {
     signOut: jest.fn()
@@ -12,10 +16,26 @@ jest.mock("../scripts/database.js", () => ({
     id
   })),
   getDoc: jest.fn(),
-  onAuthStateChanged: jest.fn()
+  onAuthStateChanged: jest.fn(),
+
+  collection: jest.fn((db, collectionName) => ({
+    collectionName
+  })),
+  query: jest.fn((...args) => args),
+  where: jest.fn((field, op, value) => ({
+    field,
+    op,
+    value
+  })),
+  orderBy: jest.fn((field, direction) => ({
+    field,
+    direction
+  })),
+  onSnapshot: jest.fn()
 }));
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
 async function loadNavbar() {
   jest.isolateModules(() => {
     require("../scripts/navbar.js");
@@ -40,12 +60,24 @@ describe("navbar.js", () => {
       <nav>
         <section id="navLinks"></section>
 
-        <section id="profileMenuContainer" class="relative hidden">
-          <button id="profileMenuBtn" type="button">
-            <img id="profileAvatar" />
-          </button>
+        <section id="profileMenuContainer" class="hidden flex items-center gap-4">
 
-          <section id="profileDropdown" class="hidden"></section>
+          <section class="relative">
+            <button id="notificationBtn" type="button">
+              Bell
+              <span id="notificationBadge" class="hidden">0</span>
+            </button>
+
+            <section id="notificationDropdown" class="hidden"></section>
+          </section>
+
+          <section class="relative">
+            <button id="profileMenuBtn" type="button">
+              <img id="profileAvatar" />
+            </button>
+
+            <section id="profileDropdown" class="hidden"></section>
+          </section>
         </section>
 
         <button id="logoutBtn" class="hidden">Logout</button>
@@ -75,6 +107,14 @@ describe("navbar.js", () => {
       callback(null);
     });
 
+    database.onSnapshot.mockImplementation((q, success) => {
+      success({
+        docs: []
+      });
+
+      return jest.fn();
+    });
+
     jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
@@ -83,7 +123,6 @@ describe("navbar.js", () => {
   });
 
   test("renders guest links and sign in option when user is not logged in", async () => {
-
     await loadNavbar();
 
     const navHtml = document.getElementById("navLinks").innerHTML;
@@ -269,13 +308,6 @@ describe("navbar.js", () => {
       callback({ uid: "customer123" });
     });
 
-    database.getDoc.mockResolvedValueOnce({
-      exists: () => true,
-      data: () => ({
-        role: "customer"
-      })
-    });
-
     await loadNavbar();
 
     const dropdown = document.getElementById("profileDropdown");
@@ -283,48 +315,32 @@ describe("navbar.js", () => {
 
     expect(dropdown.classList.contains("hidden")).toBe(true);
 
-    button.dispatchEvent(new MouseEvent("click", { bubbles: false }));
+    button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(dropdown.classList.contains("hidden")).toBe(false);
 
-    button.dispatchEvent(new MouseEvent("click", { bubbles: false }));
+    button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(dropdown.classList.contains("hidden")).toBe(true);
   });
 
-test("closes dropdown when clicking outside", async () => {
-  database.onAuthStateChanged.mockImplementation((auth, callback) => {
-    callback({ uid: "customer123" });
-  });
-
-  database.getDoc.mockResolvedValueOnce({
-    exists: () => true,
-    data: () => ({
-      role: "customer"
-    })
-  });
-
-  await loadNavbar();
-
-  const dropdown = document.getElementById("profileDropdown");
-
-  dropdown.classList.remove("hidden");
-
-  expect(dropdown.classList.contains("hidden")).toBe(false);
-
-  document.body.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-
-  expect(dropdown.classList.contains("hidden")).toBe(true);
-});
-
-  test("renders default avatar when user has no image", async () => {
+  test("closes dropdown when clicking outside", async () => {
     database.onAuthStateChanged.mockImplementation((auth, callback) => {
       callback({ uid: "customer123" });
     });
 
-    database.getDoc.mockResolvedValueOnce({
-      exists: () => true,
-      data: () => ({
-        role: "customer"
-      })
+    await loadNavbar();
+
+    const dropdown = document.getElementById("profileDropdown");
+
+    dropdown.classList.remove("hidden");
+
+    document.body.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    expect(dropdown.classList.contains("hidden")).toBe(true);
+  });
+
+  test("renders default avatar when user has no image", async () => {
+    database.onAuthStateChanged.mockImplementation((auth, callback) => {
+      callback({ uid: "customer123" });
     });
 
     await loadNavbar();
@@ -363,13 +379,6 @@ test("closes dropdown when clicking outside", async () => {
       });
     });
 
-    database.getDoc.mockResolvedValueOnce({
-      exists: () => true,
-      data: () => ({
-        role: "customer"
-      })
-    });
-
     await loadNavbar();
 
     expect(document.getElementById("profileAvatar").src)
@@ -400,13 +409,6 @@ test("closes dropdown when clicking outside", async () => {
       callback({ uid: "customer123" });
     });
 
-    database.getDoc.mockResolvedValueOnce({
-      exists: () => true,
-      data: () => ({
-        role: "customer"
-      })
-    });
-
     await loadNavbar();
 
     document.getElementById("dropdownLogoutBtn").click();
@@ -425,13 +427,6 @@ test("closes dropdown when clicking outside", async () => {
       callback({ uid: "customer123" });
     });
 
-    database.getDoc.mockResolvedValueOnce({
-      exists: () => true,
-      data: () => ({
-        role: "customer"
-      })
-    });
-
     await loadNavbar();
 
     document.getElementById("dropdownLogoutBtn").click();
@@ -447,13 +442,6 @@ test("closes dropdown when clicking outside", async () => {
   test("logs user out from old logout button if present", async () => {
     database.onAuthStateChanged.mockImplementation((auth, callback) => {
       callback({ uid: "customer123" });
-    });
-
-    database.getDoc.mockResolvedValueOnce({
-      exists: () => true,
-      data: () => ({
-        role: "customer"
-      })
     });
 
     await loadNavbar();
@@ -478,6 +466,111 @@ test("closes dropdown when clicking outside", async () => {
 
     expect(console.error).toHaveBeenCalledWith(
       "Logout failed:",
+      expect.any(Error)
+    );
+  });
+
+  test("listens for notifications when user is logged in", async () => {
+    database.onAuthStateChanged.mockImplementation((auth, callback) => {
+      callback({ uid: "customer123" });
+    });
+
+    await loadNavbar();
+
+    expect(database.collection).toHaveBeenCalledWith(
+      database.db,
+      "notifications"
+    );
+
+    expect(database.where).toHaveBeenCalledWith(
+      "userId",
+      "==",
+      "customer123"
+    );
+
+    expect(database.orderBy).toHaveBeenCalledWith(
+      "createdAt",
+      "desc"
+    );
+
+    expect(database.onSnapshot).toHaveBeenCalled();
+  });
+
+  test("renders notifications and unread badge", async () => {
+    database.onAuthStateChanged.mockImplementation((auth, callback) => {
+      callback({ uid: "customer123" });
+    });
+
+    database.onSnapshot.mockImplementation((q, success) => {
+      success({
+        docs: [
+          {
+            id: "n1",
+            data: () => ({
+              title: "New Order Received",
+              message: "John placed an order",
+              type: "new-order",
+              read: false,
+              createdAt: {}
+            })
+          }
+        ]
+      });
+
+      return jest.fn();
+    });
+
+    await loadNavbar();
+
+    expect(document.getElementById("notificationBadge").textContent)
+      .toBe("1");
+
+    expect(document.getElementById("notificationBadge").classList.contains("hidden"))
+      .toBe(false);
+
+    expect(document.getElementById("notificationDropdown").innerHTML)
+      .toContain("John placed an order");
+
+    expect(document.getElementById("profileAvatar").classList.contains("ring-red-500"))
+      .toBe(true);
+  });
+
+  test("toggles notification dropdown and closes profile dropdown", async () => {
+    database.onAuthStateChanged.mockImplementation((auth, callback) => {
+      callback({ uid: "customer123" });
+    });
+
+    await loadNavbar();
+
+    const notificationDropdown = document.getElementById("notificationDropdown");
+    const profileDropdown = document.getElementById("profileDropdown");
+
+    profileDropdown.classList.remove("hidden");
+
+    document.getElementById("notificationBtn")
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    expect(notificationDropdown.classList.contains("hidden"))
+      .toBe(false);
+
+    expect(profileDropdown.classList.contains("hidden"))
+      .toBe(true);
+  });
+
+  test("handles notification listener errors", async () => {
+    database.onAuthStateChanged.mockImplementation((auth, callback) => {
+      callback({ uid: "customer123" });
+    });
+
+    database.onSnapshot.mockImplementation((q, success, error) => {
+      error(new Error("listener failed"));
+      return jest.fn();
+    });
+
+    await loadNavbar();
+
+    expect(console.error).toHaveBeenCalledWith(
+      "Notification listener error:",
       expect.any(Error)
     );
   });

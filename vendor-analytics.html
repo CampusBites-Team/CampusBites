@@ -33,54 +33,74 @@
     <section id="navLinks" class="flex items-center gap-6 mx-auto">
       <!-- Populated by navbar.js -->
     </section>
-    <section id="profileMenuContainer" class="relative hidden flex items-center gap-4">
+    <section
+      id="profileMenuContainer"
+      class="hidden flex items-center gap-4"
+    >
+
+      <!-- Notifications -->
       <section class="relative">
 
-          <button
-            id="notificationBtn"
-            class="relative p-2 rounded-full hover:bg-gray-100 transition"
+        <button
+          id="notificationBtn"
+          class="relative p-2 rounded-full
+                hover:bg-gray-100 transition"
+        >
+          <i
+            data-lucide="bell"
+            class="w-5 h-5 text-gray-700"
+          ></i>
+
+          <span
+            id="notificationBadge"
+            class="hidden absolute -top-1 -right-1
+                  bg-red-500 text-white text-[10px]
+                  font-bold rounded-full
+                  min-w-[18px] h-[18px]
+                  flex items-center justify-center"
           >
-            <i
-              data-lucide="bell"
-              class="w-5 h-5 text-gray-700"
-            ></i>
-
-            <span
-              id="notificationBadge"
-              class="hidden absolute -top-1 -right-1
-                    bg-red-500 text-white text-[10px]
-                    font-bold rounded-full
-                    min-w-[18px] h-[18px]
-                    flex items-center justify-center"
-            >
-              0
-            </span>
-          </button>
-
-          <section
-            id="notificationDropdown"
-            class="hidden absolute right-0 mt-3 w-80
-                  bg-white rounded-2xl shadow-xl
-                  border border-gray-100
-                  max-h-96 overflow-y-auto
-                  z-50"
-          >
-          </section>
-
-      </section>  
-      <button id="profileMenuBtn" class="flex items-center gap-2">
-            <img
-            id="profileAvatar"
-             src="assets/default-icon.png"
-            alt="Profile"
-            class="w-10 h-10 rounded-full object-cover border-2 border-indigo-500"
-            />
+            0
+          </span>
         </button>
 
         <section
-            id="profileDropdown"
-            class="hidden absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50"
+          id="notificationDropdown"
+          class="hidden absolute right-0 mt-3 w-80
+                bg-white rounded-2xl shadow-xl
+                border border-gray-100
+                max-h-96 overflow-y-auto
+                z-50"
+        >
+        </section>
+
+      </section>
+
+      <!-- Profile -->
+      <section class="relative">
+
+        <button
+          id="profileMenuBtn"
+          class="flex items-center gap-2"
+        >
+          <img
+            id="profileAvatar"
+            src="assets/default-icon.png"
+            alt="Profile"
+            class="w-10 h-10 rounded-full
+                  object-cover border-2
+                  border-indigo-500"
+          />
+        </button>
+
+        <section
+          id="profileDropdown"
+          class="hidden absolute right-0 mt-3 w-56
+                bg-white rounded-xl shadow-lg
+                border border-gray-100 py-2 z-50"
         ></section>
+
+      </section>
+
     </section>
   </section>
 </nav>

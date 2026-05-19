@@ -15,7 +15,6 @@ import {
 
 import {
   formatTimestamp,
-  updateOrderStatus
 } from "./orders.js";
 
 // ---------------- AUTH GUARD ----------------
@@ -393,5 +392,13 @@ export function attachOrderStatusListeners() {
         paymentStatus: updatedOrderElement.dataset.paymentStatus || "paid"
       });
     }
+  });
+}
+export async function updateOrderStatus(orderId, newStatus) {
+  const orderRef = doc(db, "orders", orderId);
+
+  await updateDoc(orderRef, {
+    status: newStatus,
+    updatedAt: serverTimestamp()
   });
 }
