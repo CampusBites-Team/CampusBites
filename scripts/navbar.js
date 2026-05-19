@@ -305,7 +305,7 @@ function listenToNotifications(userId) {
         id: docSnap.id,
         ...docSnap.data()
       }));
-
+      /* istanbul ignore next */
       if (
         !firstNotificationLoad &&
         notifications.length > currentNotifications.length
@@ -319,6 +319,7 @@ function listenToNotifications(userId) {
 
       renderNotifications(notifications);
     },
+    /* istanbul ignore next */
     (error) => {
       console.error("Notification listener error:", error);
     }

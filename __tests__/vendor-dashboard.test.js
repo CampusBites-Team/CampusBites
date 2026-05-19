@@ -673,4 +673,68 @@ describe("mark-paid click delegation", () => {
       "Welcome to your dashboard!"
     );
   });
+  test("renderQuickStats returns safely when stat elements are missing", () => {
+  document.body.innerHTML = "";
+
+  expect(() => {
+    vendorDashboard.renderQuickStats([]);
+  }).not.toThrow();
+});
+test("getPaymentMeta defaults non-cash payments to card and paid", () => {
+  expect(vendorDashboard.getPaymentMeta({ paymentMethod: "card" })).toEqual({
+    paymentMethod: "card",
+    paymentStatus: "paid",
+    isUnpaidCash: false
+  });
+});
+test("getStatusButtons blocks collected button for unpaid cash orders", () => {
+  const html = vendorDashboard.getStatusButtons({
+    id: "order-1",
+    status: "Ready",
+    paymentMethod: "cash",
+    paymentStatus: "unpaid"
+  });
+
+  expect(html).toContain("Mark this cash order as paid");
+  expect(html).not.toContain('data-status="Collected"');
+});
+test("mark paid alerts when order no longer exists", async () => {
+  window.alert = jest.fn();
+
+  document.body.innerHTML = `
+    <section id="orders-list">
+      <article>
+        <button class="mark-paid-btn" data-mark-paid-id="missing-order">
+          Mark as Paid
+        </button>
+      </article>
+    </section>
+  `;
+
+  dbModule.getDoc.mockResolvedValue({
+    exists: () => false,
+    data: () => ({})
+  });
+
+  vendorDashboard.attachOrderStatusListeners();
+
+  document.querySelector(".mark-paid-btn").click();
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(window.alert).toHaveBeenCalledWith("Order no longer exists.");
+});
+test("updateOrderStatus updates status and timestamp", async () => {
+  dbModule.doc.mockReturnValue("order-ref");
+  dbModule.serverTimestamp.mockReturnValue("mock-timestamp");
+  dbModule.updateDoc.mockResolvedValue();
+
+  await vendorDashboard.updateOrderStatus("order-1", "Preparing");
+
+  expect(dbModule.updateDoc).toHaveBeenCalledWith("order-ref", {
+    status: "Preparing",
+    updatedAt: "mock-timestamp"
+  });
+});
 });

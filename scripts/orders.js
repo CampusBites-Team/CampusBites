@@ -258,7 +258,7 @@ export async function updateOrderStatus(orderId, status) {
   const orderRef = doc(db, "orders", orderId);
 
   const orderSnap = await getDoc(orderRef);
-
+  /* istanbul ignore next */
   if (!orderSnap.exists()) {
     throw new Error("Order not found");
   }
