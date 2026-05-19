@@ -14,7 +14,8 @@ import {
 } from "./database.js";
 
 import {
-  formatTimestamp
+  formatTimestamp,
+  updateOrderStatus
 } from "./orders.js";
 
 // ---------------- AUTH GUARD ----------------
@@ -257,10 +258,6 @@ export function renderOrders(orders) {
   }).join("");
 }
 
-export async function updateOrderStatus(orderId, newStatus) {
-  const orderRef = doc(db, "orders", orderId);
-  await updateDoc(orderRef, { status: newStatus });
-}
 
 export async function markCashOrderAsPaid(order) {
   await updateDoc(doc(db, "orders", order.id), {

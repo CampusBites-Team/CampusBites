@@ -3,9 +3,19 @@ import {
   db,
   doc,
   getDoc,
-  onAuthStateChanged
+  onAuthStateChanged,
+  collection,
+  query,
+  where,
+  onSnapshot,
+  orderBy
 } from "./database.js";
 
+const styles = {
+  "new-order": "border-l-4 border-indigo-600",
+  "order-status": "border-l-4 border-green-600",
+  "cancelled": "border-l-4 border-red-600"
+};
 const NAV_LINKS = {
   guest: [
     { label: "Home", href: "index.html" },
@@ -174,6 +184,9 @@ export function initNavbar() {
 
     renderLinks(role);
     renderProfileMenu(role, user, userData);
+    if (user) {
+      listenToNotifications(user.uid);
+    }
   });
 }
 function renderLinks(role) {
@@ -250,5 +263,99 @@ async function getUserData(user) {
     return { role: "guest", userData: null };
   }
 }
+function listenToNotifications(userId) {
+
+  const q = query(
+    collection(db, "notifications"),
+    where("userId", "==", userId),
+    orderBy("createdAt", "desc")
+  );
+
+  onSnapshot(q, (snapshot) => {
+
+    const notifications = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    renderNotifications(notifications);
+  });
+}
+function renderNotifications(notifications) {
+
+  const dropdown =
+    document.getElementById("notificationDropdown");
+
+  const badge =
+    document.getElementById("notificationBadge");
+
+  if (!dropdown || !badge) return;
+
+  const unread =
+    notifications.filter(n => !n.read);
+
+  badge.textContent = unread.length;
+
+  badge.classList.toggle(
+    "hidden",
+    unread.length === 0
+  );
+
+  if (!notifications.length) {
+
+    dropdown.innerHTML = `
+      <p class="p-4 text-sm text-gray-500">
+        No notifications yet.
+      </p>
+    `;
+
+    return;
+  }
+
+  dropdown.innerHTML = notifications.map(notification => `
+
+    <article class="
+      p-4 border-b hover:bg-gray-50
+      ${notification.read ? "" : "bg-indigo-50"}
+    ">
+
+      <h4 class="font-semibold text-sm">
+        ${notification.title}
+      </h4>
+
+      <p class="text-sm text-gray-600 mt-1">
+        ${notification.message}
+      </p>
+      <p class="text-xs text-gray-400 mt-2">
+        ${formatTimestamp(notification.createdAt)}
+      </p>
+      ${styles[notification.type] || ""}
+
+    </article>
+
+  `).join("");
+  const avatar =
+  document.getElementById("profileAvatar");
+
+  if (unread.length > 0) {
+    avatar?.classList.add("ring-2", "ring-red-500");
+  } else {
+    avatar?.classList.remove("ring-2", "ring-red-500");
+  }
+}
+const audio = new Audio("assets/notification.mp3");
+
+audio.play();
+document
+  .getElementById("notificationBtn")
+  ?.addEventListener("click", () => {
+
+    const dropdown =
+      document.getElementById("notificationDropdown");
+
+    if (!dropdown) return;
+
+    dropdown.classList.toggle("hidden");
+  });
 
 document.addEventListener("DOMContentLoaded", initNavbar);
