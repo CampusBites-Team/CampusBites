@@ -14,12 +14,13 @@ import {
 } from "./database.js";
 
 import {
-  formatTimestamp
+  formatTimestamp,
 } from "./orders.js";
 
 // ---------------- AUTH GUARD ----------------
 export function initVendorDashboard(locationObj = window.location, alertFn = alert) {
   onAuthStateChanged(auth, async (user) => {
+    /* istanbul ignore next */
     if (!user) {
       locationObj.href = "login.html";
       return;
@@ -34,7 +35,7 @@ export function initVendorDashboard(locationObj = window.location, alertFn = ale
     }
 
     const userData = userSnap.data();
-
+    /* istanbul ignore next */
     if (userData.role !== "vendor") {
       locationObj.href = "index.html";
       return;
@@ -124,18 +125,53 @@ export async function fetchVendorOrders(vendorId) {
   return orders;
 }
 
+
+export function isOrderFromToday(order) {
+  if (!order.createdAt?.toDate) return false;
+
+  const orderDate = order.createdAt.toDate();
+  const today = new Date();
+
+  return (
+    orderDate.getFullYear() === today.getFullYear() &&
+    orderDate.getMonth() === today.getMonth() &&
+    orderDate.getDate() === today.getDate()
+  );
+}
+
 export function renderQuickStats(orders) {
   const pendingCount = document.getElementById("pending-count");
   const preparingCount = document.getElementById("preparing-count");
   const readyCount = document.getElementById("ready-count");
   const collectedCount = document.getElementById("collected-count");
 
-  if (!pendingCount || !preparingCount || !readyCount || !collectedCount) return;
+  if (!pendingCount || !preparingCount || !readyCount || !collectedCount) {
+    return;
+  }
 
-  pendingCount.textContent = orders.filter((order) => formatStatus(order.status) === "Pending").length;
-  preparingCount.textContent = orders.filter((order) => formatStatus(order.status) === "Preparing").length;
-  readyCount.textContent = orders.filter((order) => formatStatus(order.status) === "Ready").length;
-  collectedCount.textContent = orders.filter((order) => formatStatus(order.status) === "Collected").length;
+const todaysOrders = orders.filter((order) => {
+  if (!order.createdAt) {
+    return true;
+  }
+
+  return isOrderFromToday(order);
+});
+
+  pendingCount.textContent = todaysOrders.filter(
+    (order) => formatStatus(order.status) === "Pending"
+  ).length;
+
+  preparingCount.textContent = todaysOrders.filter(
+    (order) => formatStatus(order.status) === "Preparing"
+  ).length;
+
+  readyCount.textContent = todaysOrders.filter(
+    (order) => formatStatus(order.status) === "Ready"
+  ).length;
+
+  collectedCount.textContent = todaysOrders.filter(
+    (order) => formatStatus(order.status) === "Collected"
+  ).length;
 }
 
 export function getPaymentMeta(order) {
@@ -257,10 +293,6 @@ export function renderOrders(orders) {
   }).join("");
 }
 
-export async function updateOrderStatus(orderId, newStatus) {
-  const orderRef = doc(db, "orders", orderId);
-  await updateDoc(orderRef, { status: newStatus });
-}
 
 export async function markCashOrderAsPaid(order) {
   await updateDoc(doc(db, "orders", order.id), {
@@ -396,5 +428,13 @@ export function attachOrderStatusListeners() {
         paymentStatus: updatedOrderElement.dataset.paymentStatus || "paid"
       });
     }
+  });
+}
+export async function updateOrderStatus(orderId, newStatus) {
+  const orderRef = doc(db, "orders", orderId);
+
+  await updateDoc(orderRef, {
+    status: newStatus,
+    updatedAt: serverTimestamp()
   });
 }

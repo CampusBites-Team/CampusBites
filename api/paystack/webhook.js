@@ -108,27 +108,58 @@ async function handleChargeSuccess(data) {
     const paystackTransactionId = data.id ? String(data.id) : null;
     const orderIds = [];
 
-    for (const v of pending.vendorBreakdown) {
-      const orderRef = db.collection("orders").doc();
+const customerSnap = await tx.get(
+  db.collection("users").doc(pending.userId)
+);
 
-      tx.set(orderRef, {
-        userId: pending.userId,
-        vendorId: v.vendorId,
-        vendorName: v.vendorName,
-        menuItems: v.items,
-        status: "Pending",
-        paymentMethod: "card",
-        paymentStatus: "paid",
-        total: v.subtotal,
-        paystackReference: reference,
-        paystackTransactionId,
-        paidAt: paidAtIso,
-        createdAt: now
-      });
+const customerData = customerSnap.exists
+  ? customerSnap.data() || {}
+  : {};
 
-      orderIds.push(orderRef.id);
+const customerName =
+  customerData.fullName ||
+  customerData.name ||
+  customerData.displayName ||
+  customerData.email ||
+  "A customer";
 
-      const vendorLedgerRef = db.collection("wallet_ledger").doc();
+for (const v of pending.vendorBreakdown) {
+  const orderRef = db.collection("orders").doc();
+  const notificationRef = db.collection("notifications").doc();
+
+  const orderSummary = v.items
+    .map((item) => `${item.name} - R${Number(item.price || 0).toFixed(2)}`)
+    .join(", ");
+
+  tx.set(orderRef, {
+    userId: pending.userId,
+    vendorId: v.vendorId,
+    vendorName: v.vendorName,
+    menuItems: v.items,
+    status: "Pending",
+    paymentMethod: "card",
+    paymentStatus: "paid",
+    total: v.subtotal,
+    paystackReference: reference,
+    paystackTransactionId,
+    paidAt: paidAtIso,
+    createdAt: now,
+    updatedAt: now
+  });
+
+  tx.set(notificationRef, {
+    userId: v.vendorId,
+    title: "New Order Received",
+    message: `${customerName} placed an order: ${orderSummary}`,
+    type: "new-order",
+    orderId: orderRef.id,
+    read: false,
+    createdAt: now
+  });
+
+  orderIds.push(orderRef.id);
+
+  const vendorLedgerRef = db.collection("wallet_ledger").doc();
 
       tx.set(vendorLedgerRef, {
         type: "credit",

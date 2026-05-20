@@ -111,6 +111,8 @@ async function loadOrders() {
     });
 
     renderOrders(ordersCache);
+    setupOrderFilters();
+    applyOrderFilters();
   } catch (error) {
     console.error("Failed to load orders:", error);
 
@@ -704,7 +706,7 @@ async function submitReview(order, orderNumber) {
 
     document.getElementById("review-modal")?.remove();
 
-    renderOrders(ordersCache);
+    applyOrderFilters();
 
     alert("Review submitted successfully.");
   } catch (error) {
@@ -773,7 +775,7 @@ async function refundPaidOrder(order) {
         : cachedOrder
     );
 
-    renderOrders(ordersCache);
+    applyOrderFilters();
 
     alert("Refund initiated. It usually clears within a few minutes.");
   } catch (error) {
@@ -781,6 +783,81 @@ async function refundPaidOrder(order) {
     alert("Could not initiate refund: " + error.message);
   }
 }
+//-----
+// Order filters
+//-----
+function getOrderDateValue(order) {
+  if (!order.createdAt?.toDate) return "";
+
+  const date = order.createdAt.toDate();
+  return date.toISOString().split("T")[0];
+}
+
+function getTodayValue() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function setupOrderFilters() {
+  const dateFilter = document.getElementById("orderDateFilter");
+  const vendorFilter = document.getElementById("vendorFilter");
+
+  if (!dateFilter || !vendorFilter) return;
+
+  if (!dateFilter.value) {
+    dateFilter.value = getTodayValue();
+  }
+
+  const selectedVendor = vendorFilter.value || "all";
+
+  const vendors = new Map();
+
+  ordersCache.forEach((order) => {
+    const vendorId = getVendorId(order);
+    const vendorName = getVendorName(order);
+
+    if (vendorId) {
+      vendors.set(vendorId, vendorName);
+    }
+  });
+
+  vendorFilter.innerHTML = `
+    <option value="all">All Vendors</option>
+    ${Array.from(vendors.entries())
+      .map(([vendorId, vendorName]) => `
+        <option value="${vendorId}">${vendorName}</option>
+      `)
+      .join("")}
+  `;
+
+  vendorFilter.value = vendors.has(selectedVendor) ? selectedVendor : "all";
+
+  dateFilter.onchange = applyOrderFilters;
+  vendorFilter.onchange = applyOrderFilters;
+}
+
+function applyOrderFilters() {
+  const dateFilter = document.getElementById("orderDateFilter");
+  const vendorFilter = document.getElementById("vendorFilter");
+
+  const selectedDate = dateFilter?.value || getTodayValue();
+  const selectedVendor = vendorFilter?.value || "all";
+
+  const filteredOrders = ordersCache.filter((order) => {
+    const matchesDate = getOrderDateValue(order) === selectedDate;
+    const matchesVendor =
+      selectedVendor === "all" || getVendorId(order) === selectedVendor;
+
+    return matchesDate && matchesVendor;
+  });
+
+  renderOrders(filteredOrders);
+}
+export {
+  setupOrderFilters,
+  applyOrderFilters,
+  getOrderDateValue,
+  getTodayValue
+};
 
 // ----------------------
 // Card click handler

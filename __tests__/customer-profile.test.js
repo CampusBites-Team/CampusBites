@@ -10,6 +10,10 @@ jest.mock("../scripts/database.js", () => ({
   getDownloadURL: jest.fn()
 }));
 
+jest.mock("../scripts/account-deletion.js", () => ({
+  requestAccountDeletion: jest.fn()
+}));
+
 jest.mock(
   "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js",
   () => ({
@@ -26,6 +30,10 @@ const {
   uploadBytes,
   getDownloadURL
 } = require("../scripts/database.js");
+
+const {
+  requestAccountDeletion
+} = require("../scripts/account-deletion.js");
 
 const {
   onAuthStateChanged
@@ -64,6 +72,8 @@ describe("customer-profile.js", () => {
         <input id="profileImageInput" type="file" />
         <button type="submit">Save Changes</button>
       </form>
+
+      <button id="deleteAccountBtn" type="button">Delete Account</button>
     `;
 
     global.alert = jest.fn();
@@ -99,6 +109,35 @@ describe("customer-profile.js", () => {
     expect(document.getElementById("profileName").textContent).toBe("Ant");
     expect(document.getElementById("profileEmail").textContent).toBe("ant@gmail.com");
     expect(document.getElementById("profileImage").src).toContain("profile-image-url");
+    expect(document.getElementById("profileImage").classList.contains("hidden")).toBe(false);
+    expect(document.getElementById("profileImageFallback").classList.contains("hidden")).toBe(true);
+  });
+
+  test("loads fallback profile values when optional fields are missing", async () => {
+    doc.mockReturnValue({});
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        role: "customer"
+      })
+    });
+
+    onAuthStateChanged.mockImplementation((authArg, callback) => {
+      callback({ uid: "customer-123" });
+    });
+
+    initCustomerProfile();
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(document.getElementById("fullName").value).toBe("");
+    expect(document.getElementById("email").value).toBe("");
+    expect(document.getElementById("phone").value).toBe("");
+    expect(document.getElementById("role").value).toBe("customer");
+    expect(document.getElementById("profileName").textContent).toBe("Customer Name");
+    expect(document.getElementById("profileEmail").textContent).toBe("customer@email.com");
+    expect(document.getElementById("profileImage").classList.contains("hidden")).toBe(true);
   });
 
   test("redirects to login when no user is logged in", () => {
@@ -195,6 +234,91 @@ describe("customer-profile.js", () => {
     expect(global.alert).toHaveBeenCalledWith("Profile updated successfully.");
   });
 
+  test("alerts when profile is submitted before profile data is loaded", async () => {
+    onAuthStateChanged.mockImplementation(() => {});
+
+    initCustomerProfile();
+
+    document.getElementById("profileForm").dispatchEvent(
+      new Event("submit", { bubbles: true, cancelable: true })
+    );
+
+    await Promise.resolve();
+
+    expect(global.alert).toHaveBeenCalledWith("Profile could not be loaded.");
+    expect(updateDoc).not.toHaveBeenCalled();
+  });
+
+  test("shows error when profile update fails", async () => {
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+    doc.mockReturnValue({});
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        fullName: "Ant",
+        email: "ant@gmail.com",
+        phone: "",
+        role: "customer",
+        image: "old-image-url"
+      })
+    });
+
+    updateDoc.mockRejectedValue(new Error("Update failed"));
+
+    onAuthStateChanged.mockImplementation((authArg, callback) => {
+      callback({ uid: "customer-123" });
+    });
+
+    initCustomerProfile();
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    document.getElementById("profileForm").dispatchEvent(
+      new Event("submit", { bubbles: true, cancelable: true })
+    );
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(errorSpy).toHaveBeenCalled();
+    expect(global.alert).toHaveBeenCalledWith("Could not update profile.");
+
+    errorSpy.mockRestore();
+  });
+
+  test("does nothing when profile image input changes with no file", async () => {
+    doc.mockReturnValue({});
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        fullName: "Ant",
+        email: "ant@gmail.com",
+        role: "customer"
+      })
+    });
+
+    onAuthStateChanged.mockImplementation((authArg, callback) => {
+      callback({ uid: "customer-123" });
+    });
+
+    initCustomerProfile();
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const imageInput = document.getElementById("profileImageInput");
+
+    Object.defineProperty(imageInput, "files", {
+      value: []
+    });
+
+    imageInput.dispatchEvent(new Event("change"));
+
+    expect(global.alert).not.toHaveBeenCalledWith("Profile picture must be a PNG or JPEG image.");
+  });
+
   test("rejects invalid profile image type", async () => {
     doc.mockReturnValue({});
     getDoc.mockResolvedValue({
@@ -225,9 +349,10 @@ describe("customer-profile.js", () => {
     imageInput.dispatchEvent(new Event("change"));
 
     expect(global.alert).toHaveBeenCalledWith("Profile picture must be a PNG or JPEG image.");
+    expect(imageInput.value).toBe("");
   });
 
-  test("uploads valid image and saves new image URL", async () => {
+  test("uploads valid PNG image and saves new image URL", async () => {
     doc.mockReturnValue({});
     ref.mockReturnValue("storage-ref");
     uploadBytes.mockResolvedValue();
@@ -288,5 +413,109 @@ describe("customer-profile.js", () => {
       phone: "",
       image: "new-image-url"
     });
+  });
+
+  test("uploads valid JPEG image and previews it", async () => {
+    doc.mockReturnValue({});
+    ref.mockReturnValue("storage-ref");
+    uploadBytes.mockResolvedValue();
+    getDownloadURL.mockResolvedValue("jpeg-image-url");
+
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        fullName: "Ant",
+        email: "ant@gmail.com",
+        phone: "",
+        role: "customer",
+        image: null
+      })
+    });
+
+    updateDoc.mockResolvedValue();
+
+    global.FileReader = class {
+      readAsDataURL() {
+        this.result = "data:image/jpeg;base64,test";
+        this.onload();
+      }
+    };
+
+    onAuthStateChanged.mockImplementation((authArg, callback) => {
+      callback({ uid: "customer-123" });
+    });
+
+    initCustomerProfile();
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const imageInput = document.getElementById("profileImageInput");
+    const validFile = new File(["image"], "profile.jpg", { type: "image/jpeg" });
+
+    Object.defineProperty(imageInput, "files", {
+      value: [validFile]
+    });
+
+    imageInput.dispatchEvent(new Event("change"));
+
+    expect(document.getElementById("profileImage").src).toContain("data:image/jpeg");
+    expect(document.getElementById("profileImage").classList.contains("hidden")).toBe(false);
+    expect(document.getElementById("profileImageFallback").classList.contains("hidden")).toBe(true);
+  });
+
+  test("calls requestAccountDeletion when delete account button is clicked", async () => {
+    doc.mockReturnValue({});
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        fullName: "Ant",
+        email: "ant@gmail.com",
+        role: "customer"
+      })
+    });
+
+    requestAccountDeletion.mockResolvedValue();
+
+    onAuthStateChanged.mockImplementation((authArg, callback) => {
+      callback({ uid: "customer-123" });
+    });
+
+    initCustomerProfile();
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    document.getElementById("deleteAccountBtn").click();
+
+    await Promise.resolve();
+
+    expect(requestAccountDeletion).toHaveBeenCalledWith(
+      "customer-123",
+      "ant@gmail.com"
+    );
+  });
+
+  test("alerts when delete account is clicked before profile data is loaded", async () => {
+    onAuthStateChanged.mockImplementation(() => {});
+
+    initCustomerProfile();
+
+    document.getElementById("deleteAccountBtn").click();
+
+    await Promise.resolve();
+
+    expect(global.alert).toHaveBeenCalledWith("Profile could not be loaded.");
+    expect(requestAccountDeletion).not.toHaveBeenCalled();
+  });
+
+  test("does not crash if optional profile form elements are missing", () => {
+    document.body.innerHTML = `
+      <button id="deleteAccountBtn" type="button">Delete Account</button>
+    `;
+
+    onAuthStateChanged.mockImplementation(() => {});
+
+    expect(() => initCustomerProfile()).not.toThrow();
   });
 });

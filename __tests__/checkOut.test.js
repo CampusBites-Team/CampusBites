@@ -27,6 +27,10 @@ const makeSnapshot = (orders) => ({
   }))
 });
 
+const todayTimestamp = () => ({
+  toDate: () => new Date()
+});
+
 const flush = async () => {
   await Promise.resolve();
   await Promise.resolve();
@@ -40,6 +44,9 @@ describe("checkOut.js", () => {
     jest.resetModules();
 
     document.body.innerHTML = `
+      <input type="date" id="orderDateFilter" />
+      <select id="vendorFilter"></select>
+
       <section id="active-orders"></section>
       <section id="ready-orders"></section>
       <section id="refund-orders"></section>
@@ -56,23 +63,9 @@ describe("checkOut.js", () => {
     window.alert = jest.fn();
 
     db.collection.mockImplementation((_db, collectionName) => collectionName);
-
-    db.where.mockImplementation((field, operator, value) => ({
-      field,
-      operator,
-      value
-    }));
-
-    db.query.mockImplementation((collectionName, condition) => ({
-      collectionName,
-      condition
-    }));
-
-    db.doc.mockImplementation((_db, collectionName, id) => ({
-      collectionName,
-      id
-    }));
-
+    db.where.mockImplementation((field, operator, value) => ({ field, operator, value }));
+    db.query.mockImplementation((collectionName, condition) => ({ collectionName, condition }));
+    db.doc.mockImplementation((_db, collectionName, id) => ({ collectionName, id }));
     db.updateDoc.mockResolvedValue({});
   });
 
@@ -82,9 +75,7 @@ describe("checkOut.js", () => {
   });
 
   test("renders the logged-in user's active orders", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs.mockResolvedValue(
       makeSnapshot([
@@ -92,6 +83,8 @@ describe("checkOut.js", () => {
           id: "order-1",
           userId: "user-123",
           status: "Preparing",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [
             {
               name: "Burger",
@@ -118,9 +111,7 @@ describe("checkOut.js", () => {
   });
 
   test("renders ready orders in ready section", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs.mockResolvedValue(
       makeSnapshot([
@@ -128,6 +119,8 @@ describe("checkOut.js", () => {
           id: "order-1",
           userId: "user-123",
           status: "Ready",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [{ name: "Pizza", price: 80 }]
         }
       ])
@@ -141,9 +134,7 @@ describe("checkOut.js", () => {
   });
 
   test("renders refund pending orders in refund section", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs.mockResolvedValue(
       makeSnapshot([
@@ -151,6 +142,8 @@ describe("checkOut.js", () => {
           id: "order-1",
           userId: "user-123",
           status: "refund pending",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [{ name: "Burger", price: 50 }]
         }
       ])
@@ -165,9 +158,7 @@ describe("checkOut.js", () => {
   });
 
   test("renders refunded orders in refund section", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs.mockResolvedValue(
       makeSnapshot([
@@ -175,6 +166,8 @@ describe("checkOut.js", () => {
           id: "order-1",
           userId: "user-123",
           status: "refunded",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [{ name: "Burger", price: 50 }]
         }
       ])
@@ -189,9 +182,7 @@ describe("checkOut.js", () => {
   });
 
   test("renders collected orders in order history section", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs.mockResolvedValue(
       makeSnapshot([
@@ -199,6 +190,8 @@ describe("checkOut.js", () => {
           id: "order-1",
           userId: "user-123",
           status: "Collected",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [{ name: "Wrap", price: 45 }]
         }
       ])
@@ -212,15 +205,15 @@ describe("checkOut.js", () => {
   });
 
   test("falls back to Pending when order status is missing", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs.mockResolvedValue(
       makeSnapshot([
         {
           id: "order-1",
           userId: "user-123",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [
             {
               name: "Pizza",
@@ -243,9 +236,7 @@ describe("checkOut.js", () => {
   });
 
   test("opens modal and renders item details when Details button is clicked", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs.mockResolvedValue(
       makeSnapshot([
@@ -253,6 +244,8 @@ describe("checkOut.js", () => {
           id: "order-1",
           userId: "user-123",
           status: "Pending",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [
             {
               name: "Sandwich",
@@ -284,20 +277,15 @@ describe("checkOut.js", () => {
 
     expect(document.getElementById("modal-title").textContent).toBe("Items in Order");
     expect(document.getElementById("item-details-modal").classList.contains("hidden")).toBe(false);
-
-    const itemListHtml = document.getElementById("itemList").innerHTML;
-
-    expect(itemListHtml).toContain("Sandwich");
-    expect(itemListHtml).toContain("Juice");
-    expect(itemListHtml).toContain("Vegetarian");
-    expect(itemListHtml).toContain("Mustard");
+    expect(document.getElementById("itemList").innerHTML).toContain("Sandwich");
+    expect(document.getElementById("itemList").innerHTML).toContain("Juice");
+    expect(document.getElementById("itemList").innerHTML).toContain("Vegetarian");
+    expect(document.getElementById("itemList").innerHTML).toContain("Mustard");
     expect(document.getElementById("numItemsOrder").textContent).toBe("2 items in order");
   });
 
   test("shows singular item text when order has one item", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs.mockResolvedValue(
       makeSnapshot([
@@ -305,6 +293,8 @@ describe("checkOut.js", () => {
           id: "order-1",
           userId: "user-123",
           status: "Pending",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [
             {
               name: "Wrap",
@@ -329,9 +319,7 @@ describe("checkOut.js", () => {
   });
 
   test("shows login message when user is not logged in", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb(null);
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb(null));
 
     require("../scripts/checkOut.js");
     await flush();
@@ -342,9 +330,7 @@ describe("checkOut.js", () => {
   });
 
   test("cancels pending order when Cancel button is clicked", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs
       .mockResolvedValueOnce(
@@ -353,6 +339,8 @@ describe("checkOut.js", () => {
             id: "order-1",
             userId: "user-123",
             status: "Pending",
+            createdAt: todayTimestamp(),
+            updatedAt: todayTimestamp(),
             menuItems: [{ name: "Burger", price: 50 }]
           }
         ])
@@ -363,6 +351,8 @@ describe("checkOut.js", () => {
             id: "order-1",
             userId: "user-123",
             status: "cancelled",
+            createdAt: todayTimestamp(),
+            updatedAt: todayTimestamp(),
             menuItems: [{ name: "Burger", price: 50 }]
           }
         ])
@@ -385,9 +375,7 @@ describe("checkOut.js", () => {
   });
 
   test("cancels order when status is lowercase pending", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs
       .mockResolvedValueOnce(
@@ -396,6 +384,8 @@ describe("checkOut.js", () => {
             id: "order-1",
             userId: "user-123",
             status: "pending",
+            createdAt: todayTimestamp(),
+            updatedAt: todayTimestamp(),
             menuItems: [{ name: "Burger", price: 50 }]
           }
         ])
@@ -406,6 +396,8 @@ describe("checkOut.js", () => {
             id: "order-1",
             userId: "user-123",
             status: "cancelled",
+            createdAt: todayTimestamp(),
+            updatedAt: todayTimestamp(),
             menuItems: [{ name: "Burger", price: 50 }]
           }
         ])
@@ -428,9 +420,7 @@ describe("checkOut.js", () => {
   });
 
   test("alerts when order cannot be cancelled because it is in progress", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs.mockResolvedValue(
       makeSnapshot([
@@ -438,6 +428,8 @@ describe("checkOut.js", () => {
           id: "order-1",
           userId: "user-123",
           status: "Preparing",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [{ name: "Burger", price: 50 }]
         }
       ])
@@ -459,9 +451,7 @@ describe("checkOut.js", () => {
   });
 
   test("alerts when cancelled order is cancelled again", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs.mockResolvedValue(
       makeSnapshot([
@@ -469,6 +459,8 @@ describe("checkOut.js", () => {
           id: "order-1",
           userId: "user-123",
           status: "cancelled",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [{ name: "Burger", price: 50 }]
         }
       ])
@@ -488,9 +480,7 @@ describe("checkOut.js", () => {
   });
 
   test("alerts when order status is capital Cancelled", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs.mockResolvedValue(
       makeSnapshot([
@@ -498,6 +488,8 @@ describe("checkOut.js", () => {
           id: "order-1",
           userId: "user-123",
           status: "Cancelled",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [{ name: "Burger", price: 50 }]
         }
       ])
@@ -519,9 +511,7 @@ describe("checkOut.js", () => {
   test("handles updateDoc failure when cancelling order", async () => {
     const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs.mockResolvedValue(
       makeSnapshot([
@@ -529,6 +519,8 @@ describe("checkOut.js", () => {
           id: "order-1",
           userId: "user-123",
           status: "Pending",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [{ name: "Burger", price: 50 }]
         }
       ])
@@ -545,12 +537,12 @@ describe("checkOut.js", () => {
 
     expect(errorSpy).toHaveBeenCalled();
     expect(window.alert).toHaveBeenCalledWith("Failed to cancel order");
+
+    errorSpy.mockRestore();
   });
 
   test("does nothing when order is not found in cache", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs.mockResolvedValue(
       makeSnapshot([
@@ -558,6 +550,8 @@ describe("checkOut.js", () => {
           id: "order-1",
           userId: "user-123",
           status: "Pending",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [{ name: "Burger", price: 50 }]
         }
       ])
@@ -577,9 +571,7 @@ describe("checkOut.js", () => {
   });
 
   test("does nothing if itemList or numItemsOrder is missing", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs.mockResolvedValue(
       makeSnapshot([
@@ -587,6 +579,8 @@ describe("checkOut.js", () => {
           id: "order-1",
           userId: "user-123",
           status: "Pending",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [{ name: "Burger", price: 50 }]
         }
       ])
@@ -603,9 +597,7 @@ describe("checkOut.js", () => {
   });
 
   test("updates UI after successful order cancellation", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs
       .mockResolvedValueOnce(
@@ -614,6 +606,8 @@ describe("checkOut.js", () => {
             id: "order-1",
             userId: "user-123",
             status: "Pending",
+            createdAt: todayTimestamp(),
+            updatedAt: todayTimestamp(),
             menuItems: [{ name: "Burger", price: 50 }]
           }
         ])
@@ -624,6 +618,8 @@ describe("checkOut.js", () => {
             id: "order-1",
             userId: "user-123",
             status: "cancelled",
+            createdAt: todayTimestamp(),
+            updatedAt: todayTimestamp(),
             menuItems: [{ name: "Burger", price: 50 }]
           }
         ])
@@ -637,18 +633,15 @@ describe("checkOut.js", () => {
     await flush();
 
     expect(db.updateDoc).toHaveBeenCalledWith(
-  expect.anything(),
-  expect.objectContaining({
-    status: "cancelled"
-  })
-);
-      
+      expect.anything(),
+      expect.objectContaining({
+        status: "cancelled"
+      })
+    );
   });
 
   test("renders no orders message when user has no orders", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs.mockResolvedValue(makeSnapshot([]));
 
@@ -662,9 +655,7 @@ describe("checkOut.js", () => {
   test("renders failed to load orders message when getDocs fails", async () => {
     const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs.mockRejectedValue(new Error("load failed"));
 
@@ -674,14 +665,14 @@ describe("checkOut.js", () => {
     expect(errorSpy).toHaveBeenCalled();
     expect(document.getElementById("active-orders").innerHTML)
       .toContain("Failed to load orders.");
+
+    errorSpy.mockRestore();
   });
 
   test("formats created and updated timestamps in checkout orders", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
-    const fakeDate = new Date("2026-05-08T10:30:00");
+    const fakeDate = new Date();
 
     db.getDocs.mockResolvedValue(
       makeSnapshot([
@@ -689,12 +680,8 @@ describe("checkOut.js", () => {
           id: "order-1",
           userId: "user-123",
           status: "Pending",
-          createdAt: {
-            toDate: () => fakeDate
-          },
-          updatedAt: {
-            toDate: () => fakeDate
-          },
+          createdAt: { toDate: () => fakeDate },
+          updatedAt: { toDate: () => fakeDate },
           menuItems: [{ name: "Burger", price: 50 }]
         }
       ])
@@ -713,9 +700,7 @@ describe("checkOut.js", () => {
   test("alerts when order has already been refunded", async () => {
     const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
 
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs.mockResolvedValue(
       makeSnapshot([
@@ -723,6 +708,8 @@ describe("checkOut.js", () => {
           id: "order-1",
           userId: "user-123",
           status: "refunded",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [{ name: "Burger", price: 50 }]
         }
       ])
@@ -744,12 +731,10 @@ describe("checkOut.js", () => {
   test("initiates Paystack refund for paid pending order", async () => {
     const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
 
-    const fetchMock = jest.fn().mockResolvedValue({
+    global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({})
     });
-
-    global.fetch = fetchMock;
 
     db.onAuthStateChanged.mockImplementation((_auth, cb) => {
       cb({
@@ -766,6 +751,8 @@ describe("checkOut.js", () => {
           status: "Pending",
           paymentStatus: "paid",
           paystackReference: "ref-1",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [{ name: "Burger", price: 50 }]
         }
       ])
@@ -779,7 +766,7 @@ describe("checkOut.js", () => {
     await flush();
     await flush();
 
-    expect(fetchMock).toHaveBeenCalledWith(
+    expect(global.fetch).toHaveBeenCalledWith(
       "/api/paystack/refund",
       expect.objectContaining({
         method: "POST",
@@ -802,7 +789,6 @@ describe("checkOut.js", () => {
         refundStatus: "pending"
       })
     );
-
   });
 
   test("alerts when Paystack refund request fails", async () => {
@@ -830,6 +816,8 @@ describe("checkOut.js", () => {
           status: "Pending",
           paymentStatus: "paid",
           paystackReference: "ref-1",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [{ name: "Burger", price: 50 }]
         }
       ])
@@ -845,12 +833,12 @@ describe("checkOut.js", () => {
 
     expect(errorSpy).toHaveBeenCalled();
     expect(alertSpy).toHaveBeenCalledWith("Could not initiate refund: boom");
+
+    errorSpy.mockRestore();
   });
 
   test("renders cash unpaid notice and Cash • Unpaid badge for unpaid cash orders", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs.mockResolvedValue(
       makeSnapshot([
@@ -861,6 +849,8 @@ describe("checkOut.js", () => {
           paymentMethod: "cash",
           paymentStatus: "unpaid",
           total: 88.5,
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [{ name: "Burger", price: 50 }]
         }
       ])
@@ -876,9 +866,7 @@ describe("checkOut.js", () => {
   });
 
   test("renders Cash • Paid badge for paid cash orders", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs.mockResolvedValue(
       makeSnapshot([
@@ -889,6 +877,8 @@ describe("checkOut.js", () => {
           paymentMethod: "cash",
           paymentStatus: "paid",
           total: 40,
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [{ name: "Wrap", price: 40 }]
         }
       ])
@@ -904,9 +894,7 @@ describe("checkOut.js", () => {
   });
 
   test("renders Card badge for card orders", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs.mockResolvedValue(
       makeSnapshot([
@@ -916,6 +904,8 @@ describe("checkOut.js", () => {
           status: "Preparing",
           paymentMethod: "card",
           paymentStatus: "paid",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [{ name: "Pizza", price: 80 }]
         }
       ])
@@ -928,12 +918,9 @@ describe("checkOut.js", () => {
   });
 
   test("cancels an unpaid cash order without invoking Paystack refund", async () => {
-    const fetchMock = jest.fn();
-    global.fetch = fetchMock;
+    global.fetch = jest.fn();
 
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
 
     db.getDocs
       .mockResolvedValueOnce(
@@ -945,6 +932,8 @@ describe("checkOut.js", () => {
             paymentMethod: "cash",
             paymentStatus: "unpaid",
             total: 60,
+            createdAt: todayTimestamp(),
+            updatedAt: todayTimestamp(),
             menuItems: [{ name: "Burger", price: 60 }]
           }
         ])
@@ -957,6 +946,8 @@ describe("checkOut.js", () => {
             status: "cancelled",
             paymentMethod: "cash",
             paymentStatus: "unpaid",
+            createdAt: todayTimestamp(),
+            updatedAt: todayTimestamp(),
             menuItems: [{ name: "Burger", price: 60 }]
           }
         ])
@@ -969,7 +960,7 @@ describe("checkOut.js", () => {
 
     await flush();
 
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(global.fetch).not.toHaveBeenCalled();
     expect(db.updateDoc).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({ status: "cancelled" })
@@ -997,6 +988,8 @@ describe("checkOut.js", () => {
           status: "Pending",
           paymentStatus: "paid",
           paystackReference: "ref-1",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
           menuItems: [{ name: "Burger", price: 50 }]
         }
       ])
@@ -1017,5 +1010,87 @@ describe("checkOut.js", () => {
     expect(alertSpy).toHaveBeenCalledWith(
       "You must be signed in to cancel an order."
     );
+  });
+
+  test("defaults order date filter to today and renders only today's orders", async () => {
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
+
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "today-order",
+          userId: "user-123",
+          status: "Pending",
+          vendorId: "vendor-1",
+          vendorName: "Vendor One",
+          createdAt: { toDate: () => today },
+          updatedAt: { toDate: () => today },
+          menuItems: [{ name: "Burger", price: 50 }]
+        },
+        {
+          id: "old-order",
+          userId: "user-123",
+          status: "Pending",
+          vendorId: "vendor-2",
+          vendorName: "Vendor Two",
+          createdAt: { toDate: () => yesterday },
+          updatedAt: { toDate: () => yesterday },
+          menuItems: [{ name: "Pizza", price: 80 }]
+        }
+      ])
+    );
+
+    require("../scripts/checkOut.js");
+    await flush();
+
+    expect(document.getElementById("orderDateFilter").value).toBe(
+      today.toISOString().split("T")[0]
+    );
+
+    expect(document.getElementById("active-orders").innerHTML).toContain("Burger");
+    expect(document.getElementById("active-orders").innerHTML).not.toContain("Pizza");
+  });
+
+  test("filters customer orders by vendor", async () => {
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
+
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "order-1",
+          userId: "user-123",
+          status: "Pending",
+          vendorId: "vendor-1",
+          vendorName: "Vendor One",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
+          menuItems: [{ name: "Burger", price: 50 }]
+        },
+        {
+          id: "order-2",
+          userId: "user-123",
+          status: "Pending",
+          vendorId: "vendor-2",
+          vendorName: "Vendor Two",
+          createdAt: todayTimestamp(),
+          updatedAt: todayTimestamp(),
+          menuItems: [{ name: "Pizza", price: 80 }]
+        }
+      ])
+    );
+
+    require("../scripts/checkOut.js");
+    await flush();
+
+    const vendorFilter = document.getElementById("vendorFilter");
+    vendorFilter.value = "vendor-2";
+    vendorFilter.dispatchEvent(new Event("change"));
+
+    expect(document.getElementById("active-orders").innerHTML).toContain("Pizza");
+    expect(document.getElementById("active-orders").innerHTML).not.toContain("Burger");
   });
 });
