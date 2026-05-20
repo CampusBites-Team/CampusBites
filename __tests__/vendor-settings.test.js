@@ -11,6 +11,14 @@ jest.mock("../scripts/database.js", () => ({
   getDownloadURL: jest.fn()
 }));
 
+jest.mock("../scripts/account-deletion.js", () => ({
+  requestAccountDeletion: jest.fn()
+}));
+
+const {
+  requestAccountDeletion
+} = require("../scripts/account-deletion.js");
+
 Object.defineProperty(document, "readyState", {
   value: "loading",
   configurable: true
@@ -35,7 +43,7 @@ describe("vendor-settings.js", () => {
     document.body.innerHTML = `
       <section id="storeLogoFallback" class=""></section>
       <img id="storeLogoPreview" class="hidden" />
-
+<button id="deleteAccountBtn" type="button">Delete Account</button>
       <form id="vendorDetailsForm">
         <input id="storeLogoInput" type="file" />
         <input id="shopName" />
@@ -879,4 +887,34 @@ test("handles banking fetch network failure", async () => {
 );
 });
 
+test("calls requestAccountDeletion when vendor clicks delete account", async () => {
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved",
+      email: "vendor@test.com"
+    })
+  });
+
+  requestAccountDeletion.mockResolvedValue();
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.getElementById("deleteAccountBtn").click();
+
+  await Promise.resolve();
+
+  expect(requestAccountDeletion).toHaveBeenCalledWith(
+    "vendor-123",
+    "vendor@test.com"
+  );
+});
 });

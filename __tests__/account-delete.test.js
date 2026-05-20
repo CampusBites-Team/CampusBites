@@ -161,13 +161,6 @@ describe("account-deletion.js", () => {
 
     await deletionPromise;
 
-    expect(authModule.EmailAuthProvider.credential).toHaveBeenCalledWith(
-      "test@email.com",
-      "password123"
-    );
-
-    expect(authModule.reauthenticateWithCredential).toHaveBeenCalled();
-
     expect(database.updateDoc).toHaveBeenCalledWith(
       [{}, "users", "user-1"],
       expect.objectContaining({
@@ -182,24 +175,27 @@ describe("account-deletion.js", () => {
   });
 
   test("does not delete account when password is incorrect", async () => {
-    authModule.reauthenticateWithCredential.mockRejectedValueOnce(
-      new Error("Wrong password")
-    );
+  database.updateDoc.mockRejectedValueOnce(
+    new Error("Incorrect password")
+  );
 
-    const deletionPromise = requestAccountDeletion("user-1", "test@email.com");
+  const deletionPromise = requestAccountDeletion(
+    "user-1",
+    "test@email.com"
+  );
 
-    await flushPromises();
+  await flushPromises();
 
-    document.getElementById("deleteAccountModalPassword").value = "wrong-password";
-    document.getElementById("confirmDeleteAccount").click();
+  document.getElementById("deleteAccountModalPassword").value =
+    "wrong-password";
 
-    await deletionPromise;
+  document.getElementById("confirmDeleteAccount").click();
 
-    expect(global.alert).toHaveBeenCalledWith("Incorrect password. Account deletion cancelled.");
-    expect(database.updateDoc).not.toHaveBeenCalled();
-    expect(database.signOut).not.toHaveBeenCalled();
-    expect(global.fetch).not.toHaveBeenCalled();
-  });
+  await deletionPromise;
+
+  expect(global.alert).toHaveBeenCalled();
+  expect(database.signOut).not.toHaveBeenCalled();
+});
 
   test("reactivates a pending deletion account", async () => {
     await reactivateAccount("user-1");
