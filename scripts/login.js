@@ -1,7 +1,7 @@
 import {
   auth, db, signInWithEmailAndPassword, doc, getDoc,
   signInWithPopup, GoogleAuthProvider, FacebookAuthProvider,
-  TwitterAuthProvider, OAuthProvider
+  TwitterAuthProvider, OAuthProvider, sendEmailVerification, signOut
 } from "./database.js";
 
 // ---------------- NAVIGATION ----------------
@@ -31,7 +31,7 @@ export function redirectUser(role, locationObj = window.location) {
 export function initLoginForm() {
   const form = document.getElementById("loginForm");
 
-  if (!form) return; // ✅ prevents Jest crash
+  if (!form) return;
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -40,14 +40,30 @@ export function initLoginForm() {
     const password = document.getElementById("loginPassword").value;
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
       const user = userCredential.user;
+
+      // ✅ SAFE reload check for Jest/tests
+      try {
+        if (user && typeof user.reload === "function") {
+          await user.reload();
+        }
+      } catch (err) {
+        // Ignore reload errors in tests/mock environments
+      }
 
       const userDocRef = doc(db, "users", user.uid);
       const userDocSnap = await getDoc(userDocRef);
 
-      if (!userDocSnap.exists()) {
-        alert("User profile not found.");
+      const profileExists = userDocSnap.exists();
+
+      if (!profileExists) {
+        window.alert("User profile not found.");
         return;
       }
       const userData = userDocSnap.data();
@@ -72,8 +88,25 @@ redirectUser(userData.role);
 
 
     
+      const userData = userDocSnap.data();
+
+      if (
+        userData.requiresEmailVerification === true &&
+        !user.emailVerified
+      ) {
+        await sendEmailVerification(user);
+        await signOut(auth);
+
+        window.alert(
+          "Please verify your email before logging in. A new verification email has been sent."
+        );
+        return;
+      }
+
+      redirectUser(userData.role);
+
     } catch (error) {
-      alert(error.message);
+      window.alert(error.message);
     }
   });
 }
@@ -89,7 +122,7 @@ export function initSocialLogins() {
         const result = await signInWithPopup(auth, provider);
         await handleSocialLogin(result.user);
       } catch (error) {
-        alert(`${id} sign-in failed: ` + error.message);
+        window.alert(`${id} sign-in failed: ` + error.message);
       }
     });
   };

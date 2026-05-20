@@ -16,6 +16,7 @@ import Papa from "https://cdn.jsdelivr.net/npm/papaparse@5.4.1/+esm";
 let salesChartInstance = null;
 let peakChartInstance = null;
 let itemsChartInstance = null;
+let reportGenerated = false;
 
 const renderCharts = (orders, vendors) => {
   const salesCanvas = document.getElementById("salesChart");
@@ -338,11 +339,22 @@ export const analytics = {
       alert("Failed to load report data.");
     }
   },
+  generateReport: async () => {
+  await analytics.updateCustomView();
+
+  reportGenerated = true;
+
+  alert("Report generated successfully.");
+},
 
   exportCSV: async () => {
     try {
       const admin = await ensureAdmin();
       if (!admin) return;
+      if (!reportGenerated) {
+          alert("Please click Generate Report before exporting.");
+          return;
+        }
 
       const ordersSnapshot = await getDocs(collection(db, "orders"));
       const vendorsSnapshot = await getDocs(
@@ -396,6 +408,10 @@ export const analytics = {
     try {
       const admin = await ensureAdmin();
       if (!admin) return;
+      if (!reportGenerated) {
+        alert("Please click Generate Report before exporting.");
+        return;
+      }
 
       if (!window.jspdf || !window.jspdf.jsPDF) {
         alert("jsPDF library is not loaded.");
@@ -478,5 +494,19 @@ export function initAnalyticsPage() {
     if (!user) return;
     await populateVendorFilter();
     await analytics.updateCustomView();
+    reportGenerated = false;
+    ["report-range", "report-vendor", "report-metric"]
+  .forEach((id) => {
+
+    document
+      .getElementById(id)
+      ?.addEventListener("change", () => {
+
+        reportGenerated = false;
+      });
   });
+  });
+}
+export function __setReportGenerated(value) {
+  reportGenerated = value;
 }

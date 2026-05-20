@@ -1,0 +1,39 @@
+{
+  "name": "CampusBites",
+  "short_name": "CampusBites",
+  "description": "Campus food ordering platform for students and vendors.",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+  {
+    "src": "assets/screenshots/desktop-home.png",
+    "sizes": "1364x599",
+    "type": "image/png",
+    "form_factor": "wide",
+    "label": "CampusBites desktop home page"
+  },
+  {
+    "src": "assets/screenshots/mobile-home.png",
+    "sizes": "379x506",
+    "type": "image/png",
+    "form_factor": "narrow",
+    "label": "CampusBites mobile home page"
+  }
+]
+}

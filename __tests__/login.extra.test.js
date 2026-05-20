@@ -14,14 +14,20 @@ afterEach(() => {
 jest.mock('../scripts/database.js', () => ({
   auth: {},
   db: {},
+
   signInWithEmailAndPassword: jest.fn(),
-  doc: jest.fn(() => "userDocRef"),
   getDoc: jest.fn(),
+  doc: jest.fn(),
+
   signInWithPopup: jest.fn(),
-  GoogleAuthProvider: jest.fn(() => ({ provider: "google" })),
-  FacebookAuthProvider: jest.fn(() => ({ provider: "facebook" })),
-  TwitterAuthProvider: jest.fn(() => ({ provider: "twitter" })),
-  OAuthProvider: jest.fn((name) => ({ provider: name })),
+
+  GoogleAuthProvider: jest.fn(() => ({ provider:'google' })),
+  FacebookAuthProvider: jest.fn(() => ({ provider:'facebook' })),
+  TwitterAuthProvider: jest.fn(() => ({ provider:'twitter' })),
+  OAuthProvider: jest.fn(name => ({ provider:name })),
+
+  sendEmailVerification: jest.fn(),
+  signOut: jest.fn()
 }));
 
 import {
@@ -36,7 +42,7 @@ import {
   signInWithPopup,
 } from '../scripts/database.js';
 
-global.alert = jest.fn();
+window.alert = jest.fn();
 global.lucide = { createIcons: jest.fn() };
 
 describe("login form flow", () => {
@@ -61,53 +67,61 @@ describe("login form flow", () => {
     expect(() => initLoginForm()).not.toThrow();
   });
 
-  test("successful email login processes customer user", async () => {
-    signInWithEmailAndPassword.mockResolvedValue({
-      user: { uid: "u1" }
-    });
-
-    getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({ role: "customer" })
-    });
-
-    initLoginForm();
-
-    document.getElementById("loginForm").dispatchEvent(
-      new Event("submit", { bubbles: true, cancelable: true })
-    );
-
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(signInWithEmailAndPassword).toHaveBeenCalledWith(
-      expect.anything(),
-      "user@example.com",
-      "secret123"
-    );
-    expect(getDoc).toHaveBeenCalled();
+test("successful email login processes customer user", async () => {
+  signInWithEmailAndPassword.mockResolvedValue({
+    user: {
+      uid: "u1",
+      reload: jest.fn().mockResolvedValue()
+    }
   });
 
-  test("alerts when user profile is missing after email login", async () => {
-    signInWithEmailAndPassword.mockResolvedValue({
-      user: { uid: "u1" }
-    });
-
-    getDoc.mockResolvedValue({
-      exists: () => false
-    });
-
-    initLoginForm();
-
-    document.getElementById("loginForm").dispatchEvent(
-      new Event("submit", { bubbles: true, cancelable: true })
-    );
-
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(alert).toHaveBeenCalledWith("User profile not found.");
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({ role: "customer" })
   });
+
+  initLoginForm();
+
+  document.getElementById("loginForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(signInWithEmailAndPassword).toHaveBeenCalledWith(
+    expect.anything(),
+    "user@example.com",
+    "secret123"
+  );
+
+  expect(getDoc).toHaveBeenCalled();
+});
+
+test("alerts when user profile is missing after email login", async () => {
+  signInWithEmailAndPassword.mockResolvedValue({
+    user: {
+      uid: "u1",
+      reload: jest.fn().mockResolvedValue()
+    }
+  });
+
+  getDoc.mockResolvedValue({
+    exists: () => false
+  });
+
+  initLoginForm();
+
+  document.getElementById("loginForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+    await new Promise(resolve => setTimeout(resolve,0));
+
+    expect(alert).toHaveBeenCalledWith(
+      "User profile not found."
+    );
+});
 
   test("alerts on login failure", async () => {
     signInWithEmailAndPassword.mockRejectedValue(new Error("Invalid credentials"));
@@ -138,43 +152,49 @@ describe("social login flow", () => {
     `;
   });
 
-  test("google social login processes existing admin", async () => {
-    signInWithPopup.mockResolvedValue({
-      user: { uid: "social1" }
-    });
-
-    getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({ role: "admin" })
-    });
-
-    initSocialLogins();
-    document.getElementById("googleLogin").click();
-
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(signInWithPopup).toHaveBeenCalled();
-    expect(getDoc).toHaveBeenCalled();
+test("google social login processes existing admin", async () => {
+  signInWithPopup.mockResolvedValue({
+    user: {
+      uid: "social1",
+      reload: jest.fn().mockResolvedValue()
+    }
   });
 
-  test("new social user goes to select-role page", async () => {
-    signInWithPopup.mockResolvedValue({
-      user: { uid: "new-social-user" }
-    });
-
-    getDoc.mockResolvedValue({
-      exists: () => false
-    });
-
-    initSocialLogins();
-    document.getElementById("googleLogin").click();
-
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(sessionStorage.getItem("newUserUID")).toBe("new-social-user");
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({ role: "admin" })
   });
+
+  initSocialLogins();
+  document.getElementById("googleLogin").click();
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(signInWithPopup).toHaveBeenCalled();
+  expect(getDoc).toHaveBeenCalled();
+});
+
+test("new social user goes to select-role page", async () => {
+  signInWithPopup.mockResolvedValue({
+    user: {
+      uid: "new-social-user",
+      reload: jest.fn().mockResolvedValue()
+    }
+  });
+
+  getDoc.mockResolvedValue({
+    exists: () => false
+  });
+
+  initSocialLogins();
+  document.getElementById("googleLogin").click();
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(sessionStorage.getItem("newUserUID")).toBe("new-social-user");
+});
 
   test("social login failure alerts with provider-specific message", async () => {
     signInWithPopup.mockRejectedValue(new Error("Popup blocked"));

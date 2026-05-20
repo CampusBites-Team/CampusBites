@@ -2,14 +2,17 @@
   "name": "campusbites",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "jest",
     "test:coverage": "jest --coverage"
   },
   "jest": {
     "testEnvironment": "jsdom",
-    "setupFiles": ["<rootDir>/jest.setup.js"],
+    "setupFiles": [
+      "<rootDir>/jest.setup.js"
+    ],
     "moduleNameMapper": {
       "^https://.*$": "<rootDir>/__mocks__/cdnModule.js"
     },
@@ -37,6 +40,8 @@
   },
   "homepage": "https://github.com/MpiloMario/CampusBites#readme",
   "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "firebase-admin": "^12.7.0"
   },
   "devDependencies": {

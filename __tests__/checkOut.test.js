@@ -40,9 +40,10 @@ describe("checkOut.js", () => {
     jest.resetModules();
 
     document.body.innerHTML = `
-      <table>
-        <tbody id="order-table-body"></tbody>
-      </table>
+      <section id="active-orders"></section>
+      <section id="ready-orders"></section>
+      <section id="refund-orders"></section>
+      <section id="order-history"></section>
 
       <h3 id="modal-title"></h3>
       <section id="item-details-modal" class="hidden"></section>
@@ -77,9 +78,10 @@ describe("checkOut.js", () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+    delete global.fetch;
   });
 
-  test("renders the logged-in user's orders", async () => {
+  test("renders the logged-in user's active orders", async () => {
     db.onAuthStateChanged.mockImplementation((_auth, cb) => {
       cb({ uid: "user-123" });
     });
@@ -108,11 +110,105 @@ describe("checkOut.js", () => {
     require("../scripts/checkOut.js");
     await flush();
 
-    const html = document.getElementById("order-table-body").innerHTML;
+    const html = document.getElementById("active-orders").innerHTML;
 
     expect(html).toContain("Burger");
     expect(html).toContain("Preparing");
     expect(html).toContain("Details");
+  });
+
+  test("renders ready orders in ready section", async () => {
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      cb({ uid: "user-123" });
+    });
+
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "order-1",
+          userId: "user-123",
+          status: "Ready",
+          menuItems: [{ name: "Pizza", price: 80 }]
+        }
+      ])
+    );
+
+    require("../scripts/checkOut.js");
+    await flush();
+
+    expect(document.getElementById("ready-orders").innerHTML).toContain("Pizza");
+    expect(document.getElementById("ready-orders").innerHTML).toContain("Ready");
+  });
+
+  test("renders refund pending orders in refund section", async () => {
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      cb({ uid: "user-123" });
+    });
+
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "order-1",
+          userId: "user-123",
+          status: "refund pending",
+          menuItems: [{ name: "Burger", price: 50 }]
+        }
+      ])
+    );
+
+    require("../scripts/checkOut.js");
+    await flush();
+
+    expect(document.getElementById("refund-orders").innerHTML).toContain("Burger");
+    expect(document.getElementById("refund-orders").innerHTML).toContain("Refund pending");
+    expect(document.getElementById("refund-orders").innerHTML).toContain("Refund processing");
+  });
+
+  test("renders refunded orders in refund section", async () => {
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      cb({ uid: "user-123" });
+    });
+
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "order-1",
+          userId: "user-123",
+          status: "refunded",
+          menuItems: [{ name: "Burger", price: 50 }]
+        }
+      ])
+    );
+
+    require("../scripts/checkOut.js");
+    await flush();
+
+    expect(document.getElementById("refund-orders").innerHTML).toContain("Burger");
+    expect(document.getElementById("refund-orders").innerHTML).toContain("Refunded");
+    expect(document.getElementById("refund-orders").innerHTML).toContain("Refund completed");
+  });
+
+  test("renders collected orders in order history section", async () => {
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      cb({ uid: "user-123" });
+    });
+
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "order-1",
+          userId: "user-123",
+          status: "Collected",
+          menuItems: [{ name: "Wrap", price: 45 }]
+        }
+      ])
+    );
+
+    require("../scripts/checkOut.js");
+    await flush();
+
+    expect(document.getElementById("order-history").innerHTML).toContain("Wrap");
+    expect(document.getElementById("order-history").innerHTML).toContain("Collected");
   });
 
   test("falls back to Pending when order status is missing", async () => {
@@ -143,7 +239,7 @@ describe("checkOut.js", () => {
     require("../scripts/checkOut.js");
     await flush();
 
-    expect(document.getElementById("order-table-body").innerHTML).toContain("Pending");
+    expect(document.getElementById("active-orders").innerHTML).toContain("Pending");
   });
 
   test("opens modal and renders item details when Details button is clicked", async () => {
@@ -184,7 +280,7 @@ describe("checkOut.js", () => {
     require("../scripts/checkOut.js");
     await flush();
 
-    document.querySelector('#order-table-body button[data-index="0"]').click();
+    document.querySelector('.details-order-btn[data-order-id="order-1"]').click();
 
     expect(document.getElementById("modal-title").textContent).toBe("Items in Order");
     expect(document.getElementById("item-details-modal").classList.contains("hidden")).toBe(false);
@@ -227,12 +323,12 @@ describe("checkOut.js", () => {
     require("../scripts/checkOut.js");
     await flush();
 
-    document.querySelector('#order-table-body button[data-index="0"]').click();
+    document.querySelector('.details-order-btn[data-order-id="order-1"]').click();
 
     expect(document.getElementById("numItemsOrder").textContent).toBe("1 item in order");
   });
 
-  test("does nothing when user is not logged in", async () => {
+  test("shows login message when user is not logged in", async () => {
     db.onAuthStateChanged.mockImplementation((_auth, cb) => {
       cb(null);
     });
@@ -241,11 +337,11 @@ describe("checkOut.js", () => {
     await flush();
 
     expect(db.getDocs).not.toHaveBeenCalled();
-    expect(document.getElementById("order-table-body").innerHTML)
+    expect(document.getElementById("active-orders").innerHTML)
       .toContain("Please log in to view your orders.");
   });
 
-  test("cancels pending order when Cancel Order button is clicked", async () => {
+  test("cancels pending order when Cancel button is clicked", async () => {
     db.onAuthStateChanged.mockImplementation((_auth, cb) => {
       cb({ uid: "user-123" });
     });
@@ -275,7 +371,7 @@ describe("checkOut.js", () => {
     require("../scripts/checkOut.js");
     await flush();
 
-    document.querySelector('#order-table-body button[data-index="-1"]').click();
+    document.querySelector('.cancel-order-btn[data-order-id="order-1"]').click();
 
     await flush();
 
@@ -285,56 +381,6 @@ describe("checkOut.js", () => {
         status: "cancelled",
         updatedAt: "mock-timestamp"
       }
-    );
-  });
-
-  test("alerts when cancelled order is cancelled again", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
-
-    db.getDocs.mockResolvedValue(
-      makeSnapshot([
-        {
-          id: "order-1",
-          userId: "user-123",
-          status: "cancelled",
-          menuItems: [{ name: "Burger", price: 50 }]
-        }
-      ])
-    );
-
-    require("../scripts/checkOut.js");
-    await flush();
-
-    document.querySelector('#order-table-body button[data-index="-1"]').click();
-
-    expect(window.alert).toHaveBeenCalledWith("Order is already cancelled");
-  });
-
-  test("alerts when order cannot be cancelled because it is in progress", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
-      cb({ uid: "user-123" });
-    });
-
-    db.getDocs.mockResolvedValue(
-      makeSnapshot([
-        {
-          id: "order-1",
-          userId: "user-123",
-          status: "Preparing",
-          menuItems: [{ name: "Burger", price: 50 }]
-        }
-      ])
-    );
-
-    require("../scripts/checkOut.js");
-    await flush();
-
-    document.querySelector('#order-table-body button[data-index="-1"]').click();
-
-    expect(window.alert).toHaveBeenCalledWith(
-      "Order cannot be cancelled, it is already in progress."
     );
   });
 
@@ -368,7 +414,7 @@ describe("checkOut.js", () => {
     require("../scripts/checkOut.js");
     await flush();
 
-    document.querySelector('#order-table-body button[data-index="-1"]').click();
+    document.querySelector('.cancel-order-btn[data-order-id="order-1"]').click();
 
     await flush();
 
@@ -379,6 +425,66 @@ describe("checkOut.js", () => {
         updatedAt: "mock-timestamp"
       }
     );
+  });
+
+  test("alerts when order cannot be cancelled because it is in progress", async () => {
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      cb({ uid: "user-123" });
+    });
+
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "order-1",
+          userId: "user-123",
+          status: "Preparing",
+          menuItems: [{ name: "Burger", price: 50 }]
+        }
+      ])
+    );
+
+    require("../scripts/checkOut.js");
+    await flush();
+
+    const fakeBtn = document.createElement("button");
+    fakeBtn.className = "cancel-order-btn";
+    fakeBtn.dataset.orderId = "order-1";
+    document.body.appendChild(fakeBtn);
+
+    fakeBtn.click();
+
+    expect(window.alert).toHaveBeenCalledWith(
+      "Order cannot be cancelled, it is already in progress."
+    );
+  });
+
+  test("alerts when cancelled order is cancelled again", async () => {
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      cb({ uid: "user-123" });
+    });
+
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "order-1",
+          userId: "user-123",
+          status: "cancelled",
+          menuItems: [{ name: "Burger", price: 50 }]
+        }
+      ])
+    );
+
+    require("../scripts/checkOut.js");
+    await flush();
+
+    const fakeBtn = document.createElement("button");
+    fakeBtn.className = "cancel-order-btn";
+    fakeBtn.dataset.orderId = "order-1";
+    document.body.appendChild(fakeBtn);
+
+    fakeBtn.click();
+
+    expect(window.alert).toHaveBeenCalledWith("Order is already cancelled");
   });
 
   test("alerts when order status is capital Cancelled", async () => {
@@ -400,7 +506,12 @@ describe("checkOut.js", () => {
     require("../scripts/checkOut.js");
     await flush();
 
-    document.querySelector('#order-table-body button[data-index="-1"]').click();
+    const fakeBtn = document.createElement("button");
+    fakeBtn.className = "cancel-order-btn";
+    fakeBtn.dataset.orderId = "order-1";
+    document.body.appendChild(fakeBtn);
+
+    fakeBtn.click();
 
     expect(window.alert).toHaveBeenCalledWith("Order is already cancelled");
   });
@@ -428,7 +539,7 @@ describe("checkOut.js", () => {
     require("../scripts/checkOut.js");
     await flush();
 
-    document.querySelector('#order-table-body button[data-index="-1"]').click();
+    document.querySelector('.cancel-order-btn[data-order-id="order-1"]').click();
 
     await flush();
 
@@ -455,12 +566,11 @@ describe("checkOut.js", () => {
     require("../scripts/checkOut.js");
     await flush();
 
-    const tbody = document.getElementById("order-table-body");
-
     const fakeBtn = document.createElement("button");
-    fakeBtn.setAttribute("data-index", "999");
+    fakeBtn.className = "cancel-order-btn";
+    fakeBtn.dataset.orderId = "missing-order";
+    document.body.appendChild(fakeBtn);
 
-    tbody.appendChild(fakeBtn);
     fakeBtn.click();
 
     expect(db.updateDoc).not.toHaveBeenCalled();
@@ -487,7 +597,7 @@ describe("checkOut.js", () => {
     require("../scripts/checkOut.js");
     await flush();
 
-    document.querySelector('#order-table-body button[data-index="0"]').click();
+    document.querySelector('.details-order-btn[data-order-id="order-1"]').click();
 
     expect(true).toBe(true);
   });
@@ -522,12 +632,17 @@ describe("checkOut.js", () => {
     require("../scripts/checkOut.js");
     await flush();
 
-    document.querySelector('#order-table-body button[data-index="-1"]').click();
+    document.querySelector('.cancel-order-btn[data-order-id="order-1"]').click();
 
     await flush();
 
-    expect(document.getElementById("order-table-body").innerHTML)
-      .toContain("Cancelled");
+    expect(db.updateDoc).toHaveBeenCalledWith(
+  expect.anything(),
+  expect.objectContaining({
+    status: "cancelled"
+  })
+);
+      
   });
 
   test("renders no orders message when user has no orders", async () => {
@@ -540,7 +655,7 @@ describe("checkOut.js", () => {
     require("../scripts/checkOut.js");
     await flush();
 
-    expect(document.getElementById("order-table-body").innerHTML)
+    expect(document.getElementById("active-orders").innerHTML)
       .toContain("No orders found.");
   });
 
@@ -557,7 +672,7 @@ describe("checkOut.js", () => {
     await flush();
 
     expect(errorSpy).toHaveBeenCalled();
-    expect(document.getElementById("order-table-body").innerHTML)
+    expect(document.getElementById("active-orders").innerHTML)
       .toContain("Failed to load orders.");
   });
 
@@ -588,7 +703,7 @@ describe("checkOut.js", () => {
     require("../scripts/checkOut.js");
     await flush();
 
-    const html = document.getElementById("order-table-body").innerHTML;
+    const html = document.getElementById("active-orders").innerHTML;
 
     expect(html).toContain("Placed:");
     expect(html).toContain("Updated:");
@@ -614,20 +729,26 @@ describe("checkOut.js", () => {
     );
 
     require("../scripts/checkOut.js");
-    await Promise.resolve();
-    await Promise.resolve();
+    await flush();
 
-    document.querySelector('#order-table-body button[data-index="-1"]').click();
+    const fakeBtn = document.createElement("button");
+    fakeBtn.className = "cancel-order-btn";
+    fakeBtn.dataset.orderId = "order-1";
+    document.body.appendChild(fakeBtn);
+
+    fakeBtn.click();
 
     expect(alertSpy).toHaveBeenCalledWith("Order has already been refunded.");
   });
 
   test("initiates Paystack refund for paid pending order", async () => {
     const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
+
     const fetchMock = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({})
     });
+
     global.fetch = fetchMock;
 
     db.onAuthStateChanged.mockImplementation((_auth, cb) => {
@@ -651,15 +772,12 @@ describe("checkOut.js", () => {
     );
 
     require("../scripts/checkOut.js");
-    await Promise.resolve();
-    await Promise.resolve();
+    await flush();
 
-    document.querySelector('#order-table-body button[data-index="-1"]').click();
+    document.querySelector('.cancel-order-btn[data-order-id="order-1"]').click();
 
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await flush();
+    await flush();
 
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/paystack/refund",
@@ -672,16 +790,25 @@ describe("checkOut.js", () => {
         body: JSON.stringify({ orderId: "order-1" })
       })
     );
+
     expect(alertSpy).toHaveBeenCalledWith(
       "Refund initiated. It usually clears within a few minutes."
     );
-    expect(document.getElementById("order-table-body").innerHTML)
-      .toContain("Refund pending");
+
+    expect(db.updateDoc).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        status: "refund pending",
+        refundStatus: "pending"
+      })
+    );
+
   });
 
   test("alerts when Paystack refund request fails", async () => {
     const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
     const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
     global.fetch = jest.fn().mockResolvedValue({
       ok: false,
       status: 500,
@@ -709,18 +836,144 @@ describe("checkOut.js", () => {
     );
 
     require("../scripts/checkOut.js");
-    await Promise.resolve();
-    await Promise.resolve();
+    await flush();
 
-    document.querySelector('#order-table-body button[data-index="-1"]').click();
+    document.querySelector('.cancel-order-btn[data-order-id="order-1"]').click();
 
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await flush();
+    await flush();
 
     expect(errorSpy).toHaveBeenCalled();
     expect(alertSpy).toHaveBeenCalledWith("Could not initiate refund: boom");
+  });
+
+  test("renders cash unpaid notice and Cash • Unpaid badge for unpaid cash orders", async () => {
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      cb({ uid: "user-123" });
+    });
+
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "order-cash-1",
+          userId: "user-123",
+          status: "Pending",
+          paymentMethod: "cash",
+          paymentStatus: "unpaid",
+          total: 88.5,
+          menuItems: [{ name: "Burger", price: 50 }]
+        }
+      ])
+    );
+
+    require("../scripts/checkOut.js");
+    await flush();
+
+    const html = document.getElementById("active-orders").innerHTML;
+
+    expect(html).toContain("Cash • Unpaid");
+    expect(html).toContain("Pay R88.50 in cash");
+  });
+
+  test("renders Cash • Paid badge for paid cash orders", async () => {
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      cb({ uid: "user-123" });
+    });
+
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "order-cash-2",
+          userId: "user-123",
+          status: "Ready",
+          paymentMethod: "cash",
+          paymentStatus: "paid",
+          total: 40,
+          menuItems: [{ name: "Wrap", price: 40 }]
+        }
+      ])
+    );
+
+    require("../scripts/checkOut.js");
+    await flush();
+
+    const html = document.getElementById("ready-orders").innerHTML;
+
+    expect(html).toContain("Cash • Paid");
+    expect(html).not.toContain("Pay R");
+  });
+
+  test("renders Card badge for card orders", async () => {
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      cb({ uid: "user-123" });
+    });
+
+    db.getDocs.mockResolvedValue(
+      makeSnapshot([
+        {
+          id: "order-card-1",
+          userId: "user-123",
+          status: "Preparing",
+          paymentMethod: "card",
+          paymentStatus: "paid",
+          menuItems: [{ name: "Pizza", price: 80 }]
+        }
+      ])
+    );
+
+    require("../scripts/checkOut.js");
+    await flush();
+
+    expect(document.getElementById("active-orders").innerHTML).toContain("Card");
+  });
+
+  test("cancels an unpaid cash order without invoking Paystack refund", async () => {
+    const fetchMock = jest.fn();
+    global.fetch = fetchMock;
+
+    db.onAuthStateChanged.mockImplementation((_auth, cb) => {
+      cb({ uid: "user-123" });
+    });
+
+    db.getDocs
+      .mockResolvedValueOnce(
+        makeSnapshot([
+          {
+            id: "order-cash-3",
+            userId: "user-123",
+            status: "Pending",
+            paymentMethod: "cash",
+            paymentStatus: "unpaid",
+            total: 60,
+            menuItems: [{ name: "Burger", price: 60 }]
+          }
+        ])
+      )
+      .mockResolvedValueOnce(
+        makeSnapshot([
+          {
+            id: "order-cash-3",
+            userId: "user-123",
+            status: "cancelled",
+            paymentMethod: "cash",
+            paymentStatus: "unpaid",
+            menuItems: [{ name: "Burger", price: 60 }]
+          }
+        ])
+      );
+
+    require("../scripts/checkOut.js");
+    await flush();
+
+    document.querySelector('.cancel-order-btn[data-order-id="order-cash-3"]').click();
+
+    await flush();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(db.updateDoc).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ status: "cancelled" })
+    );
   });
 
   test("refund alerts when user is no longer signed in", async () => {
@@ -729,6 +982,7 @@ describe("checkOut.js", () => {
 
     db.onAuthStateChanged.mockImplementation((_auth, cb) => {
       authCb = cb;
+
       cb({
         uid: "user-123",
         getIdToken: jest.fn().mockResolvedValue("id-token-abc")
@@ -749,16 +1003,16 @@ describe("checkOut.js", () => {
     );
 
     require("../scripts/checkOut.js");
-    await Promise.resolve();
-    await Promise.resolve();
+    await flush();
 
     authCb(null);
 
-    const tbody = document.getElementById("order-table-body");
-    const btn = document.createElement("button");
-    btn.setAttribute("data-index", "-1");
-    tbody.appendChild(btn);
-    btn.click();
+    const fakeBtn = document.createElement("button");
+    fakeBtn.className = "cancel-order-btn";
+    fakeBtn.dataset.orderId = "order-1";
+    document.body.appendChild(fakeBtn);
+
+    fakeBtn.click();
 
     expect(alertSpy).toHaveBeenCalledWith(
       "You must be signed in to cancel an order."

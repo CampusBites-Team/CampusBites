@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CampusBites - Vendors</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+</head>
+
+<body class="min-h-screen bg-gray-100">
+
+  <nav class="bg-white border-b border-gray-200 shadow-sm">
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+    <a href="index.html" class="flex items-center gap-2">
+      <img
+        src="assets/icons/1-removebg-preview.png"
+        alt="CampusBites logo"
+        class="h-12 w-auto object-contain"
+        >
+
+        <span class="text-2xl font-extrabold tracking-tight">
+            <span class="text-indigo-600">Campus</span><span class="text-orange-500">Bites</span>
+        </span>
+    </a>
+
+      <section id="navLinks" class="flex items-center gap-6 mx-auto"></section>
+
+      <section id="profileMenuContainer" class="relative hidden">
+        <button id="profileMenuBtn" type="button" class="flex items-center gap-2">
+          <img
+            id="profileAvatar"
+            src="assets/default-icon.png"
+            alt="Profile"
+            class="w-10 h-10 rounded-full object-cover border-2 border-indigo-500"
+          />
+        </button>
+
+        <section
+          id="profileDropdown"
+          class="hidden absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50"
+        ></section>
+      </section>
+    </section>
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <header class="mb-8">
+      <h1 class="text-3xl md:text-4xl font-bold text-indigo-950">
+        Available Vendors
+      </h1>
+      <p class="mt-2 font-bold text-orange-500">
+        Browse all approved vendors currently available on CampusBites.
+      </p>
+    </header>
+
+    <section class="mb-6 flex flex-col md:flex-row gap-4">
+      <input
+        id="vendorSearch"
+        type="text"
+        placeholder="Search vendors..."
+        class="w-full md:w-1/2 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      />
+
+      <select
+        id="categoryFilter"
+        class="w-full md:w-64 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      >
+        <option value="all">All Categories</option>
+      </select>
+    </section>
+
+    <section
+      id="vendorsGrid"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+    >
+      <p class="text-gray-500 col-span-full">Loading vendors...</p>
+    </section>
+
+  </main>
+
+  <script src="scripts/pwa.js"></script>
+  <script type="module" src="./scripts/navbar.js"></script>
+
+  <script type="module">
+    import {
+      db,
+      collection,
+      getDocs,
+      query,
+      where
+    } from "./scripts/database.js";
+
+    let allVendors = [];
+
+    const vendorsGrid = document.getElementById("vendorsGrid");
+    const vendorSearch = document.getElementById("vendorSearch");
+    const categoryFilter = document.getElementById("categoryFilter");
+
+    function renderVendors(vendors) {
+      if (!vendors.length) {
+        vendorsGrid.innerHTML = `
+          <section class="col-span-full flex flex-col items-center justify-center text-center py-20">
+            <i data-lucide="store-x" class="w-16 h-16 text-gray-400 mb-4"></i>
+            <h2 class="text-xl font-semibold text-gray-800 mb-2">
+              No vendors found
+            </h2>
+            <p class="text-gray-500">
+              Try changing your search or category filter.
+            </p>
+          </section>
+        `;
+
+        lucide.createIcons();
+        return;
+      }
+
+      vendorsGrid.innerHTML = vendors.map((vendor) => `
+        <article
+          class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition cursor-pointer"
+          data-vendor-id="${vendor.id}"
+        >
+          <img
+            src="${vendor.image || vendor.logo || "assets/default_vendor.jpg"}"
+            alt="${vendor.shopName || "Vendor"}"
+            class="w-full h-52 object-cover"
+          >
+
+          <section class="p-6">
+            <section class="flex justify-between items-start gap-3 mb-2">
+              <h2 class="text-xl font-bold text-gray-900">
+                ${vendor.shopName || vendor.fullName || "Vendor"}
+              </h2>
+
+              <span class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-semibold">
+                Approved
+              </span>
+            </section>
+
+            <p class="text-sm text-gray-500 mb-3">
+              ${vendor.storeCategory || "Food"} • ${vendor.location || "Campus"}
+            </p>
+
+            <p class="text-gray-700 mb-4">
+              ${vendor.storeSlogan || "Delicious meals available on CampusBites."}
+            </p>
+
+            <a
+              href="vendor-profile.html?vendorId=${vendor.id}"
+              class="inline-flex items-center gap-2 text-indigo-600 font-semibold hover:underline"
+            >
+              View vendor
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+          </section>
+        </article>
+      `).join("");
+
+      vendorsGrid.querySelectorAll("[data-vendor-id]").forEach((card) => {
+        card.addEventListener("click", () => {
+          window.location.href =
+            `vendor-profile.html?vendorId=${card.dataset.vendorId}`;
+        });
+      });
+
+      lucide.createIcons();
+    }
+
+    function populateCategoryFilter(vendors) {
+      const categories = [
+        ...new Set(
+          vendors
+            .map((vendor) => vendor.storeCategory)
+            .filter(Boolean)
+            .sort()
+        )
+      ];
+
+      categoryFilter.innerHTML = `
+        <option value="all">All Categories</option>
+        ${categories.map((category) => `
+          <option value="${category}">${category}</option>
+        `).join("")}
+      `;
+    }
+
+    function applyFilters() {
+      const searchText = vendorSearch.value.toLowerCase();
+      const selectedCategory = categoryFilter.value;
+
+      const filteredVendors = allVendors.filter((vendor) => {
+        const name = (vendor.shopName || vendor.fullName || "").toLowerCase();
+        const location = (vendor.location || "").toLowerCase();
+        const category = vendor.storeCategory || "";
+
+        const matchesSearch =
+          name.includes(searchText) ||
+          location.includes(searchText) ||
+          category.toLowerCase().includes(searchText);
+
+        const matchesCategory =
+          selectedCategory === "all" || category === selectedCategory;
+
+        return matchesSearch && matchesCategory;
+      });
+
+      renderVendors(filteredVendors);
+    }
+
+    async function loadVendors() {
+      try {
+        const vendorsQuery = query(
+          collection(db, "users"),
+          where("role", "==", "vendor"),
+          where("status", "==", "approved")
+        );
+
+        const snapshot = await getDocs(vendorsQuery);
+
+        allVendors = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        populateCategoryFilter(allVendors);
+        renderVendors(allVendors);
+      } catch (error) {
+        console.error("Failed to load vendors:", error);
+
+        vendorsGrid.innerHTML = `
+          <p class="text-red-500 col-span-full">
+            Failed to load vendors.
+          </p>
+        `;
+      }
+    }
+
+    vendorSearch.addEventListener("input", applyFilters);
+    categoryFilter.addEventListener("change", applyFilters);
+
+    document.addEventListener("DOMContentLoaded", loadVendors);
+  </script>
+
+</body>
+</html>

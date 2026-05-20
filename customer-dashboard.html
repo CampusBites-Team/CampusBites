@@ -6,41 +6,64 @@
   <title>CampusBites - Customer Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="CampusBites">
 </head>
 
 <body class="min-h-screen bg-gray-100">
 
-  <nav class="bg-white border-b border-gray-200 shadow-sm">
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-      <header class="flex items-center gap-2">
-        <i data-lucide="utensils" class="w-7 h-7 text-indigo-600"></i>
-        <span class="text-xl font-bold text-gray-900">CampusBites</span>
-      </header>
+<nav class="bg-white border-b border-gray-200 shadow-sm">
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+    <a href="index.html" class="flex items-center gap-2">
+      <img
+        src="assets/icons/1-removebg-preview.png"
+        alt="CampusBites logo"
+        class="h-12 w-auto object-contain"
+        >
 
-      <section class="flex items-center gap-6 mx-auto">
-        <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
-        <a href="customer-profile.html" class="text-gray-700 hover:text-indigo-600">My Account</a>
-        <a id="RecommendationLink" href="recommendations.html" class="text-gray-700 hover:text-indigo-600 hidden">For You</a>
-        <a id="CheckOutLink" href="checkOut.html" class="text-gray-700 hover:text-indigo-600 hidden">Orders</a>
-      </section>
+        <span class="text-2xl font-extrabold tracking-tight">
+            <span class="text-indigo-600">Campus</span><span class="text-orange-500">Bites</span>
+        </span>
+    </a>
 
-      <a
-        href="login.html"
-        id="logoutBtn"
-        class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300"
-      >
-        Log Out
-      </a>
+    <section id="navLinks" class="flex items-center gap-6 mx-auto">
+      <!-- Populated by navbar.js -->
     </section>
-  </nav>
+    <section id="profileMenuContainer" class="relative hidden">
+        <button id="profileMenuBtn" class="flex items-center gap-2">
+            <img
+            id="profileAvatar"
+             src="assets/default-icon.png"
+            alt="Profile"
+            class="w-10 h-10 rounded-full object-cover border-2 border-indigo-500"
+            />
+        </button>
+
+        <section
+            id="profileDropdown"
+            class="hidden absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50"
+        ></section>
+        </section>
+    </section>
+  </section>
+</nav>
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
     <header class="mb-10">
       <section class="flex items-center justify-between">
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-900">
-          Customer Dashboard
-        </h1>
+        <section>
+          <h1 id="dashboardTitle" class="text-5xl md:text-7xl font-extrabold leading-[1.05] text-indigo-950 mb-8">
+            Customer Dashboard
+          </h1>
+
+          <p id="dashboardSubtitle" class="mt-2 font-bold text-orange-600">
+            Welcome to your dashboard!
+          </p>
+        </section>
 
         <a
           href="browse.html"
@@ -49,10 +72,6 @@
           Place Order
         </a>
       </section>
-
-      <p class="mt-2 text-gray-600">
-        Browse vendors, place orders, and track your meals in one place.
-      </p>
     </header>
 
     <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -86,7 +105,7 @@
           Check the status of your recent and active orders.
         </p>
 
-        <a href="checkOut.html" class="inline-block text-indigo-600 font-semibold hover:underline">
+        <a href="customer-orders.html" class="inline-block text-indigo-600 font-semibold hover:underline">
           Track Orders
         </a>
       </article>
@@ -127,52 +146,193 @@
 
     </section>
 
-    <section class="mb-10">
-      <header class="mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">
-          Recommended Vendors
-        </h2>
-        <p class="text-gray-600">
-          Popular spots around campus right now.
-        </p>
-      </header>
+  <section class="mt-10">
+  <header class="mb-6">
+    <h2 class="text-2xl font-extrabold text-indigo-950">Recommended Vendors</h2>
+    <p class="font-bold text-orange-600">Spots around campus based on your previous orders.</p>
+  </header>
 
-      <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-        <article class="bg-white rounded-2xl shadow-md overflow-hidden">
-          <img
-            src="assets/jim.jpg"
-            alt="Jimmy's food stall"
-            class="w-full h-48 object-cover object-top"
-          />
-
-          <section class="p-6">
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">
-              Jimmy's
-            </h3>
-
-            <p class="text-sm text-gray-500 mb-2">
-              Fast Food • Matrix Ground Floor
-            </p>
-
-            <p class="text-gray-600">
-              Burgers, fries and grilled meals.
-            </p>
-          </section>
-        </article>
-
-      </section>
-    </section>
+  <section
+    id="recommendedVendors"
+    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+  >
+    <!-- Populated by JS -->
+  </section>
+</section>
 
   </main>
-
+  <script src="scripts/pwa.js"></script>
+  <script type="module" src="./scripts/navbar.js"></script>
   <script type="module">
     import { initAuthUI, logout } from "./scripts/auth.js";
+
+    import {
+      auth,
+      db,
+      doc,
+      getDoc,
+      onAuthStateChanged,
+      collection,
+      getDocs,
+      query,
+      where
+    } from "./scripts/database.js";
 
     initAuthUI();
     lucide.createIcons();
 
     document.getElementById("logoutBtn")?.addEventListener("click", logout);
+
+    let currentUser = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      currentUser = user;
+
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+
+        const dashboardTitle = document.getElementById("dashboardTitle");
+        const dashboardSubtitle = document.getElementById("dashboardSubtitle");
+
+        if (dashboardTitle) {
+          dashboardTitle.textContent = `${userData.fullName || "Customer"}'s Dashboard`;
+        }
+
+        if (dashboardSubtitle) {
+          dashboardSubtitle.textContent = "Welcome to your dashboard!";
+        }
+      }
+
+      await loadRecommendedVendors();
+    });
+    async function loadRecommendedVendors() {
+      const container = document.getElementById("recommendedVendors");
+      if (!container || !currentUser) return;
+
+      try {
+        const [vendorsSnapshot, ordersSnapshot] = await Promise.all([
+          getDocs(
+            query(
+              collection(db, "users"),
+              where("role", "==", "vendor"),
+              where("status", "==", "approved")
+            )
+          ),
+          getDocs(
+            query(
+              collection(db, "orders"),
+              where("userId", "==", currentUser.uid)
+            )
+          )
+        ]);
+
+        const approvedVendors = vendorsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        const customerVendorCounts = {};
+
+        ordersSnapshot.docs.forEach((orderDoc) => {
+          const order = orderDoc.data();
+          const vendorId = order.vendorId;
+
+          if (!vendorId) return;
+
+          customerVendorCounts[vendorId] =
+            (customerVendorCounts[vendorId] || 0) + 1;
+        });
+
+        let recommendedVendors = approvedVendors
+          .map((vendor) => ({
+            ...vendor,
+            customerOrderCount: customerVendorCounts[vendor.id] || 0
+          }))
+          .filter((vendor) => vendor.customerOrderCount > 0)
+          .sort((a, b) => b.customerOrderCount - a.customerOrderCount)
+          .slice(0, 3);
+
+        if (!recommendedVendors.length) {
+          recommendedVendors = approvedVendors
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 3);
+        }
+
+        if (!recommendedVendors.length) {
+          container.innerHTML = `
+            <p class="text-gray-500 col-span-full">
+              No recommended vendors available yet.
+            </p>
+          `;
+          return;
+        }
+
+        container.innerHTML = recommendedVendors.map((vendor) => `
+          <article
+            class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition cursor-pointer"
+            data-vendor-id="${vendor.id}"
+          >
+            <img
+              src="${vendor.image || vendor.logo || "assets/default_vendor.jpg"}"
+              alt="${vendor.shopName || "Vendor"}"
+              class="w-full h-48 object-cover"
+            >
+
+            <section class="p-6">
+              <h3 class="text-xl font-bold text-gray-900 mb-2">
+                ${vendor.shopName || vendor.fullName || "Vendor"}
+              </h3>
+
+              <p class="text-sm text-gray-500 mb-3">
+                ${vendor.storeCategory || "Food"} • ${vendor.location || "Campus"}
+              </p>
+
+              <p class="text-gray-700 mb-3">
+                ${vendor.storeSlogan || "Recommended for you on CampusBites."}
+              </p>
+
+              ${
+                vendor.customerOrderCount
+                  ? `
+                    <p class="text-xs font-semibold text-indigo-600">
+                      You ordered here ${vendor.customerOrderCount} time${vendor.customerOrderCount === 1 ? "" : "s"}
+                    </p>
+                  `
+                  : `
+                    <p class="text-xs font-semibold text-indigo-600">
+                      Try this vendor
+                    </p>
+                  `
+              }
+            </section>
+          </article>
+        `).join("");
+
+        container.querySelectorAll("[data-vendor-id]").forEach((card) => {
+          card.addEventListener("click", () => {
+            window.location.href =
+              `vendor-profile.html?vendorId=${card.dataset.vendorId}`;
+          });
+        });
+      } catch (error) {
+        console.error("Failed to load recommended vendors:", error);
+
+        container.innerHTML = `
+          <p class="text-red-500 col-span-full">
+            Failed to load recommended vendors.
+          </p>
+        `;
+      }
+    }
+
   </script>
 
 </body>
