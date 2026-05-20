@@ -10,6 +10,8 @@ import {
   getDownloadURL
 } from "./database.js";
 
+import { requestAccountDeletion } from "./account-deletion.js";
+
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
 let selectedProfileImage = null;
@@ -53,7 +55,7 @@ async function uploadProfileImage(file, uid) {
 export function initCustomerProfile() {
   const profileForm = document.getElementById("profileForm");
   const profileImageInput = document.getElementById("profileImageInput");
-
+  const deleteAccountBtn = document.getElementById("deleteAccountBtn");
   let currentUser = null;
   let currentUserData = null;
 
@@ -149,6 +151,18 @@ export function initCustomerProfile() {
       alert("Could not update profile.");
     }
   });
+  
+deleteAccountBtn?.addEventListener("click", async () => {
+  if (!currentUser || !currentUserData) {
+    alert("Profile could not be loaded.");
+    return;
+  }
+
+  await requestAccountDeletion(currentUser.uid, currentUserData.email);
+});
+
+
+  
 }
 
 if (typeof window !== "undefined") {

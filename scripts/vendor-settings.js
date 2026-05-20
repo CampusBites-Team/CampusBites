@@ -7,6 +7,8 @@ import {
   onAuthStateChanged
 } from "./database.js";
 
+import { requestAccountDeletion } from "./account-deletion.js";
+
 const BANK_LABELS = {
   absa: "ABSA",
   capitec: "Capitec",
@@ -239,6 +241,10 @@ export function initVendorSettings(locationObj = window.location) {
     fillVendorDetails(userData);
     fillOperatingHours(userData);
     fillBankingDetails(userData);
+
+    document.getElementById("deleteAccountBtn")?.addEventListener("click", async () => {
+  await requestAccountDeletion(user.uid, userData.email);
+});
 
     attachVendorDetailsForm(user.uid, userData);
     attachOperatingHoursForm(user.uid, userData);

@@ -35,8 +35,6 @@ export function formatTimestamp(timestamp) {
   });
 }
 
-<<<<<<< Updated upstream
-=======
 export function isOrderFromToday(order) {
   if (!order.createdAt?.toDate) return false;
 
@@ -50,15 +48,6 @@ export function isOrderFromToday(order) {
   );
 }
 
-export function getDateKey(timestamp) {
-  if (!timestamp?.toDate) return "unknown-date";
-
-  const date = timestamp.toDate();
-
-  return date.toISOString().slice(0, 10);
-}
-
->>>>>>> Stashed changes
 export function normaliseStatus(status) {
   return String(status || "Pending").trim().toLowerCase();
 }
@@ -166,20 +155,10 @@ export async function renderOrdersByStatus(orders) {
 
   const enrichedOrders = await enrichOrdersWithCustomerNames(orders);
 
-<<<<<<< Updated upstream
   const pendingOrders = enrichedOrders.filter((order) => formatStatus(order.status) === "Pending");
   const preparingOrders = enrichedOrders.filter((order) => formatStatus(order.status) === "Preparing");
   const readyOrders = enrichedOrders.filter((order) => formatStatus(order.status) === "Ready");
   const collectedOrders = enrichedOrders.filter((order) => formatStatus(order.status) === "Collected");
-=======
-  const pendingOrders = numberedOrders.filter((order) => formatStatus(order.status) === "Pending");
-  const preparingOrders = numberedOrders.filter((order) => formatStatus(order.status) === "Preparing");
-  const readyOrders = numberedOrders.filter((order) => formatStatus(order.status) === "Ready");
-
-  const collectedOrders = numberedOrders.filter((order) => {
-    return formatStatus(order.status) === "Collected" && isOrderFromToday(order);
-  });
->>>>>>> Stashed changes
 
   pendingContainer.innerHTML = pendingOrders.length
     ? pendingOrders.map((order, index) => buildOrderHTML(order, index)).join("")
@@ -247,41 +226,6 @@ export function attachDragAndDropListeners() {
   });
 }
 
-<<<<<<< Updated upstream
-=======
-if (typeof document !== "undefined" && !document.body?.dataset.markPaidListenerAttached) {
-  document.body?.addEventListener("click", async (event) => {
-    const btn = event.target.closest(".mark-paid-btn");
-    if (!btn) return;
-
-    const orderId = btn.dataset.markPaidId;
-    if (!orderId) return;
-
-    btn.disabled = true;
-    btn.textContent = "Marking as paid...";
-
-    try {
-      const snap = await getDoc(doc(db, "orders", orderId));
-      if (!snap.exists()) {
-        alert("Order no longer exists.");
-        return;
-      }
-
-      await markCashOrderAsPaid({ id: orderId, ...snap.data() });
-    } catch (err) {
-      console.error("Failed to mark order as paid:", err);
-      alert("Failed to mark order as paid.");
-      btn.disabled = false;
-      btn.textContent = "Mark as Paid";
-    }
-  });
-
-  if (document.body) {
-    document.body.dataset.markPaidListenerAttached = "true";
-  }
-}
-
->>>>>>> Stashed changes
 export function listenToVendorOrders(vendorId, callback) {
   const q = query(
     collection(db, "orders"),
