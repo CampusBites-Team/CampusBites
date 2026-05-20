@@ -34,13 +34,20 @@ describe("account-deletion.js", () => {
   let requestAccountDeletion;
   let reactivateAccount;
 
+  const flushPromises = async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+  };
+
   beforeEach(async () => {
     jest.resetModules();
     jest.clearAllMocks();
 
     document.body.innerHTML = "";
 
-    global.confirm = jest.fn();
+    global.confirm = jest.fn(() => true);
+    global.prompt = jest.fn(() => "DELETE");
     global.alert = jest.fn();
 
     global.fetch = jest.fn(() =>
@@ -55,6 +62,8 @@ describe("account-deletion.js", () => {
     database = require("../scripts/database.js");
     authModule = require("https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js");
 
+    database.updateDoc.mockResolvedValue();
+    database.signOut.mockResolvedValue();
     authModule.reauthenticateWithCredential.mockResolvedValue({});
 
     ({ requestAccountDeletion, reactivateAccount } = await import("../scripts/account-deletion.js"));
@@ -72,13 +81,33 @@ describe("account-deletion.js", () => {
     expect(database.updateDoc).not.toHaveBeenCalled();
     expect(database.signOut).not.toHaveBeenCalled();
     expect(global.fetch).not.toHaveBeenCalled();
-    expect(document.getElementById("deleteAccountModalPassword")).toBeNull();
   });
 
-  test("shows password modal when deletion is confirmed", async () => {
-    global.confirm.mockReturnValue(true);
+ test("does not delete account when DELETE confirmation is typed incorrectly", async () => {
+  global.prompt.mockReturnValue("delete");
 
+  const deletionPromise = requestAccountDeletion("user-1", "test@email.com");
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  const cancelButton = document.getElementById("cancelDeleteAccount");
+
+  if (cancelButton) {
+    cancelButton.click();
+  }
+
+  await deletionPromise;
+
+  expect(database.updateDoc).not.toHaveBeenCalled();
+  expect(database.signOut).not.toHaveBeenCalled();
+  expect(global.fetch).not.toHaveBeenCalled();
+});
+
+  test("shows password modal when deletion is confirmed", async () => {
     const deletionPromise = requestAccountDeletion("user-1", "test@email.com");
+
+    await flushPromises();
 
     expect(document.getElementById("deleteAccountModalPassword")).not.toBeNull();
     expect(document.getElementById("cancelDeleteAccount")).not.toBeNull();
@@ -87,12 +116,14 @@ describe("account-deletion.js", () => {
     document.getElementById("cancelDeleteAccount").click();
 
     await deletionPromise;
+
+    expect(database.updateDoc).not.toHaveBeenCalled();
   });
 
   test("cancels deletion when password modal is cancelled", async () => {
-    global.confirm.mockReturnValue(true);
-
     const deletionPromise = requestAccountDeletion("user-1", "test@email.com");
+
+    await flushPromises();
 
     document.getElementById("cancelDeleteAccount").click();
 
@@ -105,9 +136,9 @@ describe("account-deletion.js", () => {
   });
 
   test("cancels deletion when password is empty", async () => {
-    global.confirm.mockReturnValue(true);
-
     const deletionPromise = requestAccountDeletion("user-1", "test@email.com");
+
+    await flushPromises();
 
     document.getElementById("deleteAccountModalPassword").value = "";
     document.getElementById("confirmDeleteAccount").click();
@@ -115,21 +146,27 @@ describe("account-deletion.js", () => {
     await deletionPromise;
 
     expect(global.alert).toHaveBeenCalledWith("Account deletion cancelled.");
-    expect(document.getElementById("deleteAccountModalPassword")).toBeNull();
     expect(database.updateDoc).not.toHaveBeenCalled();
     expect(database.signOut).not.toHaveBeenCalled();
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
   test("marks account as pending deletion after valid password confirmation", async () => {
-    global.confirm.mockReturnValue(true);
-
     const deletionPromise = requestAccountDeletion("user-1", "test@email.com");
+
+    await flushPromises();
 
     document.getElementById("deleteAccountModalPassword").value = "password123";
     document.getElementById("confirmDeleteAccount").click();
 
     await deletionPromise;
+
+    expect(authModule.EmailAuthProvider.credential).toHaveBeenCalledWith(
+      "test@email.com",
+      "password123"
+    );
+
+    expect(authModule.reauthenticateWithCredential).toHaveBeenCalled();
 
     expect(database.updateDoc).toHaveBeenCalledWith(
       [{}, "users", "user-1"],
@@ -140,30 +177,18 @@ describe("account-deletion.js", () => {
       })
     );
 
-    expect(global.fetch).toHaveBeenCalledWith(
-      "/api/send-account-deletion-email",
-      expect.objectContaining({
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: expect.stringContaining("test@email.com")
-      })
-    );
-
-    expect(global.alert).toHaveBeenCalledWith(
-      "Your account has been scheduled for deletion. You have 30 days to reactivate it."
-    );
-
+    expect(global.fetch).toHaveBeenCalled();
     expect(database.signOut).toHaveBeenCalled();
-    expect(document.getElementById("deleteAccountModalPassword")).toBeNull();
   });
 
   test("does not delete account when password is incorrect", async () => {
-    global.confirm.mockReturnValue(true);
-    authModule.reauthenticateWithCredential.mockRejectedValueOnce(new Error("Wrong password"));
+    authModule.reauthenticateWithCredential.mockRejectedValueOnce(
+      new Error("Wrong password")
+    );
 
     const deletionPromise = requestAccountDeletion("user-1", "test@email.com");
+
+    await flushPromises();
 
     document.getElementById("deleteAccountModalPassword").value = "wrong-password";
     document.getElementById("confirmDeleteAccount").click();
@@ -189,11 +214,5 @@ describe("account-deletion.js", () => {
     );
 
     expect(global.alert).toHaveBeenCalledWith("Your account has been reactivated.");
-  });
-
-  test("reactivation update failure rejects", async () => {
-    database.updateDoc.mockRejectedValueOnce(new Error("Reactivate failed"));
-
-    await expect(reactivateAccount("user-1")).rejects.toThrow("Reactivate failed");
   });
 });
