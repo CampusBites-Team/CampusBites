@@ -12,6 +12,7 @@ import {
   where,
   serverTimestamp
 } from "./database.js";
+import { showToast } from "./toast.js";
 
 let currentUser = null;
 let currentUserData = null;
@@ -646,22 +647,22 @@ async function submitReview(order, orderNumber) {
   const comment = commentInput?.value.trim() || "";
 
   if (!rating) {
-    alert("Please select a rating.");
+    showToast("Please select a rating.", "warning");
     return;
   }
 
   if (!comment) {
-    alert("Please write a review.");
+    showToast("Please write a review.", "warning");
     return;
   }
 
   if (!currentUser) {
-    alert("You must be signed in to submit a review.");
+    showToast("You must be signed in to submit a review.", "warning");
     return;
   }
 
   if (order.reviewed) {
-    alert("You have already reviewed this order.");
+    showToast("You have already reviewed this order.", "warning");
     return;
   }
 
@@ -706,10 +707,10 @@ async function submitReview(order, orderNumber) {
 
     renderOrders(ordersCache);
 
-    alert("Review submitted successfully.");
+    showToast("Review submitted successfully.", "success");
   } catch (error) {
     console.error("Failed to submit review:", error);
-    alert("Failed to submit review.");
+    showToast("Failed to submit review.", "error");
   }
 }
 
@@ -727,7 +728,7 @@ async function updateOrderStatus(order, status) {
     await loadOrders();
   } catch (error) {
     console.error(error);
-    alert("Failed to cancel order");
+    showToast("Failed to cancel order.", "error");
   }
 }
 
@@ -736,7 +737,7 @@ async function updateOrderStatus(order, status) {
 // ----------------------
 async function refundPaidOrder(order) {
   if (!currentUser) {
-    alert("You must be signed in to cancel an order.");
+    showToast("You must be signed in to cancel an order.", "warning");
     return;
   }
 
@@ -775,10 +776,10 @@ async function refundPaidOrder(order) {
 
     renderOrders(ordersCache);
 
-    alert("Refund initiated. It usually clears within a few minutes.");
+    showToast("Refund initiated. It usually clears within a few minutes.", "success");
   } catch (error) {
     console.error("Refund failed:", error);
-    alert("Could not initiate refund: " + error.message);
+    showToast("Could not initiate refund: " + error.message, "error");
   }
 }
 
@@ -835,11 +836,11 @@ document.body.addEventListener("click", (e) => {
         updateOrderStatus(order, "cancelled");
       }
     } else if (status === "cancelled") {
-      alert("Order is already cancelled");
+      showToast("Order is already cancelled", "warning");
     } else if (status === "refunded" || status === "refund pending") {
-      alert("Order has already been refunded.");
+      showToast("Order has already been refunded.", "warning");
     } else {
-      alert("Order cannot be cancelled, it is already in progress.");
+      showToast("Order cannot be cancelled, it is already in progress.", "warning");
     }
   }
 });

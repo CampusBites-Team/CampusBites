@@ -18,6 +18,7 @@ import {
   sendEmailVerification,
   signOut
 } from "./database.js";
+import { showToast } from "./toast.js";
 
 let selectedLogoFile = null;
 
@@ -82,21 +83,21 @@ export function initRegisterUI() {
 
       try {
         if (role === "vendor") {
-          if (!shopName.trim()) return alert("Shop name required");
-          if (!location.trim()) return alert("Shop location required");
-          if (!selectedLogoFile) return alert("Shop logo required");
+          if (!shopName.trim()) return showToast("Shop name required", "error");
+          if (!location.trim()) return showToast("Shop location required", "error");
+          if (!selectedLogoFile) return showToast("Shop logo required", "error");
           if (!isValidLogoFile(selectedLogoFile)) {
-            return alert("Shop logo must be a PNG or JPEG image.");
+            return showToast("Shop logo must be a PNG or JPEG image.", "error");
           }
-          if (!bankName) return alert("Bank required");
-          if (!accountHolder) return alert("Account holder name required");
+          if (!bankName) return showToast("Bank required", "error");
+          if (!accountHolder) return showToast("Account holder name required", "error");
           if (!/^\d{6,12}$/.test(accountNumber)) {
-            return alert("Account number must be 6 to 12 digits.");
+            return showToast("Account number must be 6 to 12 digits.", "error");
           }
           if (!/^\d{6}$/.test(branchCode)) {
-            return alert("Branch code must be exactly 6 digits.");
+            return showToast("Branch code must be exactly 6 digits.", "error");
           }
-          if (!accountType) return alert("Account type required");
+          if (!accountType) return showToast("Account type required", "error");
         }
 
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -127,7 +128,7 @@ export function initRegisterUI() {
 
         await sendEmailVerification(user);
 
-        alert("Account created successfully. Please verify your email before logging in.");
+        showToast("Account created successfully. Please verify your email before logging in.", "success");
 
         await signOut(auth);
 
@@ -136,7 +137,7 @@ export function initRegisterUI() {
 
       } catch (err) {
         console.error(err);
-        alert(err.message);
+        showToast(err.message, "error");
       }
     });
   }
@@ -185,7 +186,7 @@ export function initRegisterUI() {
       if (!file) return;
 
       if (!isValidLogoFile(file)) {
-        alert("Shop logo must be a PNG or JPEG image.");
+        showToast("Shop logo must be a PNG or JPEG image.", "error");
         logoInput.value = "";
         selectedLogoFile = null;
         return;
@@ -220,7 +221,7 @@ export function initRegisterUI() {
         await handleSocialLogin(result.user);
       } catch (err) {
         console.error(err);
-        alert(err.message);
+        showToast(err.message, "error");
       }
     });
   }
@@ -251,7 +252,7 @@ async function handleSocialLogin(user) {
     }
 
     if (userData.status === "suspended") {
-      alert("Your account is suspended");
+      showToast("Your account is suspended", "error");
       return;
     }
   }

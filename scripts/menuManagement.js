@@ -16,6 +16,7 @@ import {
   uploadBytes,
   getDownloadURL
 } from "./database.js";
+import { showToast } from "./toast.js";
 
 globalThis.lucide?.createIcons?.();
 let currentUser = null;
@@ -182,12 +183,12 @@ saveItem: async (event) => {
     const price = parseFloat(priceInput);
 
     if(price > 1000){
-        alert("Price cannot exceed R1000");
+        showToast("Price cannot exceed R1000", "error");
         return;
     }
 
     if (Number.isNaN(price) || price <= 0) {
-        alert("Price must be a positive amount greater than 0.");
+        showToast("Price must be a positive amount greater than 0.", "error");
         return;
     }
     const category = document.getElementById('item-category').value;
@@ -206,14 +207,14 @@ saveItem: async (event) => {
         const allowedTypes = ["image/png", "image/jpeg"];
 
         if (!allowedTypes.includes(file.type)) {
-            alert("Only PNG and JPEG images are allowed.");
+            showToast("Only PNG and JPEG images are allowed.", "error");
             return;
         }
 
         const maxBytes = 5 * 1024 * 1024;
 
         if (file.size > maxBytes) {
-            alert("Image must be smaller than 5MB.");
+            showToast("Image must be smaller than 5MB.", "error");
             return;
         }
 
@@ -258,7 +259,7 @@ saveItem: async (event) => {
 
     } catch (error) {
         console.error("Error saving item:", error);
-        alert("Could not save item: " + (error.message || error));
+        showToast("Could not save item: " + (error.message || error), "error");
     }
 }
 

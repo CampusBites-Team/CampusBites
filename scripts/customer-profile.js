@@ -9,6 +9,7 @@ import {
   uploadBytes,
   getDownloadURL
 } from "./database.js";
+import { showToast } from "./toast.js";
 
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
@@ -69,7 +70,7 @@ export function initCustomerProfile() {
     const userSnap = await getDoc(userRef);
 
     if (!userSnap.exists()) {
-      alert("Profile not found.");
+      showToast("Profile not found.", "error");
       window.location.href = "login.html";
       return;
     }
@@ -77,7 +78,7 @@ export function initCustomerProfile() {
     currentUserData = userSnap.data();
 
     if (currentUserData.role !== "customer") {
-      alert("Only customers can access this profile page.");
+      showToast("Only customers can access this profile page.", "warning");
       window.location.href = "index.html";
       return;
     }
@@ -91,7 +92,7 @@ export function initCustomerProfile() {
     if (!file) return;
 
     if (!isValidProfileImage(file)) {
-      alert("Profile picture must be a PNG or JPEG image.");
+      showToast("Profile picture must be a PNG or JPEG image.", "error");
       profileImageInput.value = "";
       selectedProfileImage = null;
       return;
@@ -112,7 +113,7 @@ export function initCustomerProfile() {
     e.preventDefault();
 
     if (!currentUser || !currentUserData) {
-      alert("Profile could not be loaded.");
+      showToast("Profile could not be loaded.", "error");
       return;
     }
 
@@ -142,11 +143,11 @@ export function initCustomerProfile() {
       };
 
       fillProfileFields(currentUserData);
-      alert("Profile updated successfully.");
+      showToast("Profile updated successfully.", "success");
 
     } catch (error) {
       console.error(error);
-      alert("Could not update profile.");
+      showToast("Could not update profile.", "error");
     }
   });
 }

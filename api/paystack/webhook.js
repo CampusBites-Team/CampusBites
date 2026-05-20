@@ -149,6 +149,7 @@ for (const v of pending.vendorBreakdown) {
 
   tx.set(notificationRef, {
     userId: v.vendorId,
+    role: "vendor",
     title: "New Order Received",
     message: `${customerName} placed an order: ${orderSummary}`,
     type: "new-order",

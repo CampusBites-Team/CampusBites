@@ -11,6 +11,7 @@ import {
   Timestamp,
   onAuthStateChanged
 } from "./database.js";
+import { showToast } from "./toast.js";
 import Papa from "https://cdn.jsdelivr.net/npm/papaparse@5.4.1/+esm";
 
 let salesChartInstance = null;
@@ -95,20 +96,20 @@ const renderCharts = (orders, vendors) => {
 async function ensureAdmin() {
   const currentUser = auth.currentUser;
   if (!currentUser) {
-    alert("You must be logged in.");
+    showToast("You must be logged in.", "warning");
     window.location.href = "index.html";
     return null;
   }
 
   const currentUserSnap = await getDoc(doc(db, "users", currentUser.uid));
   if (!currentUserSnap.exists()) {
-    alert("User profile not found.");
+    showToast("User profile not found.", "warning");
     return null;
   }
 
   const currentUserData = currentUserSnap.data();
   if (currentUserData.role !== "admin") {
-    alert("Access denied.");
+    showToast("Access denied. Admins only.", "warning");
     window.location.href = "index.html";
     return null;
   }
@@ -150,7 +151,7 @@ export const analytics = {
 
       const ordersSnapshot = await getDocs(collection(db, "orders"));
       if (!ordersSnapshot.empty) {
-        alert("Orders already exist. Sample data was not generated.");
+        showToast("Orders already exist. Sample data was not generated.", "warning");
         return;
       }
 
@@ -169,7 +170,7 @@ export const analytics = {
       }));
 
       if (!vendors.length || !items.length) {
-        alert("Need approved vendors and menu items before generating sample data.");
+        showToast("Need approved vendors and menu items before generating sample data.", "warning");
         return;
       }
 
@@ -228,11 +229,11 @@ export const analytics = {
         sampleOrders.map((order) => addDoc(collection(db, "orders"), order))
       );
 
-      alert("Sample analytics data generated successfully.");
+      showToast("Sample analytics data generated successfully.", "success");
       await analytics.updateCustomView();
     } catch (error) {
       console.error("Error generating sample data:", error);
-      alert("Failed to generate sample data.");
+      showToast("Failed to generate sample data.", "error");
     }
   },
 
@@ -336,7 +337,7 @@ export const analytics = {
       renderCharts(orders, vendors);
     } catch (error) {
       console.error("Error updating custom analytics view:", error);
-      alert("Failed to load report data.");
+      showToast("Failed to load report data.", "error");
     }
   },
   generateReport: async () => {
@@ -344,7 +345,7 @@ export const analytics = {
 
   reportGenerated = true;
 
-  alert("Report generated successfully.");
+  showToast("Report generated successfully.", "success");
 },
 
   exportCSV: async () => {
@@ -352,7 +353,7 @@ export const analytics = {
       const admin = await ensureAdmin();
       if (!admin) return;
       if (!reportGenerated) {
-          alert("Please click Generate Report before exporting.");
+          showToast("Please click Generate Report before exporting.", "warning");
           return;
         }
 
@@ -397,10 +398,10 @@ export const analytics = {
       a.download = `campusbites_report_${new Date().toISOString().split("T")[0]}.csv`;
       a.click();
 
-      alert("CSV exported successfully");
+      showToast("CSV exported successfully.", "success");
     } catch (error) {
       console.error("Error exporting CSV:", error);
-      alert("Failed to export CSV.");
+      showToast("Failed to export CSV.", "error");
     }
   },
 
@@ -409,12 +410,12 @@ export const analytics = {
       const admin = await ensureAdmin();
       if (!admin) return;
       if (!reportGenerated) {
-        alert("Please click Generate Report before exporting.");
+        showToast("Please click Generate Report before exporting.", "warning");
         return;
       }
 
       if (!window.jspdf || !window.jspdf.jsPDF) {
-        alert("jsPDF library is not loaded.");
+        showToast("jsPDF library is not loaded.", "error");
         return;
       }
 
@@ -481,10 +482,10 @@ export const analytics = {
       });
 
       pdf.save(`campusbites_report_${new Date().toISOString().split("T")[0]}.pdf`);
-      alert("PDF exported successfully");
+      showToast("PDF exported successfully.", "success");
     } catch (error) {
       console.error("Error exporting PDF:", error);
-      alert("Failed to export PDF.");
+      showToast("Failed to export PDF.", "error");
     }
   }
 };
