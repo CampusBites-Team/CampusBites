@@ -211,18 +211,28 @@ describe("account-deletion.js", () => {
     expect(database.signOut).not.toHaveBeenCalled();
   });
 
-  test("sets deletionScheduledFor to a Firebase timestamp object", async () => {
-    global.confirm.mockReturnValue(true);
+  test("stores deletionScheduledFor value in Firestore update", async () => {
+  global.confirm.mockReturnValue(true);
 
-    const deletionPromise = requestAccountDeletion("user-1", "test@email.com");
+  const deletionPromise = requestAccountDeletion(
+    "user-1",
+    "test@email.com"
+  );
 
-    document.getElementById("deleteAccountModalPassword").value = "password123";
-    document.getElementById("confirmDeleteAccount").click();
+  document.getElementById("deleteAccountModalPassword").value =
+    "password123";
 
-    await deletionPromise;
+  document.getElementById("confirmDeleteAccount").click();
 
-    expect(database.Timestamp.fromDate).toHaveBeenCalledWith(expect.any(Date));
-  });
+  await deletionPromise;
+
+  expect(database.updateDoc).toHaveBeenCalledWith(
+    [{}, "users", "user-1"],
+    expect.objectContaining({
+      deletionScheduledFor: expect.anything()
+    })
+  );
+});
 
   test("reactivates a pending deletion account", async () => {
     await reactivateAccount("user-1");
