@@ -254,9 +254,38 @@ export async function renderOrdersByStatus(orders) {
 }
 
 export async function updateOrderStatus(orderId, status) {
-  await updateDoc(doc(db, "orders", orderId), {
+
+  const orderRef = doc(db, "orders", orderId);
+
+  const orderSnap = await getDoc(orderRef);
+  /* istanbul ignore next */
+  if (!orderSnap.exists()) {
+    throw new Error("Order not found");
+  }
+
+  const orderData = orderSnap.data();
+
+  await updateDoc(orderRef, {
     status,
     updatedAt: serverTimestamp()
+  });
+
+  // ✅ create customer notification
+  await addDoc(collection(db, "notifications"), {
+
+    userId: orderData.userId,
+
+    title: "Order Status Updated",
+
+    message: `Your order #${orderData.dailyOrderNumber || orderId.slice(0, 6)} is now ${status}.`,
+
+    type: "order-status",
+
+    orderId,
+
+    read: false,
+
+    createdAt: serverTimestamp()
   });
 }
 

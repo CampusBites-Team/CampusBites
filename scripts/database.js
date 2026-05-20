@@ -27,6 +27,7 @@ import {
   collection,
   query,
   where,
+  orderBy,
   serverTimestamp,
   Timestamp,
   onSnapshot
@@ -84,5 +85,6 @@ export {
   Timestamp,
   signOut,
   sendPasswordResetEmail,
-  sendEmailVerification
+  sendEmailVerification,
+  orderBy
 };

@@ -990,10 +990,10 @@ describe("browse.js", () => {
       );
 
       expect(JSON.parse(localStorage.getItem("cart") || "[]")).toEqual([]);
-      expect(alertSpy).toHaveBeenCalledWith(
-        expect.stringContaining("Pay the vendor in cash on collection")
-      );
       expect(document.getElementById("item-edit-modal").classList.contains("hidden")).toBe(true);
+expect(document.getElementById("toast-container").innerHTML)
+  .toContain("Order placed successfully! The vendor has been notified.");
+        expect(document.getElementById("item-edit-modal").classList.contains("hidden")).toBe(true);
     });
 
     test("alerts and re-enables button on cash order failure", async () => {
@@ -1057,28 +1057,21 @@ describe("browse.js", () => {
       expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining("502"));
     });
   });
-  test("shows toast when item added to cart", async () => {
-  await bootBrowse();
 
-  document.querySelector(".add-cart-btn").click();
+  test("shows toast when item is added to cart", async () => {
+    await bootBrowse();
 
-  expect(document.getElementById("toast-container").innerHTML)
-    .toContain("added to cart");
-});
-test("shows toast when item is added to cart", async () => {
-  await bootBrowse();
+    // ensure container does not exist yet
+    document.getElementById("toast-container")?.remove();
 
-  // ensure container does not exist yet
-  document.getElementById("toast-container")?.remove();
+    const addButton = document.querySelector(".add-cart-btn");
 
-  const addButton = document.querySelector(".add-cart-btn");
+    addButton.click();
 
-  addButton.click();
+    const toastContainer = document.getElementById("toast-container");
 
-  const toastContainer = document.getElementById("toast-container");
+    expect(toastContainer).not.toBeNull();
 
-  expect(toastContainer).not.toBeNull();
-
-  expect(toastContainer.innerHTML).toContain("added to cart");
-});
+    expect(toastContainer.innerHTML).toContain("added to cart");
+  });
 });

@@ -3,9 +3,21 @@ import {
   db,
   doc,
   getDoc,
-  onAuthStateChanged
+  onAuthStateChanged,
+  collection,
+  query,
+  where,
+  onSnapshot,
+  orderBy
 } from "./database.js";
 
+import { formatTimestamp } from "./orders.js";
+
+const styles = {
+  "new-order": "border-l-4 border-indigo-600",
+  "order-status": "border-l-4 border-green-600",
+  "cancelled": "border-l-4 border-red-600"
+};
 const NAV_LINKS = {
   guest: [
     { label: "Home", href: "index.html" },
@@ -164,18 +176,43 @@ function setupLogout() {
     }
   });
 }
-
 export function initNavbar() {
   setupLogout();
   setupProfileDropdown();
+  setupNotificationDropdown();
 
   onAuthStateChanged(auth, async (user) => {
     const { role, userData } = await getUserData(user);
 
     renderLinks(role);
     renderProfileMenu(role, user, userData);
+
+    if (user) {
+      listenToNotifications(user.uid);
+    }
   });
 }
+function setupNotificationDropdown() {
+  const button = document.getElementById("notificationBtn");
+  const dropdown = document.getElementById("notificationDropdown");
+
+  if (!button || !dropdown) return;
+
+  button.addEventListener("click", () => {
+    dropdown.classList.toggle("hidden");
+
+    document
+      .getElementById("profileDropdown")
+      ?.classList.add("hidden");
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!button.contains(event.target) && !dropdown.contains(event.target)) {
+      dropdown.classList.add("hidden");
+    }
+  });
+}
+
 function renderLinks(role) {
   const navLinks = document.getElementById("navLinks");
   if (!navLinks) return;
@@ -249,6 +286,97 @@ async function getUserData(user) {
     console.error("Error loading navbar role:", error);
     return { role: "guest", userData: null };
   }
+}
+
+let currentNotifications = [];
+let firstNotificationLoad = true;
+
+function listenToNotifications(userId) {
+  const q = query(
+    collection(db, "notifications"),
+    where("userId", "==", userId),
+    orderBy("createdAt", "desc")
+  );
+
+  onSnapshot(
+    q,
+    (snapshot) => {
+      const notifications = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data()
+      }));
+      /* istanbul ignore next */
+      if (
+        !firstNotificationLoad &&
+        notifications.length > currentNotifications.length
+      ) {
+        const audio = new Audio("assets/notification.mp3");
+        audio.play().catch(() => {});
+      }
+
+      firstNotificationLoad = false;
+      currentNotifications = notifications;
+
+      renderNotifications(notifications);
+    },
+    /* istanbul ignore next */
+    (error) => {
+      console.error("Notification listener error:", error);
+    }
+  );
+}
+
+function renderNotifications(notifications) {
+  const dropdown = document.getElementById("notificationDropdown");
+  const badge = document.getElementById("notificationBadge");
+
+  if (!dropdown || !badge) return;
+
+  const unread = notifications.filter((n) => !n.read);
+
+  badge.textContent = unread.length;
+  badge.classList.toggle("hidden", unread.length === 0);
+
+  const avatar = document.getElementById("profileAvatar");
+
+  if (unread.length > 0) {
+    avatar?.classList.add("ring-2", "ring-red-500");
+  } else {
+    avatar?.classList.remove("ring-2", "ring-red-500");
+  }
+
+  if (!notifications.length) {
+    dropdown.innerHTML = `
+      <p class="p-4 text-sm text-gray-500">
+        No notifications yet.
+      </p>
+    `;
+    return;
+  }
+
+  dropdown.innerHTML = notifications.map((notification) => {
+    const typeStyle = styles[notification.type] || "";
+
+    return `
+      <article class="
+        p-4 border-b hover:bg-gray-50
+        ${notification.read ? "" : "bg-indigo-50"}
+        ${typeStyle}
+      ">
+        <h4 class="font-semibold text-sm">
+          ${notification.title}
+        </h4>
+
+        <p class="text-sm text-gray-600 mt-1">
+          ${notification.message}
+        </p>
+
+        <p class="text-xs text-gray-400 mt-2">
+          ${formatTimestamp(notification.createdAt)}
+        </p>
+      </article>
+    `;
+  }).join("");
 }
 
 document.addEventListener("DOMContentLoaded", initNavbar);

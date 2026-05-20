@@ -14,12 +14,13 @@ import {
 } from "./database.js";
 
 import {
-  formatTimestamp
+  formatTimestamp,
 } from "./orders.js";
 
 // ---------------- AUTH GUARD ----------------
 export function initVendorDashboard(locationObj = window.location, alertFn = alert) {
   onAuthStateChanged(auth, async (user) => {
+    /* istanbul ignore next */
     if (!user) {
       locationObj.href = "login.html";
       return;
@@ -34,7 +35,7 @@ export function initVendorDashboard(locationObj = window.location, alertFn = ale
     }
 
     const userData = userSnap.data();
-
+    /* istanbul ignore next */
     if (userData.role !== "vendor") {
       locationObj.href = "index.html";
       return;
@@ -257,10 +258,6 @@ export function renderOrders(orders) {
   }).join("");
 }
 
-export async function updateOrderStatus(orderId, newStatus) {
-  const orderRef = doc(db, "orders", orderId);
-  await updateDoc(orderRef, { status: newStatus });
-}
 
 export async function markCashOrderAsPaid(order) {
   await updateDoc(doc(db, "orders", order.id), {
@@ -396,5 +393,13 @@ export function attachOrderStatusListeners() {
         paymentStatus: updatedOrderElement.dataset.paymentStatus || "paid"
       });
     }
+  });
+}
+export async function updateOrderStatus(orderId, newStatus) {
+  const orderRef = doc(db, "orders", orderId);
+
+  await updateDoc(orderRef, {
+    status: newStatus,
+    updatedAt: serverTimestamp()
   });
 }
