@@ -1,5 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
+<style>
+  @keyframes floatSoft {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-14px) rotate(3deg); }
+  }
+
+  .float-soft {
+    animation: floatSoft 5s ease-in-out infinite;
+  }
+</style>
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -14,7 +26,7 @@
   <meta name="apple-mobile-web-app-title" content="CampusBites">
 </head>
 
-<body class="min-h-screen bg-gray-100">
+<<body class="min-h-screen bg-white text-slate-900 overflow-x-hidden">
 
 <nav class="bg-white border-b border-gray-200 shadow-sm">
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
@@ -52,55 +64,70 @@
   </section>
 </nav>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <main class="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50 to-white px-4 sm:px-6 lg:px-8 py-12">
 
-    <header class="mb-10">
+    <section class="absolute -left-28 top-28 w-96 h-80 bg-indigo-100 rounded-full opacity-60"></section>
+<section class="absolute -right-24 top-40 w-[430px] h-[340px] bg-orange-100 rounded-full opacity-60"></section>
+<section class="absolute left-20 bottom-20 w-80 h-56 bg-orange-100 rounded-full opacity-50"></section>
+<section class="absolute right-32 bottom-12 w-96 h-64 bg-indigo-100 rounded-full opacity-50"></section>
+
+<span class="absolute left-20 top-36 text-indigo-500 text-6xl font-bold float-soft">+</span>
+<span class="absolute right-32 top-52 text-orange-500 text-5xl font-bold float-soft">✦</span>
+<span class="absolute left-[48%] bottom-24 text-indigo-400 text-4xl font-bold float-soft">↝</span>
+
+<i data-lucide="shopping-bag" class="absolute right-24 top-32 w-24 h-24 text-orange-500 float-soft"></i>
+<i data-lucide="clock-3" class="absolute left-28 bottom-28 w-24 h-24 text-indigo-600 float-soft"></i>
+<i data-lucide="history" class="absolute right-[40%] bottom-20 w-20 h-20 text-indigo-500 float-soft"></i>
+
+<section class="relative z-10 max-w-7xl mx-auto">
+
+    <header class="mb-10 bg-white/95 backdrop-blur rounded-[1.7rem] p-8 shadow-xl shadow-indigo-100 border border-indigo-100">
       <section class="flex items-center justify-between">
-        <h1 class="text-4xl md:text-4xl font-extrabold text-indigo-950">
+        <h1 class="text-5xl md:text-6xl font-extrabold text-indigo-950">
           Orders
         </h1>
       </section>
 
-      <p class="mt-2 font-bold text-orange-500">
+      <p class="mt-3 text-lg font-semibold text-slate-600">
         Keep track of all of your placed orders.
       </p>
     </header>
 
 <section class="space-y-8">
 
-  <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+  <section class="bg-white/95 backdrop-blur rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100 p-6">
     <header class="flex items-center gap-3 mb-6">
       <i data-lucide="clock" class="w-7 h-7 text-orange-500"></i>
       <section>
-        <h2 class="text-2xl font-bold text-gray-900">Active Orders</h2>
-        <p class="text-sm text-gray-500">Pending and preparing orders</p>
+        <h2 class="text-2xl font-extrabold text-indigo-950">Active Orders</h2>
+        <p class="text-sm text-slate-500 font-medium">Pending and preparing orders</p>
       </section>
     </header>
 
     <section id="active-orders" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></section>
   </section>
 
-  <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+  <section class="bg-white/95 backdrop-blur rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100 p-6">
     <header class="flex items-center gap-3 mb-6">
-      <i data-lucide="package-check" class="w-7 h-7 text-green-500"></i>
+      <i data-lucide="package-check" class="w-7 h-7 text-indigo-600"></i>
       <section>
-        <h2 class="text-2xl font-bold text-gray-900">Ready for Collection</h2>
-        <p class="text-sm text-gray-500">Orders ready for pickup</p>
+        <h2 class="text-2xl font-extrabold text-indigo-950">Ready for Collection</h2>
+        <p class="text-sm text-slate-500 font-medium">Orders ready for pickup</p>
       </section>
     </header>
 
     <section id="ready-orders" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></section>
   </section>
-  <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+  <section class="bg-white/95 backdrop-blur rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100 p-6">
   <header class="flex items-center gap-3 mb-6">
     <i data-lucide="rotate-ccw" class="w-7 h-7 text-orange-500"></i>
 
     <section>
-      <h2 class="text-2xl font-bold text-gray-900">
+      <h2 class="text-2xl font-extrabold text-indigo-950">
         Refund Processing
       </h2>
 
-      <p class="text-sm text-gray-500">
+      <p class="text-sm text-slate-500 font-medium">
         Orders currently being refunded
       </p>
     </section>
@@ -115,10 +142,10 @@
 
   <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
     <header class="flex items-center gap-3 mb-6">
-      <i data-lucide="history" class="w-7 h-7 text-purple-500"></i>
+      <i data-lucide="history" class="w-7 h-7 text-orange-500"></i>
       <section>
-        <h2 class="text-2xl font-bold text-gray-900">Order History</h2>
-        <p class="text-sm text-gray-500">Collected, cancelled and refunded orders</p>
+        <h2 class="text-2xl font-extrabold text-indigo-950">Order History</h2>
+        <p class="text-sm text-slate-500 font-medium">Collected, cancelled and refunded orders</p>
       </section>
     </header>
 
@@ -130,7 +157,7 @@
     <section
       id="item-details-modal"
       class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-      <article class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto slide-in p-6">
+      <article class="bg-white rounded-[1.7rem] max-w-2xl w-full max-h-[90vh] overflow-y-auto slide-in p-6 shadow-2xl border border-indigo-100">
 
         <header class="flex justify-center">
           <h3 class="text-xl font-bold mb-4" id="modal-title">
@@ -144,19 +171,20 @@
           <button
             type="button"
             onclick="document.getElementById('item-details-modal').classList.add('hidden')"
-            class="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50"
+            class="flex-1 border-2 border-orange-400 text-indigo-700 py-3 rounded-2xl font-bold hover:bg-orange-50 transition"
           >
             Close
           </button>
         </section>
 
-        <p id="numItemsOrder" class="text-sm text-gray-500">
+        <p id="numItemsOrder" class="text-sm text-slate-500 font-medium">
           0 items in order
         </p>
 
       </article>
     </section>
 
+    </section>
   </main>
   <script src="scripts/pwa.js"></script>
   <script type="module" src="./scripts/navbar.js"></script>
