@@ -224,6 +224,35 @@ export const adminActions = {
 
 
 
+//======================
+//Payment gateway health check
+//======================
+export async function checkPaystackHealth() {
+  const card = document.getElementById("paystack-health");
+  if (!card) return;
+  const label = card.querySelector("span:last-child");
+  if (!label) return;
+  try {
+    const r = await fetch("/api/paystack/health");
+    const data = await r.json();
+    const ok = data.status === "operational";
+    card.className = `flex justify-between items-center p-3 rounded-lg ${
+      ok ? "bg-green-50" : "bg-red-50"
+    }`;
+    label.className = `text-sm font-medium ${ok ? "text-green-600" : "text-red-600"}`;
+    label.textContent = ok ? `Operational (${data.latencyMs}ms)` : "Down";
+  } catch {
+    label.textContent = "Unreachable";
+  }
+}
+
+if (document.getElementById("paystack-health")) {
+  checkPaystackHealth();
+  setInterval(checkPaystackHealth, 60_000); // re-check every minute
+}
+
+
+
 
 
 // keep globals for inline usage if needed

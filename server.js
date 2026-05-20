@@ -21,6 +21,8 @@ app.post("/api/paystack/create-payment", require("./api/paystack/create-payment"
 app.post("/api/paystack/create-subaccount", require("./api/paystack/create-subaccount"));
 app.post("/api/paystack/refund", require("./api/paystack/refund"));
 app.post("/api/paystack/update-bank-details", require("./api/paystack/update-bank-details"));
+app.get("/api/paystack/health", require("./api/paystack/health"));
+
 
 // Static files — `extensions: ["html"]` gives you clean URLs (/login → login.html)
 app.use(express.static(__dirname, { extensions: ["html"] }));
