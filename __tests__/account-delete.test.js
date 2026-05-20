@@ -137,4 +137,98 @@ describe("account-deletion.js", () => {
 
     expect(global.alert).toHaveBeenCalledWith("Your account has been reactivated.");
   });
+test("cancels deletion when password is empty", async () => {
+  global.confirm.mockReturnValue(true);
+
+  const deletionPromise = requestAccountDeletion("user-1", "test@email.com");
+
+  const passwordInput = document.getElementById("deleteAccountModalPassword");
+  passwordInput.value = "";
+
+  document.getElementById("confirmDeleteAccount").click();
+
+  await deletionPromise;
+
+  expect(global.alert).toHaveBeenCalledWith("Account deletion cancelled.");
+  expect(database.updateDoc).not.toHaveBeenCalled();
+  expect(database.signOut).not.toHaveBeenCalled();
+});
+
+test("still completes deletion when email confirmation request fails", async () => {
+  global.confirm.mockReturnValue(true);
+  global.fetch.mockRejectedValueOnce(new Error("Email failed"));
+
+  const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+  const deletionPromise = requestAccountDeletion("user-1", "test@email.com");
+
+  const passwordInput = document.getElementById("deleteAccountModalPassword");
+  passwordInput.value = "password123";
+
+  document.getElementById("confirmDeleteAccount").click();
+
+  await deletionPromise;
+
+  expect(database.updateDoc).toHaveBeenCalled();
+  expect(global.fetch).toHaveBeenCalled();
+  expect(warnSpy).toHaveBeenCalledWith("Deletion email could not be sent.");
+  expect(database.signOut).toHaveBeenCalled();
+
+  warnSpy.mockRestore();
+});
+
+test("shows error when account deletion update fails", async () => {
+  global.confirm.mockReturnValue(true);
+  database.updateDoc.mockRejectedValueOnce(new Error("Firestore failed"));
+
+  const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+  const deletionPromise = requestAccountDeletion("user-1", "test@email.com");
+
+  const passwordInput = document.getElementById("deleteAccountModalPassword");
+  passwordInput.value = "password123";
+
+  document.getElementById("confirmDeleteAccount").click();
+
+  await deletionPromise;
+
+  expect(errorSpy).toHaveBeenCalled();
+  expect(global.alert).toHaveBeenCalledWith(
+    "Could not schedule account deletion. Please try again."
+  );
+  expect(database.signOut).not.toHaveBeenCalled();
+
+  errorSpy.mockRestore();
+});
+
+test("creates and removes password modal after confirming password", async () => {
+  global.confirm.mockReturnValue(true);
+
+  const deletionPromise = requestAccountDeletion("user-1", "test@email.com");
+
+  expect(document.getElementById("deleteAccountModalPassword")).not.toBeNull();
+
+  document.getElementById("deleteAccountModalPassword").value = "password123";
+  document.getElementById("confirmDeleteAccount").click();
+
+  await deletionPromise;
+
+  expect(document.getElementById("deleteAccountModalPassword")).toBeNull();
+});
+
+test("creates and removes password modal after cancelling password confirmation", async () => {
+  global.confirm.mockReturnValue(true);
+
+  const deletionPromise = requestAccountDeletion("user-1", "test@email.com");
+
+  expect(document.getElementById("deleteAccountModalPassword")).not.toBeNull();
+
+  document.getElementById("cancelDeleteAccount").click();
+
+  await deletionPromise;
+
+  expect(document.getElementById("deleteAccountModalPassword")).toBeNull();
+  expect(database.updateDoc).not.toHaveBeenCalled();
+});
+
 });
