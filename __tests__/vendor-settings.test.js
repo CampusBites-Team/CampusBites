@@ -11,6 +11,14 @@ jest.mock("../scripts/database.js", () => ({
   getDownloadURL: jest.fn()
 }));
 
+jest.mock("../scripts/account-deletion.js", () => ({
+  requestAccountDeletion: jest.fn()
+}));
+
+const {
+  requestAccountDeletion
+} = require("../scripts/account-deletion.js");
+
 Object.defineProperty(document, "readyState", {
   value: "loading",
   configurable: true
@@ -35,7 +43,7 @@ describe("vendor-settings.js", () => {
     document.body.innerHTML = `
       <section id="storeLogoFallback" class=""></section>
       <img id="storeLogoPreview" class="hidden" />
-
+<button id="deleteAccountBtn" type="button">Delete Account</button>
       <form id="vendorDetailsForm">
         <input id="storeLogoInput" type="file" />
         <input id="shopName" />
@@ -726,4 +734,187 @@ test("validateTimePair returns true when both times are empty", async () => {
   ).toBe(true);
 });
 
+test("does nothing when no logo file is selected", async () => {
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  const logoInput = document.getElementById("storeLogoInput");
+
+  Object.defineProperty(logoInput, "files", {
+    value: []
+  });
+
+  logoInput.dispatchEvent(new Event("change"));
+
+  expect(global.alert).not.toHaveBeenCalled();
+});
+
+test("handles vendor details update failure", async () => {
+  const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+  doc.mockReturnValue({});
+  updateDoc.mockRejectedValue(new Error("Vendor update failed"));
+
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved",
+      shopName: "Shop",
+      location: "Matrix"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.getElementById("shopName").value = "Updated Shop";
+  document.getElementById("location").value = "Updated Location";
+  document.getElementById("storeCategory").value = "Fast Food";
+
+  document.getElementById("vendorDetailsForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(errorSpy).toHaveBeenCalled();
+  expect(global.alert).toHaveBeenCalledWith("Could not update vendor details.");
+
+  errorSpy.mockRestore();
+});
+
+test("handles operating hours update failure", async () => {
+  const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+  doc.mockReturnValue({});
+  updateDoc.mockRejectedValue(new Error("Hours update failed"));
+
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.getElementById("weekdayOpeningTime").value = "08:00";
+  document.getElementById("weekdayClosingTime").value = "17:00";
+  document.getElementById("weekendOpeningTime").value = "09:00";
+  document.getElementById("weekendClosingTime").value = "14:00";
+
+  document.getElementById("operatingHoursForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(errorSpy).toHaveBeenCalled();
+  expect(global.alert).toHaveBeenCalledWith("Could not update operating hours.");
+
+  errorSpy.mockRestore();
+});
+
+test("handles banking fetch network failure", async () => {
+  const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  global.fetch.mockRejectedValue(new Error("Network failure"));
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.getElementById("settings-bank-name").value = "absa";
+  document.getElementById("settings-account-holder").value = "Jane Doe";
+  document.getElementById("settings-account-number").value = "123456789";
+  document.getElementById("settings-branch-code").value = "632005";
+  document.getElementById("settings-account-type").value = "savings";
+
+  document.getElementById("bankingDetailsForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+
+ expect(global.alert).toHaveBeenCalledWith(
+  "Could not update banking details: Network failure"
+);
+});
+
+test("calls requestAccountDeletion when vendor clicks delete account", async () => {
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved",
+      email: "vendor@test.com"
+    })
+  });
+
+  requestAccountDeletion.mockResolvedValue();
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.getElementById("deleteAccountBtn").click();
+
+  await Promise.resolve();
+
+  expect(requestAccountDeletion).toHaveBeenCalledWith(
+    "vendor-123",
+    "vendor@test.com"
+  );
+});
 });

@@ -36,6 +36,19 @@ export function formatTimestamp(timestamp) {
   });
 }
 
+export function isOrderFromToday(order) {
+  if (!order.createdAt?.toDate) return false;
+
+  const orderDate = order.createdAt.toDate();
+  const today = new Date();
+
+  return (
+    orderDate.getFullYear() === today.getFullYear() &&
+    orderDate.getMonth() === today.getMonth() &&
+    orderDate.getDate() === today.getDate()
+  );
+}
+
 export function getDateKey(timestamp) {
   if (!timestamp?.toDate) return "unknown-date";
 

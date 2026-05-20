@@ -125,18 +125,53 @@ export async function fetchVendorOrders(vendorId) {
   return orders;
 }
 
+
+export function isOrderFromToday(order) {
+  if (!order.createdAt?.toDate) return false;
+
+  const orderDate = order.createdAt.toDate();
+  const today = new Date();
+
+  return (
+    orderDate.getFullYear() === today.getFullYear() &&
+    orderDate.getMonth() === today.getMonth() &&
+    orderDate.getDate() === today.getDate()
+  );
+}
+
 export function renderQuickStats(orders) {
   const pendingCount = document.getElementById("pending-count");
   const preparingCount = document.getElementById("preparing-count");
   const readyCount = document.getElementById("ready-count");
   const collectedCount = document.getElementById("collected-count");
 
-  if (!pendingCount || !preparingCount || !readyCount || !collectedCount) return;
+  if (!pendingCount || !preparingCount || !readyCount || !collectedCount) {
+    return;
+  }
 
-  pendingCount.textContent = orders.filter((order) => formatStatus(order.status) === "Pending").length;
-  preparingCount.textContent = orders.filter((order) => formatStatus(order.status) === "Preparing").length;
-  readyCount.textContent = orders.filter((order) => formatStatus(order.status) === "Ready").length;
-  collectedCount.textContent = orders.filter((order) => formatStatus(order.status) === "Collected").length;
+const todaysOrders = orders.filter((order) => {
+  if (!order.createdAt) {
+    return true;
+  }
+
+  return isOrderFromToday(order);
+});
+
+  pendingCount.textContent = todaysOrders.filter(
+    (order) => formatStatus(order.status) === "Pending"
+  ).length;
+
+  preparingCount.textContent = todaysOrders.filter(
+    (order) => formatStatus(order.status) === "Preparing"
+  ).length;
+
+  readyCount.textContent = todaysOrders.filter(
+    (order) => formatStatus(order.status) === "Ready"
+  ).length;
+
+  collectedCount.textContent = todaysOrders.filter(
+    (order) => formatStatus(order.status) === "Collected"
+  ).length;
 }
 
 export function getPaymentMeta(order) {

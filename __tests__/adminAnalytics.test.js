@@ -507,7 +507,6 @@ describe("adminAnalytics.js", () => {
 
     expect(alert).toHaveBeenCalledWith("jsPDF library is not loaded.");
   });
-
   test("populateVendorFilter adds approved vendors to dropdown", async () => {
     const { populateVendorFilter } = await import("../scripts/adminAnalytics.js");
 

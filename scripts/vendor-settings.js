@@ -11,6 +11,8 @@ import {
   getDownloadURL
 } from "./database.js";
 
+import { requestAccountDeletion } from "./account-deletion.js";
+
 const BANK_LABELS = {
   absa: "ABSA",
   capitec: "Capitec",
@@ -432,6 +434,10 @@ export function initVendorSettings(locationObj = window.location) {
     fillOperatingHours(userData);
     fillBankingDetails(userData);
     attachCustomCategoryListener();
+
+    document.getElementById("deleteAccountBtn")?.addEventListener("click", async () => {
+  await requestAccountDeletion(user.uid, userData.email);
+});
 
     attachStoreLogoListener();
     attachVendorDetailsForm(user.uid, userData);

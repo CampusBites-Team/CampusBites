@@ -926,4 +926,80 @@ describe("orders.js", () => {
 
     errorSpy.mockRestore();
   });
+
+  test("checks whether an order is from today", () => {
+  jest.isolateModules(() => {
+    require("../scripts/orders.js");
+  });
+
+  const { isOrderFromToday } = require("../scripts/orders.js");
+
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  expect(
+    isOrderFromToday({
+      createdAt: {
+        toDate: () => today
+      }
+    })
+  ).toBe(true);
+
+  expect(
+    isOrderFromToday({
+      createdAt: {
+        toDate: () => yesterday
+      }
+    })
+  ).toBe(false);
+
+  expect(isOrderFromToday({})).toBe(false);
+});
+
+test("formats missing timestamps and unknown date keys", () => {
+  jest.isolateModules(() => {
+    require("../scripts/orders.js");
+  });
+
+  const { formatTimestamp, getDateKey } = require("../scripts/orders.js");
+
+  expect(formatTimestamp(null)).toBe("Not available");
+  expect(formatTimestamp({})).toBe("Not available");
+
+  expect(getDateKey(null)).toBe("unknown-date");
+  expect(getDateKey({})).toBe("unknown-date");
+});
+
+test("returns ISO date key when timestamp is valid", () => {
+  jest.isolateModules(() => {
+    require("../scripts/orders.js");
+  });
+
+  const { getDateKey } = require("../scripts/orders.js");
+
+  expect(
+    getDateKey({
+      toDate: () => new Date("2026-05-08T10:00:00.000Z")
+    })
+  ).toBe("2026-05-08");
+});
+
+test("mark-paid click does nothing when button has no order id", async () => {
+  jest.isolateModules(() => {
+    require("../scripts/orders.js");
+  });
+
+  const btn = document.createElement("button");
+  btn.className = "mark-paid-btn";
+  document.body.appendChild(btn);
+
+  btn.click();
+
+  await flush();
+
+  expect(db.getDoc).not.toHaveBeenCalled();
+  expect(db.updateDoc).not.toHaveBeenCalled();
+  expect(db.addDoc).not.toHaveBeenCalled();
+});
 });

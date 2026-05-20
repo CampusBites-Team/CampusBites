@@ -1,7 +1,9 @@
 // __tests__/login.test.js
 
 jest.mock('../scripts/database.js', () => ({
-  auth: {},
+  auth: {
+  signOut: jest.fn()
+},
   db: {},
 
   signInWithEmailAndPassword: jest.fn(),
@@ -19,6 +21,10 @@ jest.mock('../scripts/database.js', () => ({
   signOut: jest.fn()
 }));
 
+jest.mock("../scripts/account-deletion.js", () => ({
+  reactivateAccount: jest.fn()
+}));
+
 import {
   navigateTo,
   redirectUser,
@@ -27,6 +33,7 @@ import {
   initSocialLogins,
   initLoginPage
 } from '../scripts/login.js';
+import { reactivateAccount } from "../scripts/account-deletion.js";
 import {
   signInWithEmailAndPassword,
   getDoc,
@@ -185,6 +192,76 @@ describe('initLoginForm', () => {
 
     window.alert = jest.fn();
   });
+test("reactivates pending deletion account when user confirms", async () => {
+  global.confirm = jest.fn(() => true);
+
+  signInWithEmailAndPassword.mockResolvedValue({
+    user: {
+      uid: "abc123",
+      emailVerified: true,
+      reload: jest.fn().mockResolvedValue()
+    }
+  });
+
+  doc.mockReturnValue({ id: "mock-doc-ref" });
+
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "customer",
+      accountStatus: "pendingDeletion"
+    })
+  });
+
+  reactivateAccount.mockResolvedValue();
+
+  initLoginForm();
+
+  document.getElementById("loginForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  await new Promise(resolve => setTimeout(resolve, 0));
+
+  expect(global.confirm).toHaveBeenCalledWith(
+    "This account is scheduled for deletion. Do you want to reactivate it?"
+  );
+
+  expect(reactivateAccount).toHaveBeenCalledWith("abc123");
+});
+
+test("signs out pending deletion account when user declines reactivation", async () => {
+  global.confirm = jest.fn(() => false);
+
+  signInWithEmailAndPassword.mockResolvedValue({
+    user: {
+      uid: "abc123",
+      emailVerified: true,
+      reload: jest.fn().mockResolvedValue()
+    }
+  });
+
+  doc.mockReturnValue({ id: "mock-doc-ref" });
+
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "customer",
+      accountStatus: "pendingDeletion"
+    })
+  });
+
+  initLoginForm();
+
+  document.getElementById("loginForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  await new Promise(resolve => setTimeout(resolve, 0));
+
+  expect(reactivateAccount).not.toHaveBeenCalled();
+});
+
 
   test('does nothing if login form is missing', () => {
     document.body.innerHTML = `<section>No form here</section>`;
@@ -216,10 +293,10 @@ test('submits login and reads user profile', async () => {
   await Promise.resolve();
 
   expect(signInWithEmailAndPassword).toHaveBeenCalledWith(
-    {},
-    'test@example.com',
-    '123456'
-  );
+  expect.any(Object),
+  'test@example.com',
+  '123456'
+);
 
   expect(doc).toHaveBeenCalled();
   expect(getDoc).toHaveBeenCalled();
