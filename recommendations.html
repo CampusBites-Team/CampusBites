@@ -1,5 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
+<style>
+  @keyframes floatSoft {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-14px) rotate(3deg); }
+  }
+
+  .float-soft {
+    animation: floatSoft 5s ease-in-out infinite;
+  }
+</style>
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,7 +25,7 @@
   <meta name="apple-mobile-web-app-title" content="CampusBites">
 </head>
 
-<body class="min-h-screen bg-gray-100">
+<body class="min-h-screen bg-white text-slate-900 overflow-x-hidden">
 
 <nav class="bg-white border-b border-gray-200 shadow-sm">
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
@@ -49,37 +61,60 @@
         </section>
   </section>
 </nav>
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <main class="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50 to-white px-4 sm:px-6 lg:px-8 py-12">
+    <section class="absolute -left-28 top-28 w-[430px] h-[340px] bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
+<section class="absolute -right-24 top-40 w-[460px] h-[360px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
+<section class="absolute left-16 bottom-20 w-80 h-56 bg-orange-100 rounded-[55%_45%_40%_60%] opacity-55 rotate-[-10deg]"></section>
+<section class="absolute right-28 bottom-12 w-96 h-64 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-55 rotate-[8deg]"></section>
 
-    <header class="text-center mb-8">
-      <h1 class="text-3xl font-bold mb-2">
-        Recommended For You
-      </h1>
-      <p class="text-gray-600">
-        Based on your order history and dietary preferences.
-      </p>
-    </header>
+<span class="absolute left-20 top-36 text-indigo-500 text-6xl font-bold float-soft">+</span>
+<span class="absolute right-32 top-52 text-orange-500 text-5xl font-bold float-soft">✦</span>
+<span class="absolute left-[48%] bottom-24 text-indigo-400 text-4xl font-bold float-soft">↝</span>
 
-    <section class="mb-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-8 text-white">
-      <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+<i data-lucide="sparkles" class="absolute right-24 top-32 w-24 h-24 text-orange-500 float-soft"></i>
+<i data-lucide="utensils-crossed" class="absolute left-28 bottom-28 w-24 h-24 text-indigo-600 float-soft"></i>
+<i data-lucide="chef-hat" class="absolute right-[40%] bottom-20 w-20 h-20 text-indigo-500 float-soft"></i>
+
+<section class="relative z-10 max-w-7xl mx-auto">
+
+    <header class="text-center mb-10 bg-white/95 backdrop-blur rounded-[2rem] p-10 shadow-2xl shadow-indigo-100 border border-indigo-100">
+    <section class="inline-flex items-center gap-2 bg-orange-100 text-orange-600 px-5 py-2 rounded-2xl text-sm font-bold uppercase tracking-wide mb-5">
+    <i data-lucide="sparkles" class="w-4 h-4"></i>
+    Personalized picks
+  </section>
+
+  <h1 class="text-5xl md:text-6xl font-extrabold text-indigo-950 mb-4">
+    Recommended For You
+  </h1>
+
+  <p class="text-lg text-slate-600 max-w-2xl mx-auto">
+    Based on your order history and dietary preferences.
+  </p>
+</header>
+
+    <section class="relative overflow-hidden mb-10 bg-indigo-600 rounded-[2rem] p-8 md:p-10 text-white shadow-2xl shadow-indigo-200">
+      <section class="absolute -right-16 -top-16 w-56 h-56 bg-white/10 rounded-full"></section>
+      <section class="absolute -left-16 -bottom-16 w-64 h-64 bg-orange-400/20 rounded-full"></section>
+      <i data-lucide="brain-circuit" class="absolute right-10 bottom-8 w-24 h-24 text-white/20"></i>
+      <h2 class="px-4 py-2 bg-white/15 border border-white/20 rounded-full text-sm font-semibold backdrop-blur">
         <i data-lucide="sparkles" class="w-6 h-6"></i>
         ML-Powered Meal Suggestions
       </h2>
 
-      <p class="mb-4 text-indigo-100">
+      <p class="relative z-10 mb-6 text-indigo-100 max-w-3xl text-lg">
         Our system analyzes your past orders, dietary restrictions, and popular combinations to suggest meals you'll love.
       </p>
 
-      <section class="flex gap-2 flex-wrap">
-        <span class="px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm">
+      <section class="relative z-10 flex gap-3 flex-wrap">
+        <span class="px-4 py-2 bg-white/15 border border-white/20 rounded-full text-sm font-semibold backdrop-blur">
           Collaborative Filtering
         </span>
 
-        <span class="px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm">
+        <span class="px-4 py-2 bg-white/15 border border-white/20 rounded-full text-sm font-semibold backdrop-blur">
           Content-Based Matching
         </span>
 
-        <span class="px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm">
+        <span class="px-4 py-2 bg-white/15 border border-white/20 rounded-full text-sm font-semibold backdrop-blur">
           Dietary Constraint Optimization
         </span>
       </section>
@@ -87,14 +122,26 @@
 
     <section id="recommendations-grid" class="grid md:grid-cols-3 gap-6"></section>
 
-    <section class="mt-12">
-      <h2 class="text-xl font-bold mb-6">
+    <section class="mt-12 bg-white/90 backdrop-blur rounded-[2rem] p-6 md:p-8 shadow-xl shadow-indigo-100 border border-indigo-100">
+  <header class="mb-6 flex items-center justify-between gap-4">
+    <section>
+      <p class="text-orange-500 font-bold uppercase tracking-wide mb-1">
+        Popular on campus
+      </p>
+
+      <h2 class="text-3xl font-extrabold text-indigo-950">
         Trending Now
       </h2>
-
-      <section id="trending-grid" class="grid md:grid-cols-4 gap-4"></section>
     </section>
 
+    <figure class="w-14 h-14 bg-orange-100 rounded-2xl flex items-center justify-center">
+      <i data-lucide="trending-up" class="w-7 h-7 text-orange-500"></i>
+    </figure>
+  </header>
+
+  <section id="trending-grid" class="grid md:grid-cols-4 gap-4"></section>
+</section>
+    </section>
   </main>
   <script src="scripts/pwa.js"></script>
   <script type="module" src="./scripts/ForYou.js"></script>

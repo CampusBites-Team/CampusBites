@@ -4,37 +4,112 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CampusBites - Payment Cancelled</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#4f46e5">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="CampusBites">
+
+  <style>
+    @keyframes floatSoft {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-14px) rotate(3deg); }
+    }
+
+    .float-soft {
+      animation: floatSoft 5s ease-in-out infinite;
+    }
+  </style>
 </head>
-<body class="min-h-screen bg-gray-100">
 
-  <nav class="bg-white border-b border-gray-200 shadow-sm">
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-      <header class="flex items-center gap-2">
-        <i data-lucide="utensils" class="w-7 h-7 text-indigo-600"></i>
-        <span class="text-xl font-bold text-gray-900">CampusBites</span>
-      </header>
-      <section class="md:flex space-x-8">
-        <a href="index.html" class="text-gray-700 hover:text-indigo-600">Home</a>
-        <a href="browse.html" class="text-gray-700 hover:text-indigo-600">Browse</a>
-      </section>
+<body class="min-h-screen bg-white text-slate-900 overflow-x-hidden">
+
+  <section class="relative min-h-screen overflow-hidden bg-gradient-to-br from-white via-indigo-50 to-white">
+
+    <section class="absolute -left-28 top-32 w-96 h-80 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
+    <section class="absolute -right-20 bottom-6 w-[430px] h-[360px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
+    <section class="absolute right-56 top-24 w-60 h-48 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-80"></section>
+    <section class="absolute left-10 bottom-10 w-72 h-56 bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70 rotate-[-12deg]"></section>
+
+    <span class="absolute left-28 top-40 text-indigo-500 text-5xl font-bold float-soft">+</span>
+    <span class="absolute left-72 bottom-40 text-indigo-500 text-5xl font-bold float-soft">+</span>
+    <span class="absolute right-72 bottom-24 text-indigo-500 text-5xl font-bold float-soft">+</span>
+    <span class="absolute right-80 top-72 text-orange-500 text-4xl font-bold float-soft">✦</span>
+    <span class="absolute left-[22rem] bottom-64 text-orange-500 text-4xl font-bold float-soft">✦</span>
+
+    <i data-lucide="x-circle" class="absolute right-72 top-36 w-24 h-24 text-orange-500 float-soft"></i>
+    <i data-lucide="shopping-bag" class="absolute right-28 bottom-48 w-24 h-24 text-indigo-600 float-soft"></i>
+    <i data-lucide="utensils-crossed" class="absolute left-32 bottom-28 w-24 h-24 text-orange-500 float-soft"></i>
+
+    <section class="relative z-10 min-h-screen">
+
+      <nav class="bg-white border-b border-gray-200 shadow-sm">
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+          <a href="index.html" class="flex items-center gap-2">
+            <img
+              src="assets/icons/1-removebg-preview.png"
+              alt="CampusBites logo"
+              class="h-12 w-auto object-contain"
+            >
+
+            <span class="text-2xl font-extrabold tracking-tight">
+              <span class="text-indigo-600">Campus</span><span class="text-orange-500">Bites</span>
+            </span>
+          </a>
+
+          <section class="flex items-center gap-6">
+            <a href="index.html" class="text-gray-700 hover:text-indigo-600 transition">Home</a>
+            <a href="browse.html" class="text-gray-700 hover:text-indigo-600 transition">Browse</a>
+          </section>
+        </section>
+      </nav>
+
+      <main class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
+        <article class="bg-white/95 backdrop-blur rounded-[2rem] shadow-2xl border border-indigo-100 p-10 text-center w-full max-w-xl">
+
+          <figure class="w-24 h-24 bg-orange-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <i data-lucide="x-circle" class="w-14 h-14 text-orange-500"></i>
+          </figure>
+
+          <section class="inline-flex items-center gap-2 bg-orange-100 text-orange-600 px-5 py-2 rounded-2xl text-sm font-bold uppercase tracking-wide mb-5">
+            <i data-lucide="alert-circle" class="w-4 h-4"></i>
+            Checkout stopped
+          </section>
+
+          <h1 class="text-4xl md:text-5xl font-extrabold text-indigo-950 mb-4">
+            Payment Cancelled
+          </h1>
+
+          <p class="text-slate-600 text-lg mb-8 max-w-md mx-auto">
+            No charge was made. Your cart is empty — you can browse again and try once more.
+          </p>
+
+          <section class="flex flex-col sm:flex-row gap-4">
+            <a
+              href="browse.html"
+              class="flex-1 bg-indigo-600 text-white px-6 py-4 rounded-2xl font-bold hover:bg-indigo-700 transition shadow-xl shadow-indigo-200 flex items-center justify-center gap-2"
+            >
+              Back to Browse
+              <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </a>
+
+            <a
+              href="index.html"
+              class="flex-1 border-2 border-orange-400 text-indigo-700 px-6 py-4 rounded-2xl font-bold hover:bg-orange-50 transition"
+            >
+              Go Home
+            </a>
+          </section>
+
+        </article>
+      </main>
     </section>
-  </nav>
+  </section>
 
-  <main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-    <article class="bg-white rounded-2xl shadow-sm p-10 text-center">
-      <i data-lucide="x-circle" class="w-16 h-16 text-red-500 mx-auto mb-4"></i>
-      <h1 class="text-2xl font-bold text-gray-900 mb-2">Payment cancelled</h1>
-      <p class="text-gray-600 mb-6">No charge was made. Your cart is empty — you can browse again and try once more.</p>
-      <a href="browse.html" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">Back to browse</a>
-    </article>
-  </main>
   <script src="scripts/pwa.js"></script>
   <script>
     lucide.createIcons();

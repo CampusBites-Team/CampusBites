@@ -3,18 +3,130 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Select Role</title>
+  <title>CampusBites - Select Role</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#4f46e5">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="CampusBites">
+
+  <style>
+    @keyframes floatSoft {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-14px) rotate(3deg); }
+    }
+
+    .float-soft {
+      animation: floatSoft 5s ease-in-out infinite;
+    }
+  </style>
 </head>
-<body>
-  <h1>Select Your Role</h1>
-  <button id="customer">Customer</button>
-  <button id="vendor">Vendor</button>
+
+<body class="min-h-screen bg-white text-slate-900 overflow-x-hidden">
+
+  <main class="relative min-h-screen overflow-hidden bg-gradient-to-br from-white via-indigo-50 to-white px-4 py-10 flex items-center justify-center">
+
+    <section class="absolute -left-28 top-28 w-96 h-80 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
+    <section class="absolute -right-24 bottom-16 w-[430px] h-[340px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
+    <section class="absolute right-56 top-24 w-60 h-48 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-80"></section>
+    <section class="absolute left-10 bottom-10 w-72 h-56 bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70 rotate-[-12deg]"></section>
+
+    <span class="absolute left-28 top-40 text-indigo-500 text-5xl font-bold float-soft">+</span>
+    <span class="absolute right-72 bottom-24 text-indigo-500 text-5xl font-bold float-soft">+</span>
+    <span class="absolute right-80 top-72 text-orange-500 text-4xl font-bold float-soft">✦</span>
+    <span class="absolute left-[22rem] bottom-64 text-orange-500 text-4xl font-bold float-soft">✦</span>
+
+    <i data-lucide="utensils-crossed" class="absolute right-40 top-40 w-16 h-16 text-indigo-600 float-soft"></i>
+    <i data-lucide="store" class="absolute right-28 bottom-48 w-24 h-24 text-orange-500 float-soft"></i>
+    <i data-lucide="shopping-bag" class="absolute left-32 bottom-28 w-24 h-24 text-orange-500 float-soft"></i>
+
+    <section class="relative z-10 w-full max-w-5xl">
+
+      <header class="text-center mb-12 pt-4">
+        <a href="index.html" class="inline-flex items-center justify-center gap-2 mb-4 -translate-x-6">
+          <img
+            src="assets/icons/1-removebg-preview.png"
+            alt="CampusBites logo"
+            class="h-14 w-auto object-contain"
+          >
+
+          <span class="text-3xl font-extrabold tracking-tight">
+            <span class="text-indigo-600">Campus</span><span class="text-orange-500">Bites</span>
+          </span>
+        </a>
+
+        <section class="inline-flex items-center gap-2 bg-orange-100 text-orange-600 px-5 py-2 rounded-2xl text-sm font-bold uppercase tracking-wide mb-5">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          Choose your experience
+        </section>
+
+        <h1 class="text-5xl md:text-6xl font-extrabold text-indigo-950 mb-4">
+          Select Your Role
+        </h1>
+
+        <p class="text-lg text-slate-600 max-w-2xl mx-auto">
+          Tell us how you’ll be using CampusBites so we can take you to the right dashboard.
+        </p>
+      </header>
+
+      <section class="grid md:grid-cols-2 gap-8">
+
+        <article class="bg-white/95 backdrop-blur rounded-[2rem] p-8 shadow-2xl shadow-indigo-100 border border-indigo-100 hover:-translate-y-1 hover:shadow-indigo-200 transition">
+          <figure class="w-20 h-20 bg-indigo-100 rounded-3xl flex items-center justify-center mb-6">
+            <i data-lucide="shopping-bag" class="w-10 h-10 text-indigo-600"></i>
+          </figure>
+
+          <h2 class="text-3xl font-extrabold text-indigo-950 mb-3">
+            Customer
+          </h2>
+
+          <p class="text-slate-600 mb-8">
+            Browse campus vendors, place orders, track meals, and collect food when it is ready.
+          </p>
+
+          <button
+            id="customer"
+            class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition shadow-xl shadow-indigo-200 flex items-center justify-center gap-2"
+          >
+            Continue as Customer
+            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+          </button>
+        </article>
+
+        <article class="bg-white/95 backdrop-blur rounded-[2rem] p-8 shadow-2xl shadow-orange-100 border border-orange-100 hover:-translate-y-1 hover:shadow-orange-200 transition">
+          <figure class="w-20 h-20 bg-orange-100 rounded-3xl flex items-center justify-center mb-6">
+            <i data-lucide="store" class="w-10 h-10 text-orange-500"></i>
+          </figure>
+
+          <h2 class="text-3xl font-extrabold text-indigo-950 mb-3">
+            Vendor
+          </h2>
+
+          <p class="text-slate-600 mb-8">
+            Manage your food stall, receive orders, update statuses, and keep students informed.
+          </p>
+
+          <button
+            id="vendor"
+            class="w-full border-2 border-orange-400 text-indigo-700 py-4 rounded-2xl font-bold hover:bg-orange-50 transition flex items-center justify-center gap-2"
+          >
+            Continue as Vendor
+            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+          </button>
+        </article>
+
+      </section>
+    </section>
+  </main>
+
+  <script src="scripts/pwa.js"></script>
+  <script type="module" src="scripts/select-role.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
 </body>
-<script src="scripts/pwa.js"></script>
-<script type="module" src="scripts/select-role.js"></script>    
 </html>
