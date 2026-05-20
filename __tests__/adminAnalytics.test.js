@@ -274,9 +274,6 @@ describe("adminAnalytics.js", () => {
               status: "Collected",
               userId: "customer-1",
               menuItems: [{ name: "Burger", quantity: 2 }],
-              createdAt: {
-                toDate: () => new Date()
-              }
               createdAt: { toDate: () => new Date() }
             })
           }
@@ -312,9 +309,6 @@ describe("adminAnalytics.js", () => {
               vendorId: "vendor-1",
               total: 120,
               status: "Collected",
-              createdAt: {
-                toDate: () => new Date()
-              }
               createdAt: { toDate: () => new Date() }
             })
           }
@@ -513,8 +507,6 @@ describe("adminAnalytics.js", () => {
 
     expect(alert).toHaveBeenCalledWith("jsPDF library is not loaded.");
   });
-
-  const recentDate = new Date();
   test("populateVendorFilter adds approved vendors to dropdown", async () => {
     const { populateVendorFilter } = await import("../scripts/adminAnalytics.js");
 
