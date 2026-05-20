@@ -64,17 +64,18 @@ describe("ForYou.js", () => {
     query.mockReset();
     where.mockReset();
 
-    collection.mockImplementation((db, name) => name);
+    collection.mockImplementation((_db, name) => name);
     where.mockReturnValue("whereUserId");
     query.mockReturnValue("ordersQuery");
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
-  test("loads recommendations and trending items for logged in user", async () => {
-    onAuthStateChanged.mockImplementation((auth, callback) => {
+  test("shows empty recommendation and favourite messages when user has no previous orders", async () => {
+    onAuthStateChanged.mockImplementation((_auth, callback) => {
       callback({ uid: "user1" });
     });
 
@@ -105,32 +106,6 @@ describe("ForYou.js", () => {
               category: "Fast Food",
               image: "burger.jpg"
             })
-          },
-          {
-            id: "item2",
-            data: () => ({
-              name: "Pizza",
-              vendorId: "vendor1",
-              vendorName: "Jimmy's",
-              price: 40,
-              available: true,
-              dietary: [],
-              category: "Pizza",
-              image: "pizza.jpg"
-            })
-          },
-          {
-            id: "item3",
-            data: () => ({
-              name: "Wrap",
-              vendorId: "vendor1",
-              vendorName: "Jimmy's",
-              price: 35,
-              available: true,
-              dietary: ["Vegetarian"],
-              category: "Healthy",
-              image: "wrap.jpg"
-            })
           }
         ]
       })
@@ -140,20 +115,15 @@ describe("ForYou.js", () => {
 
     await loadForYou();
 
-    const recommendationsHtml =
-      document.getElementById("recommendations-grid").innerHTML;
+    expect(document.getElementById("recommendations-grid").innerHTML)
+      .toContain("No recommendations yet.");
 
-    const trendingHtml =
-      document.getElementById("trending-grid").innerHTML;
-
-    expect(recommendationsHtml).toContain("Burger");
-    expect(recommendationsHtml).toContain("Add to Cart");
-    expect(trendingHtml).toContain("Pizza");
-    expect(global.lucide.createIcons).toHaveBeenCalled();
+    expect(document.getElementById("trending-grid").innerHTML)
+      .toContain("No favourite items yet.");
   });
 
-  test("adds recommended item to localStorage cart and updates cart count", async () => {
-    onAuthStateChanged.mockImplementation((auth, callback) => {
+  test("loads recommendations and favourite items for logged in user with previous orders", async () => {
+    onAuthStateChanged.mockImplementation((_auth, callback) => {
       callback({ uid: "user1" });
     });
 
@@ -173,6 +143,117 @@ describe("ForYou.js", () => {
       .mockResolvedValueOnce({
         docs: [
           {
+            id: "oldItem",
+            data: () => ({
+              name: "Old Burger",
+              vendorId: "vendor1",
+              vendorName: "Jimmy's",
+              price: 25,
+              available: true,
+              dietary: ["Halal"],
+              allergens: ["Nuts"],
+              category: "Fast Food",
+              image: "old.jpg"
+            })
+          },
+          {
+            id: "item2",
+            data: () => ({
+              name: "Halal Pizza",
+              vendorId: "vendor1",
+              vendorName: "Jimmy's",
+              price: 40,
+              available: true,
+              dietary: ["Halal"],
+              allergens: ["Nuts"],
+              category: "Fast Food",
+              image: "pizza.jpg"
+            })
+          },
+          {
+            id: "item3",
+            data: () => ({
+              name: "Plain Water",
+              vendorId: "vendor1",
+              vendorName: "Jimmy's",
+              price: 10,
+              available: true,
+              dietary: [],
+              allergens: [],
+              category: "Beverages",
+              image: "water.jpg"
+            })
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        docs: [
+          {
+            id: "order1",
+            data: () => ({
+              userId: "user1",
+              menuItems: [
+                {
+                  id: "oldItem",
+                  name: "Old Burger",
+                  dietary: ["Halal"],
+                  allergens: ["Nuts"],
+                  category: "Fast Food"
+                }
+              ]
+            })
+          }
+        ]
+      });
+
+    await loadForYou();
+
+    const recommendationsHtml =
+      document.getElementById("recommendations-grid").innerHTML;
+
+    const favouriteHtml =
+      document.getElementById("trending-grid").innerHTML;
+
+    expect(recommendationsHtml).toContain("Halal Pizza");
+    expect(recommendationsHtml).toContain("Add to Cart");
+    expect(favouriteHtml).toContain("Old Burger");
+    expect(global.lucide.createIcons).toHaveBeenCalled();
+  });
+
+  test("adds recommended item to localStorage cart and updates cart count", async () => {
+    onAuthStateChanged.mockImplementation((_auth, callback) => {
+      callback({ uid: "user1" });
+    });
+
+    getDocs
+      .mockResolvedValueOnce({
+        docs: [
+          {
+            id: "vendor1",
+            data: () => ({
+              role: "vendor",
+              status: "approved",
+              shopName: "Jimmy's"
+            })
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        docs: [
+          {
+            id: "oldItem",
+            data: () => ({
+              name: "Old Burger",
+              vendorId: "vendor1",
+              vendorName: "Jimmy's",
+              price: 25,
+              available: true,
+              dietary: ["Halal"],
+              category: "Fast Food",
+              image: "old.jpg"
+            })
+          },
+          {
             id: "item1",
             data: () => ({
               name: "Burger",
@@ -180,13 +261,30 @@ describe("ForYou.js", () => {
               vendorName: "Jimmy's",
               price: 25,
               available: true,
+              dietary: ["Halal"],
+              category: "Fast Food",
               image: "burger.jpg"
             })
           }
         ]
       })
       .mockResolvedValueOnce({
-        docs: []
+        docs: [
+          {
+            id: "order1",
+            data: () => ({
+              userId: "user1",
+              menuItems: [
+                {
+                  id: "oldItem",
+                  name: "Old Burger",
+                  dietary: ["Halal"],
+                  category: "Fast Food"
+                }
+              ]
+            })
+          }
+        ]
       });
 
     await loadForYou();
@@ -201,8 +299,8 @@ describe("ForYou.js", () => {
     expect(global.alert).toHaveBeenCalledWith("Item added to cart.");
   });
 
-  test("shows fallback message when no recommendations are available", async () => {
-    onAuthStateChanged.mockImplementation((auth, callback) => {
+  test("shows fallback message when no menu items and no orders are available", async () => {
+    onAuthStateChanged.mockImplementation((_auth, callback) => {
       callback({ uid: "user1" });
     });
 
@@ -229,24 +327,15 @@ describe("ForYou.js", () => {
     await loadForYou();
 
     expect(document.getElementById("recommendations-grid").innerHTML)
-      .toContain("No recommendations available yet.");
+      .toContain("No recommendations yet.");
 
     expect(document.getElementById("trending-grid").innerHTML)
-      .toContain("No trending items available.");
+      .toContain("No favourite items yet.");
   });
 
-  test("calls auth listener when page loads", async () => {
-    onAuthStateChanged.mockImplementation((auth, callback) => {
-      callback(null);
-    });
-
-    await loadForYou();
-
-    expect(onAuthStateChanged).toHaveBeenCalled();
-  });
 
   test("shows error message when loading recommendations fails", async () => {
-    onAuthStateChanged.mockImplementation((auth, callback) => {
+    onAuthStateChanged.mockImplementation((_auth, callback) => {
       callback({ uid: "user1" });
     });
 
@@ -258,88 +347,132 @@ describe("ForYou.js", () => {
       .toContain("Failed to load recommendations.");
 
     expect(document.getElementById("trending-grid").innerHTML)
-      .toContain("Failed to load trending items.");
+      .toContain("Failed to load favourite items.");
   });
-  test("recommends items based on previous order dietary and category matches", async () => {
-  onAuthStateChanged.mockImplementation((auth, callback) => {
+
+  test("recommends items based on previous order dietary, allergen and category matches", async () => {
+    onAuthStateChanged.mockImplementation((_auth, callback) => {
+      callback({ uid: "user1" });
+    });
+
+    getDocs
+      .mockResolvedValueOnce({
+        docs: [
+          {
+            id: "vendor1",
+            data: () => ({
+              role: "vendor",
+              status: "approved",
+              shopName: "Jimmy's"
+            })
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        docs: [
+          {
+            id: "oldItem",
+            data: () => ({
+              name: "Old Vegan Burger",
+              vendorId: "vendor1",
+              vendorName: "Jimmy's",
+              price: 30,
+              available: true,
+              dietary: ["Vegan"],
+              allergens: ["Soy"],
+              category: "Fast Food"
+            })
+          },
+          {
+            id: "newItem",
+            data: () => ({
+              name: "New Vegan Wrap",
+              vendorId: "vendor1",
+              vendorName: "Jimmy's",
+              price: 35,
+              available: true,
+              dietary: ["Vegan"],
+              allergens: ["Soy"],
+              category: "Fast Food"
+            })
+          },
+          {
+            id: "otherItem",
+            data: () => ({
+              name: "Plain Water",
+              vendorId: "vendor1",
+              vendorName: "Jimmy's",
+              price: 10,
+              available: true,
+              dietary: [],
+              allergens: [],
+              category: "Beverages"
+            })
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        docs: [
+          {
+            id: "order1",
+            data: () => ({
+              userId: "user1",
+              items: [
+                {
+                  id: "oldItem",
+                  name: "Old Vegan Burger",
+                  dietary: ["Vegan"],
+                  allergens: ["Soy"],
+                  category: "Fast Food"
+                }
+              ]
+            })
+          }
+        ]
+      });
+
+    await loadForYou();
+
+    const html = document.getElementById("recommendations-grid").innerHTML;
+
+    expect(html).toContain("New Vegan Wrap");
+    expect(html).not.toContain("Plain Water");
+  });
+
+test("calls auth listener when page loads and redirects logged out user", async () => {
+  const hrefSpy = jest.spyOn(window.location, "href", "set")
+    .mockImplementation(() => {});
+
+  onAuthStateChanged.mockImplementation((_auth, callback) => {
+    callback(null);
+  });
+
+  await loadForYou();
+
+  expect(onAuthStateChanged).toHaveBeenCalled();
+  expect(hrefSpy).toHaveBeenCalledWith("login.html");
+
+  hrefSpy.mockRestore();
+});
+test("cart button redirects to browse cart section", async () => {
+  const hrefSpy = jest.spyOn(window.location, "href", "set")
+    .mockImplementation(() => {});
+
+  onAuthStateChanged.mockImplementation((_auth, callback) => {
     callback({ uid: "user1" });
   });
 
   getDocs
-    .mockResolvedValueOnce({
-      docs: [
-        {
-          id: "vendor1",
-          data: () => ({
-            role: "vendor",
-            status: "approved",
-            shopName: "Jimmy's"
-          })
-        }
-      ]
-    })
-    .mockResolvedValueOnce({
-      docs: [
-        {
-          id: "oldItem",
-          data: () => ({
-            name: "Old Vegan Burger",
-            vendorId: "vendor1",
-            vendorName: "Jimmy's",
-            price: 30,
-            available: true,
-            dietary: ["Vegan"],
-            category: "Fast Food"
-          })
-        },
-        {
-          id: "newItem",
-          data: () => ({
-            name: "New Vegan Wrap",
-            vendorId: "vendor1",
-            vendorName: "Jimmy's",
-            price: 35,
-            available: true,
-            dietary: ["Vegan"],
-            category: "Fast Food"
-          })
-        },
-        {
-          id: "otherItem",
-          data: () => ({
-            name: "Plain Water",
-            vendorId: "vendor1",
-            vendorName: "Jimmy's",
-            price: 10,
-            available: true,
-            dietary: [],
-            category: "Beverages"
-          })
-        }
-      ]
-    })
-    .mockResolvedValueOnce({
-      docs: [
-        {
-          id: "order1",
-          data: () => ({
-            userId: "user1",
-            items: [
-              {
-                id: "oldItem",
-                name: "Old Vegan Burger"
-              }
-            ]
-          })
-        }
-      ]
-    });
+    .mockResolvedValueOnce({ docs: [] })
+    .mockResolvedValueOnce({ docs: [] })
+    .mockResolvedValueOnce({ docs: [] });
 
   await loadForYou();
 
-  const html = document.getElementById("recommendations-grid").innerHTML;
+  document.getElementById("cartBtn").click();
 
-  expect(html).toContain("New Vegan Wrap");
-  expect(html).toContain("Plain Water");
+  expect(hrefSpy).toHaveBeenCalledWith("browse.html#cart");
+
+  hrefSpy.mockRestore();
 });
 });

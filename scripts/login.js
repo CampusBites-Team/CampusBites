@@ -88,7 +88,7 @@ redirectUser(userData.role);
 
 
     
-      const userData = userDocSnap.data();
+     // const userData = userDocSnap.data();
 
       if (
         userData.requiresEmailVerification === true &&
