@@ -922,7 +922,10 @@ const cash = {
 
       document.getElementById("item-edit-modal")?.classList.add("hidden");
 
-      alert("Order placed! Pay the vendor in cash on collection.");
+      showToast(
+  "Order placed successfully! The vendor has been notified.",
+  "success"
+);
       window.location.assign("customer-orders.html");
     } catch (error) {
       console.error("Error placing cash order:", error);

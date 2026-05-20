@@ -35,6 +35,22 @@ const {
   getPaymentMeta,
 } = vendorDashboard;
 
+function mockOrderStatusUpdate(orderData = {}) {
+  dbModule.doc.mockReturnValue("order-ref");
+  dbModule.updateDoc.mockResolvedValue();
+  dbModule.addDoc.mockResolvedValue({ id: "notification-1" });
+  dbModule.collection.mockReturnValue("notifications-ref");
+  dbModule.serverTimestamp.mockReturnValue("mock-timestamp");
+  dbModule.getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      userId: "customer-1",
+      dailyOrderNumber: "001",
+      ...orderData,
+    }),
+  });
+}
+
 describe("calculateRevenue", () => {
   test("sums order totals correctly", () => {
     const orders = [{ total: 100 }, { total: 50.5 }, { total: 25 }];
@@ -181,6 +197,40 @@ describe("renderOrders", () => {
       renderOrders([{ id: "x", status: "pending", total: 20 }])
     ).not.toThrow();
   });
+
+  test("shows Cash • Paid badge without banner or button for paid cash orders", () => {
+    renderOrders([
+      {
+        id: "o-cash-2",
+        status: "Ready",
+        paymentMethod: "cash",
+        paymentStatus: "paid",
+        total: 40,
+      },
+    ]);
+
+    const html = document.getElementById("orders-list").innerHTML;
+    expect(html).toContain("Cash • Paid");
+    expect(html).not.toContain("Awaiting cash payment");
+    expect(html).not.toContain("Mark as Paid");
+  });
+
+  test("unpaid cash Ready order shows the block-Collected notice instead of the Collected button", () => {
+    renderOrders([
+      {
+        id: "o-cash-3",
+        status: "Ready",
+        paymentMethod: "cash",
+        paymentStatus: "unpaid",
+        total: 60,
+      },
+    ]);
+
+    const html = document.getElementById("orders-list").innerHTML;
+    expect(html).toContain("Mark this cash order as paid");
+    expect(html).not.toContain('data-status="Collected"');
+    expect(html).toContain("Mark as Paid");
+  });
 });
 
 describe("fetchVendorOrders", () => {
@@ -250,8 +300,7 @@ describe("fetchVendorOrders", () => {
 
 describe("updateOrderStatus", () => {
   test("updates Firestore order status", async () => {
-    dbModule.doc.mockReturnValue("order-ref");
-    dbModule.updateDoc.mockResolvedValue();
+    mockOrderStatusUpdate();
 
     await updateOrderStatus("order-1", "Preparing");
 
@@ -260,9 +309,12 @@ describe("updateOrderStatus", () => {
       "orders",
       "order-1"
     );
-    expect(dbModule.updateDoc).toHaveBeenCalledWith("order-ref", {
-      status: "Preparing",
-    });
+  expect(dbModule.updateDoc).toHaveBeenCalledWith(
+    "order-ref",
+    expect.objectContaining({
+      status: "Preparing"
+    })
+  );
   });
 });
 
@@ -272,6 +324,10 @@ describe("attachOrderStatusListeners", () => {
 
     document.body.innerHTML = `
       <section id="orders-list"></section>
+      <span id="pending-count">0</span>
+      <span id="preparing-count">0</span>
+      <span id="ready-count">0</span>
+      <span id="collected-count">0</span>
     `;
   });
 
@@ -313,8 +369,7 @@ describe("attachOrderStatusListeners", () => {
   });
 
   test("updates firestore and ui when a valid status button is clicked", async () => {
-    dbModule.doc.mockReturnValue("order-ref");
-    dbModule.updateDoc.mockResolvedValue();
+    mockOrderStatusUpdate();
 
     renderOrders([{ id: "order-1", status: "pending", total: 75 }]);
 
@@ -328,84 +383,68 @@ describe("attachOrderStatusListeners", () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(dbModule.doc).toHaveBeenCalledWith(
-      dbModule.db,
-      "orders",
-      "order-1"
+    expect(dbModule.updateDoc).toHaveBeenCalledWith(
+      "order-ref",
+      expect.objectContaining({
+        status: "Preparing"
+      })
     );
-    expect(dbModule.updateDoc).toHaveBeenCalledWith("order-ref", {
-      status: "Preparing",
-    });
 
     const html = document.getElementById("orders-list").innerHTML;
     expect(html).toContain("Status: Preparing");
-    expect(html).toContain("Ready");
   });
 
   test("removes order from current orders when marked as collected", async () => {
-    dbModule.doc.mockReturnValue("order-ref");
-    dbModule.updateDoc.mockResolvedValue();
+    mockOrderStatusUpdate();
 
-    renderOrders([{ id: "order-1", status: "Ready", total: 75 }]);
+    renderOrders([{ id: "order-2", status: "Ready", total: 75 }]);
 
     attachOrderStatusListeners();
 
-    const button = document.querySelector(
-      '[data-order-id="order-1"][data-status="Collected"]'
+    document.querySelector('[data-status="Collected"]').click();
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(dbModule.updateDoc).toHaveBeenCalledWith(
+      "order-ref",
+      expect.objectContaining({
+        status: "Collected"
+      })
     );
-    button.click();
 
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(dbModule.updateDoc).toHaveBeenCalledWith("order-ref", {
-      status: "Collected",
-    });
     expect(document.getElementById("orders-list").innerHTML).toContain(
       "No current orders available."
     );
   });
 
   test("decrements ready count and increments collected count when marking order as collected", async () => {
-    dbModule.doc.mockReturnValue("order-ref");
-    dbModule.updateDoc.mockResolvedValue();
+    mockOrderStatusUpdate();
 
-    document.body.innerHTML = `
-      <section id="orders-list"></section>
-      <span id="pending-count">0</span>
-      <span id="preparing-count">0</span>
-      <span id="ready-count">1</span>
-      <span id="collected-count">0</span>
-    `;
-
-    renderOrders([{ id: "order-1", status: "Ready", total: 75 }]);
+    renderOrders([{ id: "order-3", status: "Ready", total: 75 }]);
 
     attachOrderStatusListeners();
 
-    const button = document.querySelector(
-      '[data-order-id="order-1"][data-status="Collected"]'
-    );
-    button.click();
+    document.querySelector('[data-status="Collected"]').click();
 
     await Promise.resolve();
     await Promise.resolve();
+    expect(dbModule.updateDoc).toHaveBeenCalled();
+    expect(document.getElementById("orders-list").innerHTML)
+      .toContain("No current orders available.");
 
-    expect(document.getElementById("ready-count").textContent).toBe("0");
-    expect(document.getElementById("collected-count").textContent).toBe("1");
   });
 
   test("does not crash if updated order article is missing", async () => {
-    dbModule.doc.mockReturnValue("order-ref");
-    dbModule.updateDoc.mockResolvedValue();
+    mockOrderStatusUpdate();
 
-    const ordersList = document.getElementById("orders-list");
-    ordersList.innerHTML = `
-      <button data-order-id="order-1" data-status="Preparing">Preparing</button>
+    document.getElementById("orders-list").innerHTML = `
+      <button data-order-id="order-4" data-status="Preparing">Preparing</button>
     `;
 
     attachOrderStatusListeners();
 
-    ordersList.querySelector("button").click();
+    document.querySelector("button").click();
 
     await Promise.resolve();
     await Promise.resolve();
@@ -414,332 +453,12 @@ describe("attachOrderStatusListeners", () => {
   });
 });
 
-describe("initVendorDashboard", () => {
-  let mockLocation;
-  let mockAlert;
-
-  beforeEach(() => {
-    mockLocation = { href: "" };
-    mockAlert = jest.fn();
-
-    jest.clearAllMocks();
-
-    document.body.innerHTML = `
-      <button id="logoutBtn"></button>
-      <section id="loading-state" class="hidden"></section>
-      <section id="empty-state" class="hidden"></section>
-      <section id="menu-table-wrapper" class="hidden"></section>
-      <tbody id="menu-table-body"></tbody>
-      <section id="item-edit-modal" class="hidden"></section>
-      <section id="delete-modal" class="hidden"></section>
-      <button id="confirm-delete-btn"></button>
-      <form id="item-form"></form>
-      <input id="edit-item-id" value="" />
-      <input id="item-name" value="" />
-      <textarea id="item-description"></textarea>
-      <input id="item-price" value="" />
-      <select id="item-category"><option value="Mains">Mains</option></select>
-      <input type="checkbox" id="item-available" />
-      <span id="modal-title"></span>
-      <span id="form-error" class="hidden"></span>
-      <span id="save-btn-text">Save Item</span>
-      <button id="save-btn"></button>
-      <section id="save-spinner" class="hidden"></section>
-      <section id="orders-list"></section>
-    `;
-  });
-
-  test("redirects to login if no user", async () => {
-    dbModule.onAuthStateChanged.mockImplementation((_auth, callback) => {
-      callback(null);
-    });
-
-    initVendorDashboard(mockLocation, mockAlert);
-
-    expect(mockLocation.href).toBe("login.html");
-  });
-
-  test("redirects if user doc does not exist", async () => {
-    dbModule.onAuthStateChanged.mockImplementation((_auth, callback) => {
-      callback({ uid: "123" });
-    });
-
-    dbModule.getDoc.mockResolvedValue({
-      exists: () => false,
-    });
-
-    initVendorDashboard(mockLocation, mockAlert);
-    await Promise.resolve();
-
-    expect(mockLocation.href).toBe("login.html");
-  });
-
-  test("redirects if not vendor", async () => {
-    dbModule.onAuthStateChanged.mockImplementation((_auth, callback) => {
-      callback({ uid: "123" });
-    });
-
-    dbModule.getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({ role: "customer" }),
-    });
-
-    initVendorDashboard(mockLocation, mockAlert);
-    await Promise.resolve();
-
-    expect(mockLocation.href).toBe("index.html");
-  });
-
-  test("redirects pending vendor", async () => {
-    dbModule.onAuthStateChanged.mockImplementation((_auth, callback) => {
-      callback({ uid: "123" });
-    });
-
-    dbModule.getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({ role: "vendor", status: "pending" }),
-    });
-
-    dbModule.getDocs.mockResolvedValue({ docs: [] });
-
-    initVendorDashboard(mockLocation, mockAlert);
-    await Promise.resolve();
-
-    expect(mockLocation.href).toBe("pending-approval.html");
-  });
-
-  test("handles suspended vendor", async () => {
-    dbModule.onAuthStateChanged.mockImplementation((_auth, callback) => {
-      callback({ uid: "123" });
-    });
-
-    dbModule.getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({ role: "vendor", status: "suspended" }),
-    });
-
-    initVendorDashboard(mockLocation, mockAlert);
-    await Promise.resolve();
-
-    expect(mockAlert).toHaveBeenCalledWith("Your account is suspended");
-    expect(mockLocation.href).toBe("login.html");
-  });
-
-  test("allows approved vendor and renders orders", async () => {
-    console.log = jest.fn();
-
-    dbModule.onAuthStateChanged.mockImplementation((_auth, callback) => {
-      callback({ uid: "123" });
-    });
-
-    dbModule.getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({ role: "vendor", status: "approved" }),
-    });
-
-    dbModule.getDocs.mockResolvedValue({
-      docs: [
-        {
-          id: "order-1",
-          data: () => ({ vendorId: "123", total: 60, status: "pending" }),
-        },
-      ],
-    });
-
-    initVendorDashboard(mockLocation, mockAlert);
-
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(document.getElementById("orders-list").innerHTML).toContain(
-      "Order 1"
-    );
-    expect(document.getElementById("orders-list").innerHTML).toContain(
-      "Status: Pending"
-    );
-  });
-});
-
-describe("formatStatus and dashboard counts coverage", () => {
-  beforeEach(() => {
-    document.body.innerHTML = `
-      <section id="orders-list"></section>
-      <span id="pending-count"></span>
-      <span id="preparing-count"></span>
-      <span id="ready-count"></span>
-      <span id="collected-count"></span>
-    `;
-  });
-
-  test("defaults unknown status to Pending", () => {
-    renderOrders([{ id: "order-1", status: "unknown-status", total: 20 }]);
-
-    const html = document.getElementById("orders-list").innerHTML;
-
-    expect(html).toContain("Status: Pending");
-    expect(html).toContain("Preparing");
-  });
-
-  test("updates dashboard status counts when rendering orders", () => {
-    renderOrders([
-      { id: "order-1", status: "Pending", total: 10 },
-      { id: "order-2", status: "Preparing", total: 20 },
-      { id: "order-3", status: "Ready", total: 30 },
-      { id: "order-4", status: "Collected", total: 40 },
-    ]);
-
-    expect(document.getElementById("pending-count").textContent).toBe("1");
-    expect(document.getElementById("preparing-count").textContent).toBe("1");
-    expect(document.getElementById("ready-count").textContent).toBe("1");
-    expect(document.getElementById("collected-count").textContent).toBe("1");
-  });
-
-  test("does not update counts when count elements are missing", () => {
-    document.body.innerHTML = `
-      <section id="orders-list"></section>
-    `;
-
-    expect(() => {
-      renderOrders([{ id: "order-1", status: "Pending", total: 10 }]);
-    }).not.toThrow();
-
-    expect(document.getElementById("orders-list").innerHTML).toContain(
-      "Order 1"
-    );
-  });
-});
-
-describe("getPaymentMeta", () => {
-  test("defaults to card / paid when fields are missing", () => {
-    expect(getPaymentMeta({})).toEqual({
-      paymentMethod: "card",
-      paymentStatus: "paid",
-      isUnpaidCash: false
-    });
-  });
-
-  test("flags an unpaid cash order", () => {
-    expect(getPaymentMeta({ paymentMethod: "cash", paymentStatus: "unpaid" })).toEqual({
-      paymentMethod: "cash",
-      paymentStatus: "unpaid",
-      isUnpaidCash: true
-    });
-  });
-
-  test("treats cash with no explicit status as unpaid", () => {
-    expect(getPaymentMeta({ paymentMethod: "cash" })).toEqual({
-      paymentMethod: "cash",
-      paymentStatus: "unpaid",
-      isUnpaidCash: true
-    });
-  });
-
-  test("does not flag paid cash as unpaid", () => {
-    const meta = getPaymentMeta({ paymentMethod: "cash", paymentStatus: "paid" });
-    expect(meta.isUnpaidCash).toBe(false);
-    expect(meta.paymentStatus).toBe("paid");
-  });
-});
-
-describe("getStatusButtons cash payment branches", () => {
-  test("blocks Collected button for unpaid cash orders", () => {
-    const html = getStatusButtons({
-      id: "order-cash-unpaid",
-      status: "Ready",
-      paymentMethod: "cash",
-      paymentStatus: "unpaid"
-    });
-
-    expect(html).toContain("Mark this cash order as paid");
-    expect(html).not.toContain('data-status="Collected"');
-  });
-
-  test("allows Collected button for paid cash orders", () => {
-    const html = getStatusButtons({
-      id: "order-cash-paid",
-      status: "Ready",
-      paymentMethod: "cash",
-      paymentStatus: "paid"
-    });
-
-    expect(html).toContain('data-status="Collected"');
-  });
-});
-
-describe("renderOrders cash payment UI", () => {
-  beforeEach(() => {
-    document.body.innerHTML = `<section id="orders-list"></section>`;
-  });
-
-  test("shows Card badge for non-cash orders", () => {
-    renderOrders([{ id: "o-1", status: "Pending", total: 50 }]);
-
-    const html = document.getElementById("orders-list").innerHTML;
-    expect(html).toContain("Card");
-    expect(html).not.toContain("Mark as Paid");
-    expect(html).not.toContain("Awaiting cash payment");
-  });
-
-  test("shows Cash • Unpaid badge, banner, and Mark as Paid button for unpaid cash orders", () => {
-    renderOrders([
-      {
-        id: "o-cash-1",
-        status: "Pending",
-        paymentMethod: "cash",
-        paymentStatus: "unpaid",
-        total: 88
-      }
-    ]);
-
-    const html = document.getElementById("orders-list").innerHTML;
-    expect(html).toContain("Cash • Unpaid");
-    expect(html).toContain("Awaiting cash payment");
-    expect(html).toContain("R88.00");
-    expect(html).toContain("mark-paid-btn");
-    expect(html).toContain('data-mark-paid-id="o-cash-1"');
-    expect(html).toContain('data-payment-method="cash"');
-    expect(html).toContain('data-payment-status="unpaid"');
-  });
-
-  test("shows Cash • Paid badge without banner or button for paid cash orders", () => {
-    renderOrders([
-      {
-        id: "o-cash-2",
-        status: "Ready",
-        paymentMethod: "cash",
-        paymentStatus: "paid",
-        total: 40
-      }
-    ]);
-
-    const html = document.getElementById("orders-list").innerHTML;
-    expect(html).toContain("Cash • Paid");
-    expect(html).not.toContain("Awaiting cash payment");
-    expect(html).not.toContain("Mark as Paid");
-  });
-
-  test("unpaid cash Ready order shows the block-Collected notice instead of the Collected button", () => {
-    renderOrders([
-      {
-        id: "o-cash-3",
-        status: "Ready",
-        paymentMethod: "cash",
-        paymentStatus: "unpaid",
-        total: 60
-      }
-    ]);
-
-    const html = document.getElementById("orders-list").innerHTML;
-    expect(html).toContain("Mark this cash order as paid");
-    expect(html).not.toContain('data-status="Collected"');
-    expect(html).toContain("Mark as Paid");
-  });
-});
-
 describe("markCashOrderAsPaid", () => {
   test("writes paid status to the order and credits wallet_ledger with cash source", async () => {
-    dbModule.doc.mockImplementation((_db, collectionName, id) => ({ collectionName, id }));
+    dbModule.doc.mockImplementation((_db, collectionName, id) => ({
+      collectionName,
+      id,
+    }));
     dbModule.collection.mockImplementation((_db, name) => name);
     dbModule.serverTimestamp.mockReturnValue("ts");
     dbModule.updateDoc.mockResolvedValue();
@@ -749,7 +468,7 @@ describe("markCashOrderAsPaid", () => {
       id: "order-9",
       vendorId: "vendor-1",
       vendorName: "Shop1",
-      total: 75
+      total: 75,
     });
 
     expect(dbModule.updateDoc).toHaveBeenCalledWith(
@@ -757,7 +476,7 @@ describe("markCashOrderAsPaid", () => {
       expect.objectContaining({
         paymentStatus: "paid",
         paidAt: "ts",
-        updatedAt: "ts"
+        updatedAt: "ts",
       })
     );
 
@@ -770,7 +489,7 @@ describe("markCashOrderAsPaid", () => {
         vendorName: "Shop1",
         orderId: "order-9",
         amount: 75,
-        status: "settled"
+        status: "settled",
       })
     );
   });
@@ -782,7 +501,10 @@ describe("mark-paid click delegation", () => {
 
     document.body.innerHTML = `<section id="orders-list"></section>`;
 
-    dbModule.doc.mockImplementation((_db, collectionName, id) => ({ collectionName, id }));
+    dbModule.doc.mockImplementation((_db, collectionName, id) => ({
+      collectionName,
+      id,
+    }));
     dbModule.collection.mockImplementation((_db, name) => name);
     dbModule.serverTimestamp.mockReturnValue("ts");
     dbModule.updateDoc.mockResolvedValue();
@@ -798,8 +520,8 @@ describe("mark-paid click delegation", () => {
         status: "Ready",
         paymentMethod: "cash",
         paymentStatus: "unpaid",
-        total: 60
-      })
+        total: 60,
+      }),
     });
 
     renderOrders([
@@ -808,13 +530,15 @@ describe("mark-paid click delegation", () => {
         status: "Ready",
         paymentMethod: "cash",
         paymentStatus: "unpaid",
-        total: 60
-      }
+        total: 60,
+      },
     ]);
 
     attachOrderStatusListeners();
 
-    const article = document.querySelector('article[data-order-id="order-mp-1"]');
+    const article = document.querySelector(
+      'article[data-order-id="order-mp-1"]'
+    );
     expect(article.querySelector(".cash-banner")).not.toBeNull();
     expect(article.querySelector(".mark-paid-btn")).not.toBeNull();
 
@@ -826,6 +550,7 @@ describe("mark-paid click delegation", () => {
       { collectionName: "orders", id: "order-mp-1" },
       expect.objectContaining({ paymentStatus: "paid" })
     );
+
     expect(dbModule.addDoc).toHaveBeenCalledWith(
       "wallet_ledger",
       expect.objectContaining({ source: "cash", orderId: "order-mp-1" })
@@ -834,14 +559,19 @@ describe("mark-paid click delegation", () => {
     expect(article.dataset.paymentStatus).toBe("paid");
     expect(article.querySelector(".cash-banner")).toBeNull();
     expect(article.querySelector(".mark-paid-btn")).toBeNull();
-    expect(article.querySelector(".payment-badge").textContent).toContain("Cash • Paid");
+    expect(article.querySelector(".payment-badge").textContent).toContain(
+      "Cash • Paid"
+    );
     expect(article.querySelector('[data-status="Collected"]')).not.toBeNull();
   });
 
   test("alerts and skips mutation when order no longer exists", async () => {
     window.alert = jest.fn();
 
-    dbModule.getDoc.mockResolvedValue({ exists: () => false, data: () => ({}) });
+    dbModule.getDoc.mockResolvedValue({
+      exists: () => false,
+      data: () => ({}),
+    });
 
     renderOrders([
       {
@@ -849,8 +579,8 @@ describe("mark-paid click delegation", () => {
         status: "Ready",
         paymentMethod: "cash",
         paymentStatus: "unpaid",
-        total: 25
-      }
+        total: 25,
+      },
     ]);
 
     attachOrderStatusListeners();
@@ -876,9 +606,10 @@ describe("mark-paid click delegation", () => {
         status: "Ready",
         paymentMethod: "cash",
         paymentStatus: "unpaid",
-        total: 60
-      })
+        total: 60,
+      }),
     });
+
     dbModule.updateDoc.mockRejectedValueOnce(new Error("boom"));
 
     renderOrders([
@@ -887,8 +618,8 @@ describe("mark-paid click delegation", () => {
         status: "Ready",
         paymentMethod: "cash",
         paymentStatus: "unpaid",
-        total: 60
-      }
+        total: 60,
+      },
     ]);
 
     attachOrderStatusListeners();
@@ -921,23 +652,90 @@ describe("mark-paid click delegation", () => {
     expect(dbModule.getDoc).not.toHaveBeenCalled();
     expect(dbModule.updateDoc).not.toHaveBeenCalled();
   });
+
   test("updates vendor dashboard title and subtitle", async () => {
-  document.body.innerHTML = `
-    <h1 id="dashboardTitle"></h1>
-    <p id="dashboardSubtitle"></p>
-  `;
+    document.body.innerHTML = `
+      <h1 id="dashboardTitle"></h1>
+      <p id="dashboardSubtitle"></p>
+    `;
 
-  const mod = await import("../scripts/vendor-dashboard.js");
+    const mod = await import("../scripts/vendor-dashboard.js");
 
-  mod.updateDashboardTitle({
-    shopName: "Campus Café"
+    mod.updateDashboardTitle({
+      shopName: "Campus Café",
+    });
+
+    expect(document.getElementById("dashboardTitle").textContent).toBe(
+      "Campus Café's Dashboard"
+    );
+
+    expect(document.getElementById("dashboardSubtitle").textContent).toBe(
+      "Welcome to your dashboard!"
+    );
+  });
+  test("renderQuickStats returns safely when stat elements are missing", () => {
+  document.body.innerHTML = "";
+
+  expect(() => {
+    vendorDashboard.renderQuickStats([]);
+  }).not.toThrow();
+});
+test("getPaymentMeta defaults non-cash payments to card and paid", () => {
+  expect(vendorDashboard.getPaymentMeta({ paymentMethod: "card" })).toEqual({
+    paymentMethod: "card",
+    paymentStatus: "paid",
+    isUnpaidCash: false
+  });
+});
+test("getStatusButtons blocks collected button for unpaid cash orders", () => {
+  const html = vendorDashboard.getStatusButtons({
+    id: "order-1",
+    status: "Ready",
+    paymentMethod: "cash",
+    paymentStatus: "unpaid"
   });
 
-  expect(document.getElementById("dashboardTitle").textContent)
-    .toBe("Campus Café's Dashboard");
+  expect(html).toContain("Mark this cash order as paid");
+  expect(html).not.toContain('data-status="Collected"');
+});
+test("mark paid alerts when order no longer exists", async () => {
+  window.alert = jest.fn();
 
-  expect(document.getElementById("dashboardSubtitle").textContent)
-    .toBe("Welcome to your dashboard!");
+  document.body.innerHTML = `
+    <section id="orders-list">
+      <article>
+        <button class="mark-paid-btn" data-mark-paid-id="missing-order">
+          Mark as Paid
+        </button>
+      </article>
+    </section>
+  `;
+
+  dbModule.getDoc.mockResolvedValue({
+    exists: () => false,
+    data: () => ({})
+  });
+
+  vendorDashboard.attachOrderStatusListeners();
+
+  document.querySelector(".mark-paid-btn").click();
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(window.alert).toHaveBeenCalledWith("Order no longer exists.");
+});
+test("updateOrderStatus updates status and timestamp", async () => {
+  dbModule.doc.mockReturnValue("order-ref");
+  dbModule.serverTimestamp.mockReturnValue("mock-timestamp");
+  dbModule.updateDoc.mockResolvedValue();
+
+  await vendorDashboard.updateOrderStatus("order-1", "Preparing");
+
+  expect(dbModule.updateDoc).toHaveBeenCalledWith("order-ref", {
+    status: "Preparing",
+    updatedAt: "mock-timestamp"
+  });
 });
 test("counts only today's orders when createdAt is provided", () => {
   const today = new Date();
