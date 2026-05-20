@@ -211,4 +211,21 @@ describe("account-deletion.js", () => {
 
     expect(global.alert).toHaveBeenCalledWith("Your account has been reactivated.");
   });
+  test("continues deletion when deletion email request fails", async () => {
+  global.fetch.mockRejectedValueOnce(new Error("Email failed"));
+
+  const deletionPromise = requestAccountDeletion("user-1", "test@email.com");
+
+  await flushPromises();
+
+  document.getElementById("deleteAccountModalPassword").value = "password123";
+  document.getElementById("confirmDeleteAccount").click();
+
+  await deletionPromise;
+
+  expect(database.updateDoc).toHaveBeenCalled();
+  expect(global.fetch).toHaveBeenCalled();
+  expect(console.warn).toHaveBeenCalledWith("Deletion email could not be sent.");
+  expect(database.signOut).toHaveBeenCalled();
+});
 });
