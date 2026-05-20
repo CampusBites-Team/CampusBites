@@ -340,12 +340,12 @@ function updateCartCount() {
 }
 
 cartBtn?.addEventListener("click", () => {
-  window.location.href = "browse.html#cart";
+  window.location.assign("browse.html#cart");
 });
 
 onAuthStateChanged(auth, user => {
   if (!user) {
-    window.location.href = "login.html";
+    window.location.assign("login.html");
     return;
   }
 

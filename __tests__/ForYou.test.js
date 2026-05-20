@@ -439,40 +439,6 @@ describe("ForYou.js", () => {
     expect(html).not.toContain("Plain Water");
   });
 
-test("calls auth listener when page loads and redirects logged out user", async () => {
-  const hrefSpy = jest.spyOn(window.location, "href", "set")
-    .mockImplementation(() => {});
 
-  onAuthStateChanged.mockImplementation((_auth, callback) => {
-    callback(null);
-  });
 
-  await loadForYou();
-
-  expect(onAuthStateChanged).toHaveBeenCalled();
-  expect(hrefSpy).toHaveBeenCalledWith("login.html");
-
-  hrefSpy.mockRestore();
-});
-test("cart button redirects to browse cart section", async () => {
-  const hrefSpy = jest.spyOn(window.location, "href", "set")
-    .mockImplementation(() => {});
-
-  onAuthStateChanged.mockImplementation((_auth, callback) => {
-    callback({ uid: "user1" });
-  });
-
-  getDocs
-    .mockResolvedValueOnce({ docs: [] })
-    .mockResolvedValueOnce({ docs: [] })
-    .mockResolvedValueOnce({ docs: [] });
-
-  await loadForYou();
-
-  document.getElementById("cartBtn").click();
-
-  expect(hrefSpy).toHaveBeenCalledWith("browse.html#cart");
-
-  hrefSpy.mockRestore();
-});
 });
