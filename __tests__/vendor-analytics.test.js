@@ -84,6 +84,22 @@ function setupDatabaseMock() {
   }));
 }
 
+function setupVendorUser(orders = mockOrders) {
+  mockGetDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor"
+    })
+  });
+
+  mockGetDocs.mockResolvedValue({
+    docs: orders.map((order) => ({
+      id: order.id,
+      data: () => order
+    }))
+  });
+}
+
 beforeEach(() => {
   jest.resetModules();
 
@@ -110,19 +126,7 @@ describe("vendor-analytics.js", () => {
   });
 
   test("loads vendor orders and updates analytics for a valid vendor", async () => {
-    mockGetDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        role: "vendor"
-      })
-    });
-
-    mockGetDocs.mockResolvedValue({
-      docs: mockOrders.map((order) => ({
-        id: order.id,
-        data: () => order
-      }))
-    });
+    setupVendorUser();
 
     await import("../scripts/vendor-analytics.js");
 
@@ -175,19 +179,7 @@ describe("vendor-analytics.js", () => {
       }
     ];
 
-    mockGetDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        role: "vendor"
-      })
-    });
-
-    mockGetDocs.mockResolvedValue({
-      docs: orders.map((order) => ({
-        id: order.id,
-        data: () => order
-      }))
-    });
+    setupVendorUser(orders);
 
     await import("../scripts/vendor-analytics.js");
 
@@ -219,19 +211,7 @@ describe("vendor-analytics.js", () => {
       }
     ];
 
-    mockGetDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        role: "vendor"
-      })
-    });
-
-    mockGetDocs.mockResolvedValue({
-      docs: orders.map((order) => ({
-        id: order.id,
-        data: () => order
-      }))
-    });
+    setupVendorUser(orders);
 
     await import("../scripts/vendor-analytics.js");
 
@@ -245,19 +225,7 @@ describe("vendor-analytics.js", () => {
   });
 
   test("creates a chart with collected revenue grouped by date", async () => {
-    mockGetDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        role: "vendor"
-      })
-    });
-
-    mockGetDocs.mockResolvedValue({
-      docs: mockOrders.map((order) => ({
-        id: order.id,
-        data: () => order
-      }))
-    });
+    setupVendorUser();
 
     await import("../scripts/vendor-analytics.js");
 
@@ -292,20 +260,7 @@ describe("vendor-analytics.js", () => {
 
   test("does not create a chart if the analytics chart element is missing", async () => {
     setupDOM(false);
-
-    mockGetDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        role: "vendor"
-      })
-    });
-
-    mockGetDocs.mockResolvedValue({
-      docs: mockOrders.map((order) => ({
-        id: order.id,
-        data: () => order
-      }))
-    });
+    setupVendorUser();
 
     await import("../scripts/vendor-analytics.js");
 
@@ -317,19 +272,7 @@ describe("vendor-analytics.js", () => {
   });
 
   test("filter button filters loaded orders by selected date range", async () => {
-    mockGetDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        role: "vendor"
-      })
-    });
-
-    mockGetDocs.mockResolvedValue({
-      docs: mockOrders.map((order) => ({
-        id: order.id,
-        data: () => order
-      }))
-    });
+    setupVendorUser();
 
     await import("../scripts/vendor-analytics.js");
 
@@ -352,19 +295,7 @@ describe("vendor-analytics.js", () => {
   });
 
   test("filter button keeps all orders when start date is missing", async () => {
-    mockGetDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        role: "vendor"
-      })
-    });
-
-    mockGetDocs.mockResolvedValue({
-      docs: mockOrders.map((order) => ({
-        id: order.id,
-        data: () => order
-      }))
-    });
+    setupVendorUser();
 
     await import("../scripts/vendor-analytics.js");
 
@@ -383,19 +314,7 @@ describe("vendor-analytics.js", () => {
   });
 
   test("filter button keeps all orders when end date is missing", async () => {
-    mockGetDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        role: "vendor"
-      })
-    });
-
-    mockGetDocs.mockResolvedValue({
-      docs: mockOrders.map((order) => ({
-        id: order.id,
-        data: () => order
-      }))
-    });
+    setupVendorUser();
 
     await import("../scripts/vendor-analytics.js");
 
@@ -431,19 +350,7 @@ describe("vendor-analytics.js", () => {
       }
     ];
 
-    mockGetDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        role: "vendor"
-      })
-    });
-
-    mockGetDocs.mockResolvedValue({
-      docs: orders.map((order) => ({
-        id: order.id,
-        data: () => order
-      }))
-    });
+    setupVendorUser(orders);
 
     await import("../scripts/vendor-analytics.js");
 
@@ -462,16 +369,7 @@ describe("vendor-analytics.js", () => {
   });
 
   test("handles empty vendor order list", async () => {
-    mockGetDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        role: "vendor"
-      })
-    });
-
-    mockGetDocs.mockResolvedValue({
-      docs: []
-    });
+    setupVendorUser([]);
 
     await import("../scripts/vendor-analytics.js");
 
