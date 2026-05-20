@@ -51,11 +51,11 @@ function formatOperatingHours(vendorData) {
 
   const weekdayHours = weekdayOpening && weekdayClosing
     ? `Weekdays: ${weekdayOpening} - ${weekdayClosing}`
-    : "Weekdays: Not set";
+    : "Weekdays: Closed";
 
   const weekendHours = weekendOpening && weekendClosing
     ? `Weekends: ${weekendOpening} - ${weekendClosing}`
-    : "Weekends: Not set";
+    : "Weekends: Closed";
 
   return `${weekdayHours} | ${weekendHours}`;
 }

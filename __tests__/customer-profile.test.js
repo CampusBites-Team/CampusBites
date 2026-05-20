@@ -31,9 +31,7 @@ const {
   getDownloadURL
 } = require("../scripts/database.js");
 
-const {
-  requestAccountDeletion
-} = require("../scripts/account-deletion.js");
+const { requestAccountDeletion } = require("../scripts/account-deletion.js");
 
 const {
   onAuthStateChanged
@@ -105,7 +103,6 @@ describe("customer-profile.js", () => {
     expect(document.getElementById("email").value).toBe("ant@gmail.com");
     expect(document.getElementById("phone").value).toBe("0712345678");
     expect(document.getElementById("role").value).toBe("customer");
-
     expect(document.getElementById("profileName").textContent).toBe("Ant");
     expect(document.getElementById("profileEmail").textContent).toBe("ant@gmail.com");
     expect(document.getElementById("profileImage").src).toContain("profile-image-url");
@@ -198,7 +195,7 @@ describe("customer-profile.js", () => {
       data: () => ({
         fullName: "Ant",
         email: "ant@gmail.com",
-        phone: "",
+        phone: "0712345678",
         role: "customer",
         image: "old-image-url"
       })
@@ -234,6 +231,81 @@ describe("customer-profile.js", () => {
     expect(global.alert).toHaveBeenCalledWith("Profile updated successfully.");
   });
 
+  test("accepts customer phone number with spaces and saves cleaned phone", async () => {
+    doc.mockReturnValue({});
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        fullName: "Ant",
+        email: "ant@gmail.com",
+        phone: "0712345678",
+        role: "customer",
+        image: null
+      })
+    });
+
+    updateDoc.mockResolvedValue();
+
+    onAuthStateChanged.mockImplementation((authArg, callback) => {
+      callback({ uid: "customer-123" });
+    });
+
+    initCustomerProfile();
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    document.getElementById("fullName").value = "Ant";
+    document.getElementById("phone").value = "074 389 2816";
+
+    document.getElementById("profileForm").dispatchEvent(
+      new Event("submit", { bubbles: true, cancelable: true })
+    );
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(updateDoc).toHaveBeenCalledWith(expect.anything(), {
+      fullName: "Ant",
+      phone: "0743892816",
+      image: null
+    });
+  });
+
+  test("rejects invalid customer phone number", async () => {
+    doc.mockReturnValue({});
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        fullName: "Ant",
+        email: "ant@gmail.com",
+        phone: "0712345678",
+        role: "customer"
+      })
+    });
+
+    onAuthStateChanged.mockImplementation((authArg, callback) => {
+      callback({ uid: "customer-123" });
+    });
+
+    initCustomerProfile();
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    document.getElementById("fullName").value = "Ant";
+    document.getElementById("phone").value = "07123";
+
+    document.getElementById("profileForm").dispatchEvent(
+      new Event("submit", { bubbles: true, cancelable: true })
+    );
+
+    await Promise.resolve();
+
+    expect(global.alert).toHaveBeenCalledWith("Phone number must be exactly 10 digits.");
+    expect(updateDoc).not.toHaveBeenCalled();
+  });
+
   test("alerts when profile is submitted before profile data is loaded", async () => {
     onAuthStateChanged.mockImplementation(() => {});
 
@@ -258,7 +330,7 @@ describe("customer-profile.js", () => {
       data: () => ({
         fullName: "Ant",
         email: "ant@gmail.com",
-        phone: "",
+        phone: "0712345678",
         role: "customer",
         image: "old-image-url"
       })
@@ -274,6 +346,8 @@ describe("customer-profile.js", () => {
 
     await Promise.resolve();
     await Promise.resolve();
+
+    document.getElementById("phone").value = "0712345678";
 
     document.getElementById("profileForm").dispatchEvent(
       new Event("submit", { bubbles: true, cancelable: true })
@@ -363,7 +437,7 @@ describe("customer-profile.js", () => {
       data: () => ({
         fullName: "Ant",
         email: "ant@gmail.com",
-        phone: "",
+        phone: "0712345678",
         role: "customer",
         image: null
       })
@@ -396,6 +470,8 @@ describe("customer-profile.js", () => {
 
     imageInput.dispatchEvent(new Event("change"));
 
+    document.getElementById("phone").value = "071 234 5678";
+
     document.getElementById("profileForm").dispatchEvent(
       new Event("submit", { bubbles: true, cancelable: true })
     );
@@ -410,7 +486,7 @@ describe("customer-profile.js", () => {
 
     expect(updateDoc).toHaveBeenCalledWith(expect.anything(), {
       fullName: "Ant",
-      phone: "",
+      phone: "0712345678",
       image: "new-image-url"
     });
   });
@@ -426,7 +502,7 @@ describe("customer-profile.js", () => {
       data: () => ({
         fullName: "Ant",
         email: "ant@gmail.com",
-        phone: "",
+        phone: "0712345678",
         role: "customer",
         image: null
       })
