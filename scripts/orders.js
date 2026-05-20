@@ -47,6 +47,8 @@ export function isOrderFromToday(order) {
     orderDate.getMonth() === today.getMonth() &&
     orderDate.getDate() === today.getDate()
   );
+}
+
 export function getDateKey(timestamp) {
   if (!timestamp?.toDate) return "unknown-date";
 
