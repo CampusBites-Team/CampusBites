@@ -148,7 +148,13 @@ export function renderQuickStats(orders) {
     return;
   }
 
-  const todaysOrders = orders.filter(isOrderFromToday);
+const todaysOrders = orders.filter((order) => {
+  if (!order.createdAt) {
+    return true;
+  }
+
+  return isOrderFromToday(order);
+});
 
   pendingCount.textContent = todaysOrders.filter(
     (order) => formatStatus(order.status) === "Pending"

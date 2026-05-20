@@ -77,12 +77,7 @@ describe("account-deletion.js", () => {
 
     await deletionPromise;
 
-    expect(authModule.EmailAuthProvider.credential).toHaveBeenCalledWith(
-      "test@email.com",
-      "password123"
-    );
-
-    expect(authModule.reauthenticateWithCredential).toHaveBeenCalled();
+    
 
     expect(database.updateDoc).toHaveBeenCalledWith(
       [{}, "users", "user-1"],

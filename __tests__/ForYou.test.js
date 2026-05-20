@@ -333,7 +333,6 @@ describe("ForYou.js", () => {
       .toContain("No favourite items yet.");
   });
 
-
   test("shows error message when loading recommendations fails", async () => {
     onAuthStateChanged.mockImplementation((_auth, callback) => {
       callback({ uid: "user1" });
@@ -439,6 +438,28 @@ describe("ForYou.js", () => {
     expect(html).not.toContain("Plain Water");
   });
 
+  test("calls auth listener when page loads and handles logged out user", async () => {
+    onAuthStateChanged.mockImplementation((_auth, callback) => {
+      callback(null);
+    });
 
+    await loadForYou();
 
+    expect(onAuthStateChanged).toHaveBeenCalled();
+  });
+
+  test("cart button exists after page load", async () => {
+    onAuthStateChanged.mockImplementation((_auth, callback) => {
+      callback({ uid: "user1" });
+    });
+
+    getDocs
+      .mockResolvedValueOnce({ docs: [] })
+      .mockResolvedValueOnce({ docs: [] })
+      .mockResolvedValueOnce({ docs: [] });
+
+    await loadForYou();
+
+    expect(document.getElementById("cartBtn")).not.toBeNull();
+  });
 });
