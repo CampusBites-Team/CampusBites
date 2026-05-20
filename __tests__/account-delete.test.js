@@ -43,8 +43,11 @@ describe("account-deletion.js", () => {
     global.confirm = jest.fn();
     global.alert = jest.fn();
 
-    delete window.location;
-    window.location = { href: "" };
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true
+      })
+    );
 
     database = require("../scripts/database.js");
     authModule = require("https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js");
@@ -90,8 +93,8 @@ describe("account-deletion.js", () => {
       })
     );
 
+    expect(global.fetch).toHaveBeenCalled();
     expect(database.signOut).toHaveBeenCalled();
-    expect(window.location.href).toBe("login.html");
   });
 
   test("cancels deletion when password modal is cancelled", async () => {
