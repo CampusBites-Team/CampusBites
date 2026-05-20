@@ -12,9 +12,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="CampusBites">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 
-<body class="min-h-screen bg-gray-100">
+<body class="min-h-screen bg-white text-slate-900">
 
 <nav class="bg-white border-b border-gray-200 shadow-sm">
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
@@ -105,15 +106,49 @@
   </section>
 </nav>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <header class="mb-10">
-      <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Vendor Analytics</h1>
-      <p class="mt-2 text-gray-600">
-        Monitor total orders, revenue, and performance across selected dates.
-      </p>
-    </header>
+  <main class="relative overflow-hidden bg-white">
+  <section class="absolute top-0 right-0 w-[700px] h-[700px] bg-indigo-100 rounded-full blur-3xl opacity-40"></section>
+  <section class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-orange-100 rounded-full blur-3xl opacity-30"></section>
 
-    <section class="bg-white rounded-2xl shadow-md p-6 mb-10">
+  <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <header class="mb-12 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+  <section>
+    <section class="inline-flex items-center gap-2 bg-indigo-100 text-indigo-700 px-5 py-2 rounded-2xl text-sm font-bold uppercase tracking-wide mb-5">
+      <span class="w-2 h-2 bg-orange-500 rounded-full"></span>
+      Vendor performance dashboard
+    </section>
+
+    <h1 class="text-4xl md:text-6xl font-extrabold leading-tight text-indigo-950">
+      Vendor <span class="text-orange-500">Analytics</span>
+    </h1>
+
+    <p class="mt-4 text-lg text-slate-600 max-w-2xl">
+      Track your orders, revenue, peak hours, and top selling items from one dashboard.
+    </p>
+  </section>
+
+  <section class="flex flex-col sm:flex-row gap-3">
+    <button
+      type="button"
+      id="exportCsvBtn"
+      class="bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-indigo-700 transition shadow-xl shadow-indigo-200 flex items-center justify-center gap-2"
+    >
+      <i data-lucide="download" class="w-5 h-5"></i>
+      Export CSV
+    </button>
+
+    <button
+      type="button"
+      id="exportPdfBtn"
+      class="border-2 border-orange-400 text-indigo-700 px-6 py-3 rounded-2xl font-bold hover:bg-orange-50 transition flex items-center justify-center gap-2"
+    >
+      <i data-lucide="file-text" class="w-5 h-5"></i>
+      Export PDF
+    </button>
+  </section>
+</header>
+    
+    <section class="bg-white rounded-[1.7rem] border border-indigo-100 shadow-sm hover:shadow-xl transition p-6 mb-10">
       <header class="mb-6">
         <h2 class="text-2xl font-bold text-gray-900">Filter Analytics</h2>
         <p class="text-gray-600 mt-1">Select a date range to update the results.</p>
@@ -155,9 +190,11 @@
     </section>
 
     <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-      <article class="bg-white rounded-2xl shadow-md p-6">
+      <article class="bg-white rounded-[1.7rem] border border-indigo-100 shadow-sm hover:shadow-xl transition p-6">
         <header class="flex items-center gap-3 mb-4">
-          <i data-lucide="shopping-bag" class="w-6 h-6 text-indigo-600"></i>
+          <figure class="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center">
+            <i data-lucide="shopping-bag" class="w-7 h-7 text-indigo-600"></i>
+          </figure>
           <h2 class="text-xl font-semibold text-gray-900">Total Orders</h2>
         </header>
 
@@ -165,9 +202,11 @@
         <p class="text-gray-600 mt-2">Orders in selected period.</p>
       </article>
 
-      <article class="bg-white rounded-2xl shadow-md p-6">
+      <article class="bg-white rounded-[1.7rem] border border-indigo-100 shadow-sm hover:shadow-xl transition p-6">
         <header class="flex items-center gap-3 mb-4">
-          <i data-lucide="banknote" class="w-6 h-6 text-indigo-600"></i>
+          <figure class="w-14 h-14 bg-orange-100 rounded-2xl flex items-center justify-center">
+            <i data-lucide="banknote" class="w-7 h-7 text-orange-500"></i>
+          </figure>
           <h2 class="text-xl font-semibold text-gray-900">Total Revenue</h2>
         </header>
 
@@ -175,9 +214,11 @@
         <p class="text-gray-600 mt-2">Revenue from collected orders.</p>
       </article>
 
-      <article class="bg-white rounded-2xl shadow-md p-6">
+      <article class="bg-white rounded-[1.7rem] border border-indigo-100 shadow-sm hover:shadow-xl transition p-6">
         <header class="flex items-center gap-3 mb-4">
-          <i data-lucide="check-circle" class="w-6 h-6 text-indigo-600"></i>
+          <figure class="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center">
+            <i data-lucide="check-circle" class="w-7 h-7 text-indigo-600"></i>
+          </figure>
           <h2 class="text-xl font-semibold text-gray-900">Collected Orders</h2>
         </header>
 
@@ -186,20 +227,57 @@
       </article>
     </section>
 
-        <section class="bg-white rounded-2xl shadow-md p-6 mb-10">
+        <section class="grid md:grid-cols-3 gap-6 mb-10">
+
+  <article class="bg-white rounded-[1.7rem] border border-indigo-100 shadow-sm hover:shadow-xl transition p-6">
+    <h3 class="text-gray-500 text-sm mb-4">Revenue Over Time</h3>
+
+    <section class="h-64">
+      <canvas id="analyticsChart"></canvas>
+    </section>
+  </article>
+
+  <article class="bg-white rounded-[1.7rem] border border-indigo-100 shadow-sm hover:shadow-xl transition p-6">
+    <h3 class="text-gray-500 text-sm mb-4">Peak Ordering Hours</h3>
+
+    <section class="h-64">
+      <canvas id="peakChart"></canvas>
+    </section>
+  </article>
+
+  <article class="bg-white rounded-[1.7rem] border border-indigo-100 shadow-sm hover:shadow-xl transition p-6">
+    <h3 class="text-gray-500 text-sm mb-4">Top Selling Items</h3>
+
+    <section class="h-64">
+      <canvas id="itemsChart"></canvas>
+    </section>
+  </article>
+
+</section>
+
+<section class="bg-white rounded-[1.7rem] border border-indigo-100 shadow-sm hover:shadow-xl transition p-6 mb-10">
       <header class="mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">Performance Graph</h2>
-        <p class="text-gray-600 mt-1">
-          Visual summary of total orders, collected orders, and revenue.
-        </p>
+      <h2 class="text-2xl font-bold text-gray-900">Custom Report</h2>
+      <p class="text-gray-600 mt-1">Detailed report for the selected vendor order data.</p>
       </header>
 
-      <section class="h-80">
-        <canvas id="analyticsChart"></canvas>
-      </section>
+    <section class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-2 text-left">Date</th>
+            <th class="px-4 py-2 text-right">Orders</th>
+            <th class="px-4 py-2 text-right">Collected</th>
+            <th class="px-4 py-2 text-right">Revenue</th>
+            <th class="px-4 py-2 text-right">Avg Order Value</th>
+          </tr>
+        </thead>
+        <tbody id="customReportBody" class="divide-y divide-gray-200"></tbody>
+      </table>
     </section>
+  </section>
 
-    <section class="bg-white rounded-2xl shadow-md p-6">
+    <section class="bg-white rounded-[1.7rem] border border-indigo-100 shadow-sm hover:shadow-xl transition p-6">
       <header class="mb-6">
         <h2 class="text-2xl font-bold text-gray-900">Analytics Summary</h2>
       </header>
@@ -208,7 +286,9 @@
         Analytics will appear once orders are loaded.
       </p>
     </section>
+    </section>
   </main>
+
   <script src="scripts/pwa.js"></script>
 
   <script type="module">

@@ -9,9 +9,13 @@ import {
   where,
   onAuthStateChanged
 } from "./database.js";
+import Papa from "https://cdn.jsdelivr.net/npm/papaparse@5.4.1/+esm";
 
 let allVendorOrders = [];
 let analyticsChart;
+let peakChart;
+let itemsChart;
+let currentFilteredOrders = [];
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
@@ -34,6 +38,7 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   allVendorOrders = await fetchVendorOrders(user.uid);
+  currentFilteredOrders = allVendorOrders;
   updateAnalytics(allVendorOrders);
 });
 
@@ -51,25 +56,111 @@ async function fetchVendorOrders(vendorId) {
   }));
 }
 
+function getOrderDate(order) {
+  return order.createdAt?.toDate ? order.createdAt.toDate() : null;
+}
+
+function isCollected(order) {
+  return order.status === "Collected";
+}
+
+function calculateTotalRevenue(orders) {
+  return orders
+    .filter(isCollected)
+    .reduce((sum, order) => sum + Number(order.total || 0), 0);
+}
+
 function updateAnalytics(orders) {
   const totalOrders = orders.length;
-
-  const collectedOrders = orders.filter((order) => {
-    return order.status === "Collected";
-  });
-
-  const totalRevenue = collectedOrders.reduce((sum, order) => {
-    return sum + Number(order.total || 0);
-  }, 0);
+  const collectedOrders = orders.filter(isCollected);
+  const totalRevenue = calculateTotalRevenue(orders);
 
   document.getElementById("totalOrders").textContent = totalOrders;
   document.getElementById("collectedOrders").textContent = collectedOrders.length;
   document.getElementById("totalRevenue").textContent = `R${totalRevenue.toFixed(2)}`;
 
   updateAnalyticsChart(orders);
+  updateAdditionalCharts(orders);
+  updateCustomReport(orders);
 
   document.getElementById("analyticsMessage").textContent =
     `Showing ${totalOrders} orders, with ${collectedOrders.length} collected orders and R${totalRevenue.toFixed(2)} revenue.`;
+}
+
+function updateAdditionalCharts(orders) {
+  const peakCanvas = document.getElementById("peakChart");
+  const itemsCanvas = document.getElementById("itemsChart");
+
+  if (!peakCanvas || !itemsCanvas) return;
+
+  const hourlyOrders = {};
+
+  orders.forEach((order) => {
+    const orderDate = getOrderDate(order);
+
+    if (!orderDate) return;
+
+    const hour = orderDate.getHours();
+
+    hourlyOrders[hour] = (hourlyOrders[hour] || 0) + 1;
+  });
+
+  const peakLabels = Object.keys(hourlyOrders).sort((a, b) => a - b);
+  const peakData = peakLabels.map((hour) => hourlyOrders[hour]);
+
+  if (peakChart) {
+    peakChart.destroy();
+  }
+
+  peakChart = new Chart(peakCanvas, {
+    type: "line",
+    data: {
+      labels: peakLabels,
+      datasets: [{
+        label: "Orders",
+        data: peakData,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
+
+  const itemCounts = {};
+
+  orders.forEach((order) => {
+    (order.menuItems || []).forEach((item) => {
+      itemCounts[item.name] =
+        (itemCounts[item.name] || 0) + Number(item.quantity || 1);
+    });
+  });
+
+  const sortedItems = Object.entries(itemCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  const itemLabels = sortedItems.map(([name]) => name);
+  const itemData = sortedItems.map(([, qty]) => qty);
+
+  if (itemsChart) {
+    itemsChart.destroy();
+  }
+
+  itemsChart = new Chart(itemsCanvas, {
+    type: "doughnut",
+    data: {
+      labels: itemLabels,
+      datasets: [{
+        data: itemData
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
 }
 
 function updateAnalyticsChart(orders) {
@@ -80,10 +171,9 @@ function updateAnalyticsChart(orders) {
   const revenueByDate = {};
 
   orders.forEach((order) => {
-    if (order.status !== "Collected") return;
+    if (!isCollected(order)) return;
 
-    const orderDate = order.createdAt?.toDate?.();
-
+    const orderDate = getOrderDate(order);
     if (!orderDate) return;
 
     const dateKey = orderDate.toLocaleDateString("en-CA");
@@ -115,6 +205,51 @@ function updateAnalyticsChart(orders) {
   });
 }
 
+function updateCustomReport(orders) {
+  const reportBody = document.getElementById("customReportBody");
+  if (!reportBody) return;
+
+  const reportByDate = {};
+
+  orders.forEach((order) => {
+    const orderDate = getOrderDate(order);
+    if (!orderDate) return;
+
+    const dateKey = orderDate.toLocaleDateString("en-ZA");
+
+    if (!reportByDate[dateKey]) {
+      reportByDate[dateKey] = {
+        orders: 0,
+        collected: 0,
+        revenue: 0
+      };
+    }
+
+    reportByDate[dateKey].orders += 1;
+
+    if (isCollected(order)) {
+      reportByDate[dateKey].collected += 1;
+      reportByDate[dateKey].revenue += Number(order.total || 0);
+    }
+  });
+
+  reportBody.innerHTML = Object.entries(reportByDate)
+    .map(([date, data]) => {
+      const avgOrderValue = data.collected > 0 ? data.revenue / data.collected : 0;
+
+      return `
+        <tr>
+          <td class="px-4 py-2">${date}</td>
+          <td class="px-4 py-2 text-right">${data.orders}</td>
+          <td class="px-4 py-2 text-right">${data.collected}</td>
+          <td class="px-4 py-2 text-right">R${data.revenue.toFixed(2)}</td>
+          <td class="px-4 py-2 text-right">R${avgOrderValue.toFixed(2)}</td>
+        </tr>
+      `;
+    })
+    .join("");
+}
+
 function filterOrdersByDate(orders, startDate, endDate) {
   if (!startDate || !endDate) {
     return orders;
@@ -126,9 +261,7 @@ function filterOrdersByDate(orders, startDate, endDate) {
 
   return orders.filter((order) => {
 
-    console.log(order.status, order.total, order.createdAt?.toDate?.());
-
-    const orderDate = order.createdAt?.toDate?.();
+    const orderDate = getOrderDate(order);
 
     if (!orderDate) {
       return false;
@@ -138,12 +271,101 @@ function filterOrdersByDate(orders, startDate, endDate) {
   });
 }
 
+async function exportCSV() {
+  const data = currentFilteredOrders.map((order) => {
+    const orderDate = getOrderDate(order);
+
+    return {
+      OrderID: order.id,
+      Date: orderDate ? orderDate.toLocaleDateString("en-ZA") : "N/A",
+      Customer: order.customerName || order.userId || "Anonymous",
+      Items: (order.menuItems || [])
+        .map((item) => `${item.quantity || 1}x ${item.name}`)
+        .join("; "),
+      Total: Number(order.total || 0).toFixed(2),
+      Status: order.status || "N/A",
+      PaymentMethod: order.paymentMethod || "N/A"
+    };
+  });
+
+  const csv = Papa.unparse(data);
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = window.URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `vendor_analytics_${new Date().toISOString().split("T")[0]}.csv`;
+  link.click();
+
+  window.URL.revokeObjectURL(url);
+}
+
+async function exportPDF() {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    alert("jsPDF library is not loaded.");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF();
+
+  const totalOrders = currentFilteredOrders.length;
+  const collectedOrders = currentFilteredOrders.filter(isCollected).length;
+  const totalRevenue = calculateTotalRevenue(currentFilteredOrders);
+
+  pdf.setFontSize(20);
+  pdf.text("CampusBites Vendor Analytics Report", 20, 20);
+
+  pdf.setFontSize(12);
+  pdf.text(`Generated: ${new Date().toLocaleDateString("en-ZA")}`, 20, 30);
+
+  let y = 50;
+
+  pdf.setFontSize(14);
+  pdf.text("Summary", 20, y);
+  y += 10;
+
+  pdf.setFontSize(10);
+  pdf.text(`Total Orders: ${totalOrders}`, 20, y);
+  y += 6;
+  pdf.text(`Collected Orders: ${collectedOrders}`, 20, y);
+  y += 6;
+  pdf.text(`Total Revenue: R${totalRevenue.toFixed(2)}`, 20, y);
+  y += 20;
+
+  pdf.setFontSize(14);
+  pdf.text("Recent Orders", 20, y);
+  y += 10;
+
+  pdf.setFontSize(8);
+
+  currentFilteredOrders.slice(0, 10).forEach((order) => {
+    if (y > 280) {
+      pdf.addPage();
+      y = 20;
+    }
+
+    pdf.text(
+      `#${order.id.slice(-6)} - R${Number(order.total || 0).toFixed(2)} - ${order.status || "N/A"}`,
+      20,
+      y
+    );
+
+    y += 5;
+  });
+
+  pdf.save(`vendor_analytics_${new Date().toISOString().split("T")[0]}.pdf`);
+}
+
 document.getElementById("filterBtn")?.addEventListener("click", () => {
   const startDate = document.getElementById("startDate").value;
   const endDate = document.getElementById("endDate").value;
 
-  const filteredOrders = filterOrdersByDate(allVendorOrders, startDate, endDate);
-  updateAnalytics(filteredOrders);
+  currentFilteredOrders = filterOrdersByDate(allVendorOrders, startDate, endDate);
+  updateAnalytics(currentFilteredOrders);
 });
+
+document.getElementById("exportCsvBtn")?.addEventListener("click", exportCSV);
+document.getElementById("exportPdfBtn")?.addEventListener("click", exportPDF);
 
 lucide.createIcons();
