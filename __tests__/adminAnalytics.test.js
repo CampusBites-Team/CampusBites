@@ -117,7 +117,7 @@ describe("adminAnalytics.js", () => {
   });
 
   test("updateCustomView populates the report table", async () => {
-    const recentDate = new Date("2026-04-20T10:00:00");
+    const recentDate = new Date();
 
     database.getDocs
       // orders
@@ -172,7 +172,7 @@ describe("adminAnalytics.js", () => {
   test("updateCustomView filters by selected vendor", async () => {
     document.getElementById("report-vendor").value = "vendor-2";
 
-    const recentDate = new Date("2026-04-20T10:00:00");
+    const recentDate = new Date();
 
     database.getDocs
       // orders
@@ -230,7 +230,7 @@ describe("adminAnalytics.js", () => {
   test("updateCustomView updates metric header for orders", async () => {
     document.getElementById("report-metric").value = "orders";
 
-    const recentDate = new Date("2026-04-20T10:00:00");
+    const recentDate = new Date();
 
     database.getDocs
       .mockResolvedValueOnce({
@@ -279,7 +279,7 @@ describe("adminAnalytics.js", () => {
               userId: "customer-1",
               menuItems: [{ name: "Burger", quantity: 2 }],
               createdAt: {
-                toDate: () => new Date("2026-04-20T10:00:00")
+                toDate: () => new Date()
               }
             })
           }
@@ -317,7 +317,7 @@ describe("adminAnalytics.js", () => {
               total: 120,
               status: "Collected",
               createdAt: {
-                toDate: () => new Date("2026-04-20T10:00:00")
+                toDate: () => new Date()
               }
             })
           }
@@ -452,7 +452,7 @@ test("generateSampleData creates sample orders successfully", async () => {
 test("updateCustomView handles items metric", async () => {
   document.getElementById("report-metric").value = "items";
 
-  const recentDate = new Date("2026-04-20T10:00:00");
+  const recentDate = new Date();
 
   database.getDocs
     .mockResolvedValueOnce({
