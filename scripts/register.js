@@ -126,14 +126,23 @@ export function initRegisterUI() {
           requiresEmailVerification: true,
         });
 
-        await sendEmailVerification(user);
-
-        showToast("Account created successfully. Please verify your email before logging in.", "success");
-
-        await signOut(auth);
-
-        window.location.assign("login.html");
-        return;
+          await sendEmailVerification(user);
+          
+          if (role === "vendor") {
+            showToast("Vendor account created. Please wait for admin approval.", "success");
+          
+            await signOut(auth);
+          
+            window.location.assign("pending-approval.html");
+            return;
+          }
+          
+          showToast("Account created successfully. Please verify your email before logging in.", "success");
+          
+          await signOut(auth);
+          
+          window.location.assign("login.html");
+          return;
 
       } catch (err) {
         console.error(err);
