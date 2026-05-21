@@ -15,203 +15,213 @@
 </head>
 
 <body class="min-h-screen bg-gray-100">
+  <section id="loading-screen" aria-live="polite">
+    <span class="spinner" aria-hidden="true"></span>
+    <p>Loading...</p>
+  </section>
 
-<nav class="bg-white border-b border-gray-200 shadow-sm">
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-    <a href="index.html" class="flex items-center gap-2">
-      <img
-        src="assets/icons/1-removebg-preview.png"
-        alt="CampusBites logo"
-        class="h-12 w-auto object-contain"
-        >
+<main id="site-content" class="blurred">
+  <!-- your website content here -->
 
-        <span class="text-2xl font-extrabold tracking-tight">
-            <span class="text-indigo-600">Campus</span><span class="text-orange-500">Bites</span>
-        </span>
-    </a>
-
-    <section id="navLinks" class="flex items-center gap-6 mx-auto">
-      <!-- Populated by navbar.js -->
-    </section>
-    <section
-      id="profileMenuContainer"
-      class="hidden flex items-center gap-4"
-    >
-
-      <!-- Notifications -->
-      <section class="relative">
-
-        <button
-          id="notificationBtn"
-          class="relative p-2 rounded-full
-                hover:bg-gray-100 transition"
-        >
-          <i
-            data-lucide="bell"
-            class="w-5 h-5 text-gray-700"
-          ></i>
-
-          <span
-            id="notificationBadge"
-            class="hidden absolute -top-1 -right-1
-                  bg-red-500 text-white text-[10px]
-                  font-bold rounded-full
-                  min-w-[18px] h-[18px]
-                  flex items-center justify-center"
+  <nav class="bg-white border-b border-gray-200 shadow-sm">
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+      <a href="index.html" class="flex items-center gap-2">
+        <img
+          src="assets/icons/1-removebg-preview.png"
+          alt="CampusBites logo"
+          class="h-12 w-auto object-contain"
           >
-            0
+
+          <span class="text-2xl font-extrabold tracking-tight">
+              <span class="text-indigo-600">Campus</span><span class="text-orange-500">Bites</span>
           </span>
-        </button>
+      </a>
 
-        <section
-          id="notificationDropdown"
-          class="hidden absolute right-0 mt-3 w-80
-                bg-white rounded-2xl shadow-xl
-                border border-gray-100
-                max-h-96 overflow-y-auto
-                z-50"
-        >
+      <section id="navLinks" class="flex items-center gap-6 mx-auto">
+        <!-- Populated by navbar.js -->
+      </section>
+      <section
+        id="profileMenuContainer"
+        class="hidden flex items-center gap-4"
+      >
+
+        <!-- Notifications -->
+        <section class="relative">
+
+          <button
+            id="notificationBtn"
+            class="relative p-2 rounded-full
+                  hover:bg-gray-100 transition"
+          >
+            <i
+              data-lucide="bell"
+              class="w-5 h-5 text-gray-700"
+            ></i>
+
+            <span
+              id="notificationBadge"
+              class="hidden absolute -top-1 -right-1
+                    bg-red-500 text-white text-[10px]
+                    font-bold rounded-full
+                    min-w-[18px] h-[18px]
+                    flex items-center justify-center"
+            >
+              0
+            </span>
+          </button>
+
+          <section
+            id="notificationDropdown"
+            class="hidden absolute right-0 mt-3 w-80
+                  bg-white rounded-2xl shadow-xl
+                  border border-gray-100
+                  max-h-96 overflow-y-auto
+                  z-50"
+          >
+          </section>
+
+        </section>
+
+        <!-- Profile -->
+        <section class="relative">
+
+          <button
+            id="profileMenuBtn"
+            class="flex items-center gap-2"
+          >
+            <img
+              id="profileAvatar"
+              src="assets/default-icon.png"
+              alt="Profile"
+              class="w-10 h-10 rounded-full
+                    object-cover border-2
+                    border-indigo-500"
+            />
+          </button>
+
+          <section
+            id="profileDropdown"
+            class="hidden absolute right-0 mt-3 w-56
+                  bg-white rounded-xl shadow-lg
+                  border border-gray-100 py-2 z-50"
+          ></section>
+
         </section>
 
       </section>
-
-      <!-- Profile -->
-      <section class="relative">
-
-        <button
-          id="profileMenuBtn"
-          class="flex items-center gap-2"
-        >
-          <img
-            id="profileAvatar"
-            src="assets/default-icon.png"
-            alt="Profile"
-            class="w-10 h-10 rounded-full
-                  object-cover border-2
-                  border-indigo-500"
-          />
-        </button>
-
-        <section
-          id="profileDropdown"
-          class="hidden absolute right-0 mt-3 w-56
-                bg-white rounded-xl shadow-lg
-                border border-gray-100 py-2 z-50"
-        ></section>
-
       </section>
-
     </section>
+  </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+      <header class="mb-10">
+        <section class="flex items-center justify-between">
+          <h1 class="text-4xl md:text-4xl font-extrabold text-indigo-950">
+            Orders
+          </h1>
+        </section>
+
+        <p class="mt-2 font-bold text-orange-500">
+          Keep track of all of your placed orders.
+        </p>
+      </header>
+
+  <section class="space-y-8">
+
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+      <header class="flex items-center gap-3 mb-6">
+        <i data-lucide="clock" class="w-7 h-7 text-orange-500"></i>
+        <section>
+          <h2 class="text-2xl font-bold text-gray-900">Active Orders</h2>
+          <p class="text-sm text-gray-500">Pending and preparing orders</p>
+        </section>
+      </header>
+
+      <section id="active-orders" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></section>
     </section>
-  </section>
-</nav>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+      <header class="flex items-center gap-3 mb-6">
+        <i data-lucide="package-check" class="w-7 h-7 text-green-500"></i>
+        <section>
+          <h2 class="text-2xl font-bold text-gray-900">Ready for Collection</h2>
+          <p class="text-sm text-gray-500">Orders ready for pickup</p>
+        </section>
+      </header>
 
-    <header class="mb-10">
-      <section class="flex items-center justify-between">
-        <h1 class="text-4xl md:text-4xl font-extrabold text-indigo-950">
-          Orders
-        </h1>
-      </section>
-
-      <p class="mt-2 font-bold text-orange-500">
-        Keep track of all of your placed orders.
-      </p>
-    </header>
-
-<section class="space-y-8">
-
-  <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-    <header class="flex items-center gap-3 mb-6">
-      <i data-lucide="clock" class="w-7 h-7 text-orange-500"></i>
-      <section>
-        <h2 class="text-2xl font-bold text-gray-900">Active Orders</h2>
-        <p class="text-sm text-gray-500">Pending and preparing orders</p>
-      </section>
-    </header>
-
-    <section id="active-orders" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></section>
-  </section>
-
-  <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-    <header class="flex items-center gap-3 mb-6">
-      <i data-lucide="package-check" class="w-7 h-7 text-green-500"></i>
-      <section>
-        <h2 class="text-2xl font-bold text-gray-900">Ready for Collection</h2>
-        <p class="text-sm text-gray-500">Orders ready for pickup</p>
-      </section>
-    </header>
-
-    <section id="ready-orders" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></section>
-  </section>
-  <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-  <header class="flex items-center gap-3 mb-6">
-    <i data-lucide="rotate-ccw" class="w-7 h-7 text-orange-500"></i>
-
-    <section>
-      <h2 class="text-2xl font-bold text-gray-900">
-        Refund Processing
-      </h2>
-
-      <p class="text-sm text-gray-500">
-        Orders currently being refunded
-      </p>
+      <section id="ready-orders" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></section>
     </section>
-  </header>
-
-  <section
-    id="refund-orders"
-    class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
-  >
-  </section>
-</section>
-
-  <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
     <header class="flex items-center gap-3 mb-6">
-      <i data-lucide="history" class="w-7 h-7 text-purple-500"></i>
+      <i data-lucide="rotate-ccw" class="w-7 h-7 text-orange-500"></i>
+
       <section>
-        <h2 class="text-2xl font-bold text-gray-900">Order History</h2>
-        <p class="text-sm text-gray-500">Collected, cancelled and refunded orders</p>
+        <h2 class="text-2xl font-bold text-gray-900">
+          Refund Processing
+        </h2>
+
+        <p class="text-sm text-gray-500">
+          Orders currently being refunded
+        </p>
       </section>
     </header>
-
-    <section id="order-history" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></section>
-  </section>
-
-</section>
 
     <section
-      id="item-details-modal"
-      class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-      <article class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto slide-in p-6">
+      id="refund-orders"
+      class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+    >
+    </section>
+  </section>
 
-        <header class="flex justify-center">
-          <h3 class="text-xl font-bold mb-4" id="modal-title">
-            Order Details
-          </h3>
-        </header>
-
-        <section id="itemList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></section>
-
-        <section class="flex gap-3 mt-6">
-          <button
-            type="button"
-            onclick="document.getElementById('item-details-modal').classList.add('hidden')"
-            class="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50"
-          >
-            Close
-          </button>
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+      <header class="flex items-center gap-3 mb-6">
+        <i data-lucide="history" class="w-7 h-7 text-purple-500"></i>
+        <section>
+          <h2 class="text-2xl font-bold text-gray-900">Order History</h2>
+          <p class="text-sm text-gray-500">Collected, cancelled and refunded orders</p>
         </section>
+      </header>
 
-        <p id="numItemsOrder" class="text-sm text-gray-500">
-          0 items in order
-        </p>
-
-      </article>
+      <section id="order-history" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></section>
     </section>
 
-  </main>
+  </section>
+
+      <section
+        id="item-details-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <article class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto slide-in p-6">
+
+          <header class="flex justify-center">
+            <h3 class="text-xl font-bold mb-4" id="modal-title">
+              Order Details
+            </h3>
+          </header>
+
+          <section id="itemList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></section>
+
+          <section class="flex gap-3 mt-6">
+            <button
+              type="button"
+              onclick="document.getElementById('item-details-modal').classList.add('hidden')"
+              class="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50"
+            >
+              Close
+            </button>
+          </section>
+
+          <p id="numItemsOrder" class="text-sm text-gray-500">
+            0 items in order
+          </p>
+
+        </article>
+      </section>
+
+    </main>
+</main>
+
+
   <script src="scripts/pwa.js"></script>
   <script type="module" src="./scripts/navbar.js"></script>
 

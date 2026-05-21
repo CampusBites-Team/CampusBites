@@ -5,7 +5,9 @@
 // orders.js calls lucide.createIcons() at module scope.
 // This must exist before any require() of orders.js.
 global.lucide = { createIcons: jest.fn() };
-
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 jest.mock("../scripts/database.js", () => ({
   db: {},
   auth: {},
@@ -45,6 +47,7 @@ function mockStatusUpdateOrder(orderData = {}) {
       paymentStatus: "paid",
       ...orderData
     })
+const { showToast } = require("../scripts/toast.js");
   });
 
   db.addDoc.mockResolvedValue({ id: "notification-1" });
@@ -736,8 +739,7 @@ describe("orders.js", () => {
 
     await flush();
 
-    expect(window.alert).toHaveBeenCalledWith(
-      expect.stringContaining("Mark this cash order as paid")
+    expect(showToast).toHaveBeenCalledWith(expect.stringContaining("Mark this cash order as paid", "error")
     );
     expect(db.updateDoc).not.toHaveBeenCalled();
   });
@@ -864,7 +866,7 @@ describe("orders.js", () => {
     await flush();
     await flush();
 
-    expect(window.alert).toHaveBeenCalledWith("Order no longer exists.");
+    expect(showToast).toHaveBeenCalledWith("Order no longer exists.", "error");
     expect(db.updateDoc).not.toHaveBeenCalled();
   });
 
@@ -894,7 +896,7 @@ describe("orders.js", () => {
     await flush();
 
     expect(errorSpy).toHaveBeenCalled();
-    expect(window.alert).toHaveBeenCalledWith("Failed to mark order as paid.");
+    expect(showToast).toHaveBeenCalledWith("Failed to mark order as paid.", "error");
     expect(btn.disabled).toBe(false);
 
     errorSpy.mockRestore();

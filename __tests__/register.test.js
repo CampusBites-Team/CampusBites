@@ -18,7 +18,9 @@ jest.mock('../scripts/database.js', () => ({
   sendEmailVerification: jest.fn(),
   signOut: jest.fn()
 }));
-
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 global.lucide = { createIcons: jest.fn() };
 global.alert = jest.fn();
 
@@ -61,6 +63,7 @@ describe('buildUserObject', () => {
       image: null,
     });
 
+const { showToast } = require("../scripts/toast.js");
     expect(result.fullName).toBe('John Doe');
     expect(result.email).toBe('john@example.com');
     expect(result.role).toBe('customer');
@@ -176,10 +179,7 @@ test("alerts when branch code is invalid", async () => {
 
   await new Promise(r => setTimeout(r,0));
 
-  expect(window.alert)
-    .toHaveBeenCalledWith(
-      "Branch code must be exactly 6 digits."
-    );
+  expect(showToast).toHaveBeenCalledWith("Branch code must be exactly 6 digits.", "warning");
 });
 test("handles registration failure", async()=>{
 
@@ -223,10 +223,7 @@ test("handles registration failure", async()=>{
  expect(spy)
    .toHaveBeenCalled();
 
- expect(window.alert)
-   .toHaveBeenCalledWith(
-      "firebase failed"
-   );
+ expect(showToast).toHaveBeenCalledWith("firebase failed", "error");
 });
 test("registers DOMContentLoaded listener", () => {
   const spy = jest.spyOn(document, "addEventListener");
@@ -269,9 +266,7 @@ test("shows error and resets when invalid logo is selected", async () => {
 
   logoInput.dispatchEvent(new Event("change"));
 
-  expect(window.alert).toHaveBeenCalledWith(
-    "Shop logo must be a PNG or JPEG image."
-  );
+  expect(showToast).toHaveBeenCalledWith("Shop logo must be a PNG or JPEG image.", "warning");
 
   expect(logoInput.value).toBe("");
 });

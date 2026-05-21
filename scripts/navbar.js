@@ -288,6 +288,16 @@ async function getUserData(user) {
     return { role: "guest", userData: null };
   }
 }
+//Spinner code for loading screen
+window.addEventListener("load", () => {
+  const loader = document.getElementById("loading-screen");
+  const siteContent = document.getElementById("site-content");
+
+  loader.style.display = "none";
+  siteContent.classList.remove("blurred");
+});
+
+//Notification code for navbar
 
 let currentNotifications = [];
 let firstNotificationLoad = true;

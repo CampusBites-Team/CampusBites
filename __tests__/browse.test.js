@@ -2,6 +2,8 @@
  * @jest-environment jsdom
  */
 
+const { showToast } = require("../scripts/toast.js");
+
 global.lucide = { createIcons: jest.fn() };
 
 jest.mock("../scripts/database.js", () => ({
@@ -10,6 +12,9 @@ jest.mock("../scripts/database.js", () => ({
   getDocs: jest.fn(),
   collection: jest.fn((db, collectionName) => collectionName),
   onAuthStateChanged: jest.fn()
+}));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
 }));
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -511,7 +516,7 @@ describe("browse.js", () => {
 
     mod.addToCart(item);
 
-    expect(alertSpy).toHaveBeenCalledWith("You can order at most 10 items from the same vendor");
+    expect(showToast).toHaveBeenCalledWith("You can order at most 10 items from the same vendor");
   });
 
   test("removes item from cart", async () => {
@@ -568,7 +573,7 @@ describe("browse.js", () => {
 
     document.getElementById("checkOut").click();
 
-    expect(alertSpy).toHaveBeenCalledWith("You must be logged in to proceed to checkout");
+    expect(showToast).toHaveBeenCalledWith("You must be logged in to proceed to checkout");
   });
 
   test("posts cart items to Paystack", async () => {
@@ -625,7 +630,7 @@ describe("browse.js", () => {
 
     await flush();
 
-    expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining("boom"));
+    expect(showToast).toHaveBeenCalledWith(expect.stringContaining("boom"));
     expect(document.getElementById("checkOut").disabled).toBe(false);
   });
 
@@ -942,7 +947,7 @@ describe("browse.js", () => {
     await flush();
     await flush();
 
-    expect(alertSpy).toHaveBeenCalledWith(
+    expect(showToast).toHaveBeenCalledWith(
       expect.stringContaining("Payment provider did not return a redirect URL")
     );
     expect(document.getElementById("checkOut").disabled).toBe(false);
@@ -1023,7 +1028,7 @@ expect(document.getElementById("toast-container").innerHTML)
       await flush();
       await flush();
 
-      expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining("vendor offline"));
+      expect(showToast).toHaveBeenCalledWith(expect.stringContaining("vendor offline"), "error");
       expect(document.getElementById("checkOut").disabled).toBe(false);
     });
 
@@ -1054,7 +1059,7 @@ expect(document.getElementById("toast-container").innerHTML)
       await flush();
       await flush();
 
-      expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining("502"));
+      expect(showToast).toHaveBeenCalledWith(expect.stringContaining("502"), "error");
     });
   });
 

@@ -20,6 +20,9 @@ jest.mock("../scripts/database.js", () => ({
   uploadBytes: jest.fn(),
   getDownloadURL: jest.fn()
 }));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 global.lucide = { createIcons: jest.fn() };
 global.alert = jest.fn();
@@ -27,6 +30,7 @@ global.alert = jest.fn();
 import { initRegisterUI } from "../scripts/register.js";
 
 import {
+import { showToast } from "../scripts/toast.js";
   createUserWithEmailAndPassword,
   setDoc,
   getDoc,
@@ -143,7 +147,7 @@ describe("register submit flow", () => {
 
     await flush();
 
-    expect(alert).toHaveBeenCalledWith("Shop name required");
+    expect(showToast).toHaveBeenCalledWith("Shop name required", "warning");
     expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
   });
 
@@ -157,7 +161,7 @@ describe("register submit flow", () => {
 
     await flush();
 
-    expect(alert).toHaveBeenCalledWith("Shop location required");
+    expect(showToast).toHaveBeenCalledWith("Shop location required", "warning");
     expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
   });
 
@@ -172,7 +176,7 @@ describe("register submit flow", () => {
 
     await flush();
 
-    expect(alert).toHaveBeenCalledWith("Shop logo required");
+    expect(showToast).toHaveBeenCalledWith("Shop logo required", "warning");
     expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
   });
 
@@ -189,7 +193,7 @@ describe("register submit flow", () => {
 
     await flush();
 
-    expect(alert).toHaveBeenCalledWith("Email already in use");
+    expect(showToast).toHaveBeenCalledWith("Email already in use", "error");
   });
 
   test("invalid vendor logo file type is rejected on change", async () => {
@@ -203,9 +207,7 @@ describe("register submit flow", () => {
 
     logoInput.dispatchEvent(new Event("change", { bubbles: true }));
 
-    expect(alert).toHaveBeenCalledWith(
-      "Shop logo must be a PNG or JPEG image."
-    );
+    expect(showToast).toHaveBeenCalledWith("Shop logo must be a PNG or JPEG image.", "warning");
   });
 
   test("valid vendor logo file type is accepted on change", async () => {
@@ -219,9 +221,7 @@ describe("register submit flow", () => {
 
     logoInput.dispatchEvent(new Event("change", { bubbles: true }));
 
-    expect(alert).not.toHaveBeenCalledWith(
-      "Shop logo must be a PNG or JPEG image."
-    );
+    expect(showToast).not.toHaveBeenCalledWith("Shop logo must be a PNG or JPEG image.");
     expect(document.getElementById("logoPreview")).not.toBeNull();
   });
 
@@ -333,6 +333,6 @@ describe("register submit flow", () => {
 
     await flush();
 
-    expect(alert).toHaveBeenCalledWith("Your account is suspended");
+    expect(showToast).toHaveBeenCalledWith("Your account is suspended", "error");
   });
 });

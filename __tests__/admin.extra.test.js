@@ -1,3 +1,5 @@
+const { showToast } = require('../scripts/toast.js');
+
 jest.mock('../scripts/database.js', () => ({
   auth: { currentUser: { getIdToken: jest.fn().mockResolvedValue('test-token') } },
   db: {},
@@ -5,6 +7,9 @@ jest.mock('../scripts/database.js', () => ({
   collection: jest.fn((...args) => args),
   updateDoc: jest.fn(),
   doc: jest.fn((...args) => args),
+}));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
 }));
 
 let calculateVendorStats;
@@ -24,6 +29,7 @@ const makeSnapshot = (rows = []) => ({
         id: r.id,
         data: () => r
       })
+const { showToast } = require("../scripts/toast.js");
     );
   }
 });
@@ -150,7 +156,7 @@ test('approveVendor aborts when subaccount creation fails', async () => {
   await adminActions.approveVendor('abc');
 
   expect(updateDoc).not.toHaveBeenCalled();
-  expect(window.alert).toHaveBeenCalledWith(expect.stringContaining('Bank details incomplete'));
+  expect(showToast).toHaveBeenCalledWith(expect.stringContaining('Bank details incomplete'));
 
   delete global.fetch;
 });

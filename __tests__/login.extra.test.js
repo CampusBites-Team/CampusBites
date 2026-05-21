@@ -29,6 +29,9 @@ jest.mock('../scripts/database.js', () => ({
   sendEmailVerification: jest.fn(),
   signOut: jest.fn()
 }));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 import {
   initLoginForm,
@@ -37,6 +40,7 @@ import {
 } from '../scripts/login.js';
 
 import {
+import { showToast } from "../scripts/toast.js";
   signInWithEmailAndPassword,
   getDoc,
   signInWithPopup,
@@ -118,9 +122,7 @@ test("alerts when user profile is missing after email login", async () => {
 
     await new Promise(resolve => setTimeout(resolve,0));
 
-    expect(alert).toHaveBeenCalledWith(
-      "User profile not found."
-    );
+    expect(showToast).toHaveBeenCalledWith("User profile not found.", "error");
 });
 
   test("alerts on login failure", async () => {
@@ -135,7 +137,7 @@ test("alerts when user profile is missing after email login", async () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(alert).toHaveBeenCalledWith("Invalid credentials");
+    expect(showToast).toHaveBeenCalledWith("Invalid credentials", "error");
   });
 });
 
@@ -204,7 +206,7 @@ test("new social user goes to select-role page", async () => {
 
     await Promise.resolve();
 
-    expect(alert).toHaveBeenCalledWith("facebookLogin sign-in failed: Popup blocked");
+    expect(showToast).toHaveBeenCalledWith("facebookLogin sign-in failed: Popup blocked", "error");
   });
 
   test("initLoginPage initializes everything and creates icons", () => {

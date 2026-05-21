@@ -15,6 +15,7 @@ jest.mock("../scripts/database.js", () => ({
     collectionName,
     id
   })),
+  
   collection: jest.fn((db, collectionName) => collectionName),
   query: jest.fn((collectionName, ...conditions) => ({
     collectionName,
@@ -27,6 +28,9 @@ jest.mock("../scripts/database.js", () => ({
   })),
   serverTimestamp: jest.fn(() => "timestamp"),
   onAuthStateChanged: jest.fn()
+}));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
 }));
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -53,6 +57,7 @@ describe("customer-orders review flow", () => {
     global.alert = jest.fn();
     jest.spyOn(console, "error").mockImplementation(() => {});
 
+const { showToast } = require("../scripts/toast.js");
     database = await import("../scripts/database.js");
 
     database.onAuthStateChanged.mockImplementation((auth, callback) => {
@@ -178,7 +183,7 @@ describe("customer-orders review flow", () => {
 
     await flush();
 
-    expect(alert).toHaveBeenCalledWith("Please select a rating.");
+    expect(showToast).toHaveBeenCalledWith("Please select a rating.", "warning");
     expect(database.addDoc).not.toHaveBeenCalled();
   });
 
@@ -194,7 +199,7 @@ describe("customer-orders review flow", () => {
 
     await flush();
 
-    expect(alert).toHaveBeenCalledWith("Please write a review.");
+    expect(showToast).toHaveBeenCalledWith("Please write a review.", "warning");
     expect(database.addDoc).not.toHaveBeenCalled();
   });
 
@@ -239,7 +244,7 @@ describe("customer-orders review flow", () => {
       })
     );
 
-    expect(alert).toHaveBeenCalledWith("Review submitted successfully.");
+    expect(showToast).toHaveBeenCalledWith("Review submitted successfully.", "success");
   });
 
   test("does not show review button if order already reviewed", async () => {
@@ -359,8 +364,6 @@ test("shows review failure alert", async () => {
 
   await flush();
 
-  expect(alert).toHaveBeenCalledWith(
-    "Failed to submit review."
-  );
+  expect(showToast).toHaveBeenCalledWith("Failed to submit review.", "error");
 });
 });

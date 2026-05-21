@@ -10,12 +10,16 @@ jest.mock("../scripts/database.js", () => ({
   uploadBytes: jest.fn(),
   getDownloadURL: jest.fn()
 }));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 Object.defineProperty(document, "readyState", {
   value: "loading",
   configurable: true
 });
 
+const { showToast } = require("../scripts/toast.js");
 const {
   doc,
   getDoc,
@@ -290,7 +294,7 @@ expect(updateDoc).toHaveBeenCalled();  });
 
     logoInput.dispatchEvent(new Event("change"));
 
-    expect(global.alert).toHaveBeenCalledWith("Store logo must be a PNG or JPG/JPEG image.");
+    expect(showToast).toHaveBeenCalledWith("Store logo must be a PNG or JPG/JPEG image.", "warning");
   });
 
   test("requires shop name and location", async () => {
@@ -318,7 +322,7 @@ expect(updateDoc).toHaveBeenCalled();  });
       new Event("submit", { bubbles: true, cancelable: true })
     );
 
-    expect(global.alert).toHaveBeenCalledWith("Please enter your shop name.");
+    expect(showToast).toHaveBeenCalledWith("Please enter your shop name.", "warning");
 
     document.getElementById("shopName").value = "Shop";
     document.getElementById("location").value = "";
@@ -327,7 +331,7 @@ expect(updateDoc).toHaveBeenCalled();  });
       new Event("submit", { bubbles: true, cancelable: true })
     );
 
-    expect(global.alert).toHaveBeenCalledWith("Please enter your shop location.");
+    expect(showToast).toHaveBeenCalledWith("Please enter your shop location.", "warning");
   });
 
   test("saves updated weekday and weekend operating hours", async () => {
@@ -376,7 +380,7 @@ expect(updateDoc).toHaveBeenCalled();  });
       closingTime: "17:00"
     });
 
-    expect(global.alert).toHaveBeenCalledWith("Operating hours updated successfully.");
+    expect(showToast).toHaveBeenCalledWith("Operating hours updated successfully.", "success");
   });
 
   test("validates weekday and weekend operating hours", async () => {
@@ -404,7 +408,7 @@ expect(updateDoc).toHaveBeenCalled();  });
       new Event("submit", { bubbles: true, cancelable: true })
     );
 
-    expect(global.alert).toHaveBeenCalledWith("Please enter both weekday opening and closing times.");
+    expect(showToast).toHaveBeenCalledWith("Please enter both weekday opening and closing times.", "warning");
 
     document.getElementById("weekdayOpeningTime").value = "18:00";
     document.getElementById("weekdayClosingTime").value = "17:00";
@@ -413,7 +417,7 @@ expect(updateDoc).toHaveBeenCalled();  });
       new Event("submit", { bubbles: true, cancelable: true })
     );
 
-    expect(global.alert).toHaveBeenCalledWith("weekday closing time must be after opening time.");
+    expect(showToast).toHaveBeenCalledWith("weekday closing time must be after opening time.", "warning");
 
     document.getElementById("weekdayOpeningTime").value = "08:00";
     document.getElementById("weekdayClosingTime").value = "17:00";
@@ -424,7 +428,7 @@ expect(updateDoc).toHaveBeenCalled();  });
       new Event("submit", { bubbles: true, cancelable: true })
     );
 
-    expect(global.alert).toHaveBeenCalledWith("weekend closing time must be after opening time.");
+    expect(showToast).toHaveBeenCalledWith("weekend closing time must be after opening time.", "warning");
   });
 
   test("redirects when user is not logged in", () => {
@@ -522,7 +526,7 @@ expect(updateDoc).toHaveBeenCalled();  });
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(global.alert).toHaveBeenCalledWith("Your account is suspended");
+    expect(showToast).toHaveBeenCalledWith("Your account is suspended", "error");
     expect(suspendedLocation.href).toBe("login.html");
   });
 
@@ -624,7 +628,7 @@ expect(updateDoc).toHaveBeenCalled();  });
       })
     );
 
-    expect(global.alert).toHaveBeenCalledWith("Banking details updated successfully.");
+    expect(showToast).toHaveBeenCalledWith("Banking details updated successfully.", "success");
   });
 
   test("validates banking details fields", async () => {
@@ -649,27 +653,27 @@ expect(updateDoc).toHaveBeenCalled();  });
 
     document.getElementById("settings-bank-name").value = "";
     submit();
-    expect(global.alert).toHaveBeenCalledWith("Please select a bank.");
+    expect(showToast).toHaveBeenCalledWith("Please select a bank.", "warning");
 
     document.getElementById("settings-bank-name").value = "fnb";
     document.getElementById("settings-account-holder").value = "";
     submit();
-    expect(global.alert).toHaveBeenCalledWith("Please enter the account holder name.");
+    expect(showToast).toHaveBeenCalledWith("Please enter the account holder name.", "warning");
 
     document.getElementById("settings-account-holder").value = "Jane";
     document.getElementById("settings-account-number").value = "123";
     submit();
-    expect(global.alert).toHaveBeenCalledWith("Account number must be 6 to 12 digits.");
+    expect(showToast).toHaveBeenCalledWith("Account number must be 6 to 12 digits.", "warning");
 
     document.getElementById("settings-account-number").value = "123456";
     document.getElementById("settings-branch-code").value = "123";
     submit();
-    expect(global.alert).toHaveBeenCalledWith("Branch code must be exactly 6 digits.");
+    expect(showToast).toHaveBeenCalledWith("Branch code must be exactly 6 digits.", "warning");
 
     document.getElementById("settings-branch-code").value = "632005";
     document.getElementById("settings-account-type").value = "";
     submit();
-    expect(global.alert).toHaveBeenCalledWith("Please select an account type.");
+    expect(showToast).toHaveBeenCalledWith("Please select an account type.", "warning");
   });
 
   test("handles API error when saving banking details", async () => {
@@ -707,9 +711,7 @@ expect(updateDoc).toHaveBeenCalled();  });
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(global.alert).toHaveBeenCalledWith(
-      "Could not update banking details: Bank validation failed"
-    );
+    expect(showToast).toHaveBeenCalledWith("Could not update banking details: Bank validation failed", "error");
   });
 test("validates missing opening and closing times", async () => {
   const mod = await import("../scripts/vendor-settings.js");

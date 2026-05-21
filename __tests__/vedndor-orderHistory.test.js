@@ -16,6 +16,9 @@ jest.mock("../scripts/database.js", () => ({
   where: jest.fn(),
   doc: jest.fn()
 }));
+jest.mock("../toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 jest.mock("../scripts/orders.js", () => ({
   formatTimestamp: jest.fn(() => "Today")

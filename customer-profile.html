@@ -12,238 +12,281 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="CampusBites">
 </head>
+<style>
+  #loading-screen {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
 
+.spinner {
+  width: 55px;
+  height: 55px;
+  border: 6px solid #ddd;
+  border-top: 6px solid #ff7a00;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.blurred {
+  filter: blur(6px);
+  pointer-events: none;
+  user-select: none;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>
 <body class="min-h-screen bg-gray-100">
-
-<nav class="bg-white border-b border-gray-200 shadow-sm">
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-    <a href="index.html" class="flex items-center gap-2">
-      <img
-        src="assets/icons/1-removebg-preview.png"
-        alt="CampusBites logo"
-        class="h-12 w-auto object-contain"
-        >
-
-        <span class="text-2xl font-extrabold tracking-tight">
-            <span class="text-indigo-600">Campus</span><span class="text-orange-500">Bites</span>
-        </span>
-    </a>
-
-    <section id="navLinks" class="flex items-center gap-6 mx-auto">
-      <!-- Populated by navbar.js -->
-    </section>
-    <section
-      id="profileMenuContainer"
-      class="hidden flex items-center gap-4"
-    >
-
-      <!-- Notifications -->
-      <section class="relative">
-
-        <button
-          id="notificationBtn"
-          class="relative p-2 rounded-full
-                hover:bg-gray-100 transition"
-        >
-          <i
-            data-lucide="bell"
-            class="w-5 h-5 text-gray-700"
-          ></i>
-
-          <span
-            id="notificationBadge"
-            class="hidden absolute -top-1 -right-1
-                  bg-red-500 text-white text-[10px]
-                  font-bold rounded-full
-                  min-w-[18px] h-[18px]
-                  flex items-center justify-center"
-          >
-            0
-          </span>
-        </button>
-
-        <section
-          id="notificationDropdown"
-          class="hidden absolute right-0 mt-3 w-80
-                bg-white rounded-2xl shadow-xl
-                border border-gray-100
-                max-h-96 overflow-y-auto
-                z-50"
-        >
-        </section>
-
-      </section>
-
-      <!-- Profile -->
-      <section class="relative">
-
-        <button
-          id="profileMenuBtn"
-          class="flex items-center gap-2"
-        >
-          <img
-            id="profileAvatar"
-            src="assets/default-icon.png"
-            alt="Profile"
-            class="w-10 h-10 rounded-full
-                  object-cover border-2
-                  border-indigo-500"
-          />
-        </button>
-
-        <section
-          id="profileDropdown"
-          class="hidden absolute right-0 mt-3 w-56
-                bg-white rounded-xl shadow-lg
-                border border-gray-100 py-2 z-50"
-        ></section>
-
-      </section>
-
-    </section>
+  <section id="loading-screen" aria-live="polite">
+    <span class="spinner" aria-hidden="true"></span>
+    <p>Loading...</p>
   </section>
-</nav>
-  <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-    <header class="mb-10">
-      <h1 class="text-3xl md:text-4xl font-bold text-gray-900">
-        My Account
-      </h1>
-      <p class="mt-2 text-gray-600">
-        View your account details and update your customer information.
-      </p>
-    </header>
+<main id="site-content" class="blurred">
+  <!-- your website content here -->
 
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <nav class="bg-white border-b border-gray-200 shadow-sm">
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+      <a href="index.html" class="flex items-center gap-2">
+        <img
+          src="assets/icons/1-removebg-preview.png"
+          alt="CampusBites logo"
+          class="h-12 w-auto object-contain"
+          >
 
-      <article class="bg-white rounded-2xl shadow-md p-6">
-        <header class="mb-6">
-          <h2 class="text-2xl font-bold text-gray-900">
-            Account Preview
-          </h2>
-          <p class="text-gray-600">
-            This is your saved customer account information.
-          </p>
-        </header>
+          <span class="text-2xl font-extrabold tracking-tight">
+              <span class="text-indigo-600">Campus</span><span class="text-orange-500">Bites</span>
+          </span>
+      </a>
 
-        <section class="text-center">
+      <section id="navLinks" class="flex items-center gap-6 mx-auto">
+        <!-- Populated by navbar.js -->
+      </section>
+      <section
+        id="profileMenuContainer"
+        class="hidden flex items-center gap-4"
+      >
+
+        <!-- Notifications -->
+        <section class="relative">
+
+          <button
+            id="notificationBtn"
+            class="relative p-2 rounded-full
+                  hover:bg-gray-100 transition"
+          >
+            <i
+              data-lucide="bell"
+              class="w-5 h-5 text-gray-700"
+            ></i>
+
+            <span
+              id="notificationBadge"
+              class="hidden absolute -top-1 -right-1
+                    bg-red-500 text-white text-[10px]
+                    font-bold rounded-full
+                    min-w-[18px] h-[18px]
+                    flex items-center justify-center"
+            >
+              0
+            </span>
+          </button>
 
           <section
-            id="profileImageFallback"
-            class="w-32 h-32 mx-auto rounded-full border border-gray-200 bg-gray-100 flex items-center justify-center"
+            id="notificationDropdown"
+            class="hidden absolute right-0 mt-3 w-80
+                  bg-white rounded-2xl shadow-xl
+                  border border-gray-100
+                  max-h-96 overflow-y-auto
+                  z-50"
           >
-            <i data-lucide="user" class="w-14 h-14 text-gray-400"></i>
           </section>
 
-          <img
-            id="profileImage"
-            src=""
-            alt="Customer profile picture"
-            class="hidden w-32 h-32 mx-auto rounded-full object-cover border border-gray-200 bg-gray-100"
-          />
-
-          <h2 id="profileName" class="mt-4 text-xl font-semibold text-gray-900">
-            Customer Name
-          </h2>
-
-          <p id="profileEmail" class="text-gray-600">
-            customer@email.com
-          </p>
         </section>
-      </article>
 
-      <article class="lg:col-span-2 bg-white rounded-2xl shadow-md p-6">
-        <header class="mb-6">
-          <h2 class="text-2xl font-bold text-gray-900">
-            Edit Account
-          </h2>
-          <p class="text-gray-600">
-            Update your saved customer details.
-          </p>
-        </header>
+        <!-- Profile -->
+        <section class="relative">
 
-        <form id="profileForm" class="space-y-5">
-
-          <section>
-            <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">
-              Full Name
-            </label>
-            <input
-              type="text"
-              id="fullName"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              placeholder="Enter your full name"
+          <button
+            id="profileMenuBtn"
+            class="flex items-center gap-2"
+          >
+            <img
+              id="profileAvatar"
+              src="assets/default-icon.png"
+              alt="Profile"
+              class="w-10 h-10 rounded-full
+                    object-cover border-2
+                    border-indigo-500"
             />
-          </section>
+          </button>
 
-          <section>
-            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
-              readonly
-            />
-          </section>
+          <section
+            id="profileDropdown"
+            class="hidden absolute right-0 mt-3 w-56
+                  bg-white rounded-xl shadow-lg
+                  border border-gray-100 py-2 z-50"
+          ></section>
 
-          <section>
-            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number
-            </label>
-            <input
-              type="tel"
-              id="phone"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              placeholder="Optional"
-            />
-          </section>
+        </section>
 
-          <section>
-            <label for="role" class="block text-sm font-medium text-gray-700 mb-1">
-              Role
-            </label>
-            <input
-              type="text"
-              id="role"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
-              readonly
-            />
-          </section>
+      </section>
+    </section>
+  </nav>
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-          <section>
-            <label for="profileImageInput" class="block text-sm font-medium text-gray-700 mb-2">
-              Profile Picture
-            </label>
+      <header class="mb-10">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900">
+          My Account
+        </h1>
+        <p class="mt-2 text-gray-600">
+          View your account details and update your customer information.
+        </p>
+      </header>
 
-            <input
-              type="file"
-              id="profileImageInput"
-              accept="image/png, image/jpeg"
-              class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none"
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <article class="bg-white rounded-2xl shadow-md p-6">
+          <header class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">
+              Account Preview
+            </h2>
+            <p class="text-gray-600">
+              This is your saved customer account information.
+            </p>
+          </header>
+
+          <section class="text-center">
+
+            <section
+              id="profileImageFallback"
+              class="w-32 h-32 mx-auto rounded-full border border-gray-200 bg-gray-100 flex items-center justify-center"
+            >
+              <i data-lucide="user" class="w-14 h-14 text-gray-400"></i>
+            </section>
+
+            <img
+              id="profileImage"
+              src=""
+              alt="Customer profile picture"
+              class="hidden w-32 h-32 mx-auto rounded-full object-cover border border-gray-200 bg-gray-100"
             />
 
-            <p class="mt-2 text-sm text-gray-500">
-              Only PNG or JPG images are allowed.
+            <h2 id="profileName" class="mt-4 text-xl font-semibold text-gray-900">
+              Customer Name
+            </h2>
+
+            <p id="profileEmail" class="text-gray-600">
+              customer@email.com
             </p>
           </section>
+        </article>
 
-          <footer class="flex justify-end">
-            <button
-              type="submit"
-              class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition"
-            >
-              Save Changes
-            </button>
-          </footer>
+        <article class="lg:col-span-2 bg-white rounded-2xl shadow-md p-6">
+          <header class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">
+              Edit Account
+            </h2>
+            <p class="text-gray-600">
+              Update your saved customer details.
+            </p>
+          </header>
 
-        </form>
-      </article>
+          <form id="profileForm" class="space-y-5">
 
-    </section>
+            <section>
+              <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">
+                Full Name
+              </label>
+              <input
+                type="text"
+                id="fullName"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                placeholder="Enter your full name"
+              />
+            </section>
 
-  </main>
+            <section>
+              <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                readonly
+              />
+            </section>
+
+            <section>
+              <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                placeholder="Optional"
+              />
+            </section>
+
+            <section>
+              <label for="role" class="block text-sm font-medium text-gray-700 mb-1">
+                Role
+              </label>
+              <input
+                type="text"
+                id="role"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                readonly
+              />
+            </section>
+
+            <section>
+              <label for="profileImageInput" class="block text-sm font-medium text-gray-700 mb-2">
+                Profile Picture
+              </label>
+
+              <input
+                type="file"
+                id="profileImageInput"
+                accept="image/png, image/jpeg"
+                class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none"
+              />
+
+              <p class="mt-2 text-sm text-gray-500">
+                Only PNG or JPG images are allowed.
+              </p>
+            </section>
+
+            <footer class="flex justify-end">
+              <button
+                type="submit"
+                class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition"
+              >
+                Save Changes
+              </button>
+            </footer>
+
+          </form>
+        </article>
+
+      </section>
+
+    </main>
+</main>
+
+
   <script src="scripts/pwa.js"></script>
   <script type="module" src="./scripts/navbar.js"></script>
 

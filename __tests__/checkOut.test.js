@@ -16,6 +16,9 @@ jest.mock("../scripts/database.js", () => ({
   where: jest.fn(),
   serverTimestamp: jest.fn(() => "mock-timestamp")
 }));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 const makeSnapshot = (orders) => ({
   docs: orders.map((order, index) => ({
@@ -27,6 +30,7 @@ const makeSnapshot = (orders) => ({
   }))
 });
 
+const { showToast } = require("../scripts/toast.js");
 const flush = async () => {
   await Promise.resolve();
   await Promise.resolve();
@@ -453,9 +457,7 @@ describe("checkOut.js", () => {
 
     fakeBtn.click();
 
-    expect(window.alert).toHaveBeenCalledWith(
-      "Order cannot be cancelled, it is already in progress."
-    );
+    expect(showToast).toHaveBeenCalledWith("Order cannot be cancelled, it is already in progress.", "warning");
   });
 
   test("alerts when cancelled order is cancelled again", async () => {
@@ -484,7 +486,7 @@ describe("checkOut.js", () => {
 
     fakeBtn.click();
 
-    expect(window.alert).toHaveBeenCalledWith("Order is already cancelled");
+    expect(showToast).toHaveBeenCalledWith("Order is already cancelled", "error");
   });
 
   test("alerts when order status is capital Cancelled", async () => {
@@ -513,7 +515,7 @@ describe("checkOut.js", () => {
 
     fakeBtn.click();
 
-    expect(window.alert).toHaveBeenCalledWith("Order is already cancelled");
+    expect(showToast).toHaveBeenCalledWith("Order is already cancelled", "error");
   });
 
   test("handles updateDoc failure when cancelling order", async () => {
@@ -544,7 +546,7 @@ describe("checkOut.js", () => {
     await flush();
 
     expect(errorSpy).toHaveBeenCalled();
-    expect(window.alert).toHaveBeenCalledWith("Failed to cancel order");
+    expect(showToast).toHaveBeenCalledWith("Failed to cancel order", "error");
   });
 
   test("does nothing when order is not found in cache", async () => {
@@ -738,7 +740,7 @@ describe("checkOut.js", () => {
 
     fakeBtn.click();
 
-    expect(alertSpy).toHaveBeenCalledWith("Order has already been refunded.");
+    expect(showToast).toHaveBeenCalledWith("Order has already been refunded.", "error");
   });
 
   test("initiates Paystack refund for paid pending order", async () => {
@@ -791,9 +793,7 @@ describe("checkOut.js", () => {
       })
     );
 
-    expect(alertSpy).toHaveBeenCalledWith(
-      "Refund initiated. It usually clears within a few minutes."
-    );
+    expect(showToast).toHaveBeenCalledWith("Refund initiated. It usually clears within a few minutes.", "success");
 
     expect(db.updateDoc).toHaveBeenCalledWith(
       expect.anything(),
@@ -844,7 +844,7 @@ describe("checkOut.js", () => {
     await flush();
 
     expect(errorSpy).toHaveBeenCalled();
-    expect(alertSpy).toHaveBeenCalledWith("Could not initiate refund: boom");
+    expect(showToast).toHaveBeenCalledWith("Could not initiate refund: boom", "error");
   });
 
   test("renders cash unpaid notice and Cash • Unpaid badge for unpaid cash orders", async () => {
@@ -1014,8 +1014,6 @@ describe("checkOut.js", () => {
 
     fakeBtn.click();
 
-    expect(alertSpy).toHaveBeenCalledWith(
-      "You must be signed in to cancel an order."
-    );
+    expect(showToast).toHaveBeenCalledWith("You must be signed in to cancel an order.", "warning");
   });
 });

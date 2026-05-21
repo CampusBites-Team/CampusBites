@@ -18,6 +18,9 @@ jest.mock("../scripts/database.js", () => ({
   where: jest.fn(),
   serverTimestamp: jest.fn(),
 }));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 const dbModule = require("../scripts/database.js");
 
@@ -39,6 +42,7 @@ function mockOrderStatusUpdate(orderData = {}) {
   dbModule.doc.mockReturnValue("order-ref");
   dbModule.updateDoc.mockResolvedValue();
   dbModule.addDoc.mockResolvedValue({ id: "notification-1" });
+const { showToast } = require("../scripts/toast.js");
   dbModule.collection.mockReturnValue("notifications-ref");
   dbModule.serverTimestamp.mockReturnValue("mock-timestamp");
   dbModule.getDoc.mockResolvedValue({
@@ -589,7 +593,7 @@ describe("mark-paid click delegation", () => {
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(window.alert).toHaveBeenCalledWith("Order no longer exists.");
+    expect(showToast).toHaveBeenCalledWith("Order no longer exists.", "error");
     expect(dbModule.updateDoc).not.toHaveBeenCalled();
     expect(dbModule.addDoc).not.toHaveBeenCalled();
   });
@@ -630,7 +634,7 @@ describe("mark-paid click delegation", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(errorSpy).toHaveBeenCalled();
-    expect(window.alert).toHaveBeenCalledWith("Failed to mark order as paid.");
+    expect(showToast).toHaveBeenCalledWith("Failed to mark order as paid.", "error");
     expect(btn.disabled).toBe(false);
     expect(btn.textContent).toBe("Mark as Paid");
 
@@ -723,7 +727,7 @@ test("mark paid alerts when order no longer exists", async () => {
   await Promise.resolve();
   await Promise.resolve();
 
-  expect(window.alert).toHaveBeenCalledWith("Order no longer exists.");
+  expect(showToast).toHaveBeenCalledWith("Order no longer exists.", "error");
 });
 test("updateOrderStatus updates status and timestamp", async () => {
   dbModule.doc.mockReturnValue("order-ref");

@@ -18,6 +18,9 @@ jest.mock("../scripts/database.js", () => ({
     }))
   }
 }));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 describe("adminAnalytics.js", () => {
   let database;
@@ -92,6 +95,7 @@ describe("adminAnalytics.js", () => {
       return el;
     });
 
+const { showToast } = require("../scripts/toast.js");
     database = require("../scripts/database.js");
 
     database.getDoc.mockResolvedValue({
@@ -302,7 +306,7 @@ describe("adminAnalytics.js", () => {
     await analytics.exportCSV();
 
     expect(global.URL.createObjectURL).toHaveBeenCalled();
-    expect(alert).toHaveBeenCalledWith("CSV exported successfully");
+    expect(showToast).toHaveBeenCalledWith("CSV exported successfully");
   });
 
   test("exportPDF runs successfully when jsPDF is loaded", async () => {
@@ -340,14 +344,14 @@ describe("adminAnalytics.js", () => {
     await analytics.exportPDF();
 
     expect(window.jspdf.jsPDF).toHaveBeenCalled();
-    expect(alert).toHaveBeenCalledWith("PDF exported successfully");
+    expect(showToast).toHaveBeenCalledWith("PDF exported successfully");
   });
   test("updateCustomView blocks logged out users", async () => {
   database.auth.currentUser = null;
 
   await analytics.updateCustomView();
 
-  expect(alert).toHaveBeenCalledWith("You must be logged in.");
+  expect(showToast).toHaveBeenCalledWith("You must be logged in.");
 });
 
 test("updateCustomView blocks non-admin users", async () => {
@@ -358,7 +362,7 @@ test("updateCustomView blocks non-admin users", async () => {
 
   await analytics.updateCustomView();
 
-  expect(alert).toHaveBeenCalledWith("Access denied.");
+  expect(showToast).toHaveBeenCalledWith("Access denied.");
 });
 
 test("updateCustomView handles missing user profile", async () => {
@@ -368,7 +372,7 @@ test("updateCustomView handles missing user profile", async () => {
 
   await analytics.updateCustomView();
 
-  expect(alert).toHaveBeenCalledWith("User profile not found.");
+  expect(showToast).toHaveBeenCalledWith("User profile not found.");
 });
 
 test("generateSampleData blocks when orders already exist", async () => {
@@ -384,7 +388,7 @@ test("generateSampleData blocks when orders already exist", async () => {
 
   await analytics.generateSampleData();
 
-  expect(alert).toHaveBeenCalledWith("Orders already exist. Sample data was not generated.");
+  expect(showToast).toHaveBeenCalledWith("Orders already exist. Sample data was not generated.");
   expect(database.addDoc).not.toHaveBeenCalled();
 });
 
@@ -401,7 +405,7 @@ test("generateSampleData blocks when no approved vendors or items exist", async 
 
   await analytics.generateSampleData();
 
-  expect(alert).toHaveBeenCalledWith(
+  expect(showToast).toHaveBeenCalledWith(
     "Need approved vendors and menu items before generating sample data."
   );
 });
@@ -446,7 +450,7 @@ test("generateSampleData creates sample orders successfully", async () => {
   await analytics.generateSampleData();
 
   expect(database.addDoc).toHaveBeenCalled();
-  expect(alert).toHaveBeenCalledWith("Sample analytics data generated successfully.");
+  expect(showToast).toHaveBeenCalledWith("Sample analytics data generated successfully.");
 });
 
 test("updateCustomView handles items metric", async () => {
@@ -498,7 +502,7 @@ test("exportCSV blocks non-admin users", async () => {
 
   await analytics.exportCSV();
 
-  expect(alert).toHaveBeenCalledWith("Access denied.");
+  expect(showToast).toHaveBeenCalledWith("Access denied.");
 });
 
 test("exportPDF blocks when jsPDF is missing", async () => {
@@ -511,7 +515,7 @@ test("exportPDF blocks when jsPDF is missing", async () => {
 
   await analytics.exportPDF();
 
-  expect(alert).toHaveBeenCalledWith("jsPDF library is not loaded.");
+  expect(showToast).toHaveBeenCalledWith("jsPDF library is not loaded.");
 });
 
 test("populateVendorFilter adds approved vendors to dropdown", async () => {

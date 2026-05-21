@@ -11,6 +11,9 @@ jest.mock("../scripts/database.js", () => ({
   query: jest.fn(),
   where: jest.fn()
 }));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 describe("ForYou.js", () => {
   let onAuthStateChanged;
@@ -48,6 +51,7 @@ describe("ForYou.js", () => {
 
     jest.spyOn(console, "error").mockImplementation(() => {});
 
+const { showToast } = require("../scripts/toast.js");
     localStorage.clear();
 
     const dbModule = await import("../scripts/database.js");
@@ -198,7 +202,7 @@ describe("ForYou.js", () => {
     expect(cart).toHaveLength(1);
     expect(cart[0].name).toBe("Burger");
     expect(document.getElementById("cartCount").textContent).toBe("1");
-    expect(global.alert).toHaveBeenCalledWith("Item added to cart.");
+    expect(showToast).toHaveBeenCalledWith("Item added to cart.", "success");
   });
 
   test("shows fallback message when no recommendations are available", async () => {

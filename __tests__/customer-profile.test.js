@@ -9,6 +9,9 @@ jest.mock("../scripts/database.js", () => ({
   uploadBytes: jest.fn(),
   getDownloadURL: jest.fn()
 }));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 jest.mock(
   "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js",
@@ -43,6 +46,7 @@ describe("customer-profile.js", () => {
     };
   });
 
+const { showToast } = require("../scripts/toast.js");
   afterAll(() => {
     console.error = originalError;
   });
@@ -126,7 +130,7 @@ describe("customer-profile.js", () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(global.alert).toHaveBeenCalledWith("Profile not found.");
+    expect(showToast).toHaveBeenCalledWith("Profile not found.", "error");
   });
 
   test("redirects non-customer users away from customer profile page", async () => {
@@ -149,7 +153,7 @@ describe("customer-profile.js", () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(global.alert).toHaveBeenCalledWith("Only customers can access this profile page.");
+    expect(showToast).toHaveBeenCalledWith("Only customers can access this profile page.", "warning");
   });
 
   test("updates customer profile without changing image", async () => {
@@ -192,7 +196,7 @@ describe("customer-profile.js", () => {
       image: "old-image-url"
     });
 
-    expect(global.alert).toHaveBeenCalledWith("Profile updated successfully.");
+    expect(showToast).toHaveBeenCalledWith("Profile updated successfully.", "success");
   });
 
   test("rejects invalid profile image type", async () => {
@@ -224,7 +228,7 @@ describe("customer-profile.js", () => {
 
     imageInput.dispatchEvent(new Event("change"));
 
-    expect(global.alert).toHaveBeenCalledWith("Profile picture must be a PNG or JPEG image.");
+    expect(showToast).toHaveBeenCalledWith("Profile picture must be a PNG or JPEG image.", "warning");
   });
 
   test("uploads valid image and saves new image URL", async () => {

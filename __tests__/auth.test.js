@@ -5,6 +5,9 @@ jest.mock("../scripts/database.js", () => ({
   doc: jest.fn(),
   getDoc: jest.fn()
 }));
+jest.mock("../toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 // Suppress jsdom navigation warnings
 const originalError = console.error;

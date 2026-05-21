@@ -7,6 +7,9 @@ jest.mock("../scripts/database.js", () => ({
   getDocs: jest.fn(),
   collection: jest.fn()
 }));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 describe("index.js", () => {
   let getDocs;
@@ -44,6 +47,7 @@ describe("index.js", () => {
     global.alert = jest.fn();
 
     jest.spyOn(console, "error").mockImplementation(() => {});
+const { showToast } = require("../scripts/toast.js");
     jest.spyOn(global, "setInterval").mockImplementation(() => 1);
     jest.spyOn(Math, "random").mockReturnValue(0.6);
 

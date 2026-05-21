@@ -24,6 +24,9 @@ jest.mock("../scripts/database.js", () => ({
     conditions
   }))
 }));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 const flush = async () => {
   await Promise.resolve();
@@ -164,6 +167,7 @@ describe("vendor-profile.js", () => {
       exists: () => true,
       data: () => defaultVendorData(overrides)
     });
+const { showToast } = require("../scripts/toast.js");
   }
 
   function mockSnapshots({
@@ -429,7 +433,7 @@ describe("vendor-profile.js", () => {
 
     await loadVendorProfile();
 
-    expect(window.alert).toHaveBeenCalledWith("Vendor profile could not be loaded.");
+    expect(showToast).toHaveBeenCalledWith("Vendor profile could not be loaded.", "error");
   });
 
   test("redirects when vendor is not found", async () => {
@@ -440,7 +444,7 @@ describe("vendor-profile.js", () => {
 
     await loadVendorProfile();
 
-    expect(window.alert).toHaveBeenCalledWith("Vendor not found.");
+    expect(showToast).toHaveBeenCalledWith("Vendor not found.", "error");
   });
 
   test("redirects when vendor is not approved", async () => {
@@ -450,6 +454,6 @@ describe("vendor-profile.js", () => {
 
     await loadVendorProfile();
 
-    expect(window.alert).toHaveBeenCalledWith("This vendor profile is not available.");
+    expect(showToast).toHaveBeenCalledWith("This vendor profile is not available.", "error");
   });
 });
