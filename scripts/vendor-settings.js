@@ -53,13 +53,8 @@ function formatVendorDetails(userData) {
 }
 
 function formatOperatingHours(userData) {
-  const hasWeekdayHours =
-    userData.weekdayOpeningTime &&
-    userData.weekdayClosingTime;
-
-  const hasWeekendHours =
-    userData.weekendOpeningTime &&
-    userData.weekendClosingTime;
+  const hasWeekdayHours = userData.weekdayOpeningTime && userData.weekdayClosingTime;
+  const hasWeekendHours = userData.weekendOpeningTime && userData.weekendClosingTime;
 
   if (!hasWeekdayHours && !hasWeekendHours && !userData.closedWeekends) {
     return "No operating hours set yet.";
