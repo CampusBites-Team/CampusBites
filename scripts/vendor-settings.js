@@ -28,6 +28,15 @@ const BANK_LABELS = {
 
 let selectedStoreLogo = null;
 
+function cleanPhoneNumber(phone) {
+  return phone.replace(/\s/g, "");
+}
+
+function isValidPhoneNumber(phone) {
+  const cleanedPhone = cleanPhoneNumber(phone);
+  return /^\d{10}$/.test(cleanedPhone);
+}
+
 function formatVendorDetails(userData) {
   const details = [];
 
@@ -47,17 +56,21 @@ function formatOperatingHours(userData) {
   const hasWeekdayHours = userData.weekdayOpeningTime && userData.weekdayClosingTime;
   const hasWeekendHours = userData.weekendOpeningTime && userData.weekendClosingTime;
 
-  if (!hasWeekdayHours && !hasWeekendHours) {
+  if (!hasWeekdayHours && !hasWeekendHours && !userData.closedWeekends) {
     return "No operating hours set yet.";
   }
 
   const weekdayHours = hasWeekdayHours
     ? `${userData.weekdayOpeningTime} - ${userData.weekdayClosingTime}`
-    : "Not set";
+    : "Closed";
 
-  const weekendHours = hasWeekendHours
-    ? `${userData.weekendOpeningTime} - ${userData.weekendClosingTime}`
-    : "Not set";
+  let weekendHours = "Closed";
+
+  if (!userData.closedWeekends) {
+    weekendHours = hasWeekendHours
+      ? `${userData.weekendOpeningTime} - ${userData.weekendClosingTime}`
+      : "Closed";
+  }
 
   return `Weekdays: ${weekdayHours} | Weekends: ${weekendHours}`;
 }
@@ -98,6 +111,8 @@ function fillVendorDetails(userData) {
 }
 
 function fillOperatingHours(userData) {
+  const closedWeekends = userData.closedWeekends || false;
+
   document.getElementById("weekdayOpeningTime").value =
     userData.weekdayOpeningTime || userData.openingTime || "";
 
@@ -110,11 +125,27 @@ function fillOperatingHours(userData) {
   document.getElementById("weekendClosingTime").value =
     userData.weekendClosingTime || "";
 
+  const closedWeekendsCheckbox = document.getElementById("closedWeekends");
+  const weekendHoursContainer = document.getElementById("weekendHoursContainer");
+
+  if (closedWeekendsCheckbox) {
+    closedWeekendsCheckbox.checked = closedWeekends;
+  }
+
+  if (weekendHoursContainer) {
+    if (closedWeekends) {
+      weekendHoursContainer.classList.add("hidden");
+    } else {
+      weekendHoursContainer.classList.remove("hidden");
+    }
+  }
+
   document.getElementById("savedOperatingHours").textContent =
     formatOperatingHours({
       ...userData,
       weekdayOpeningTime: userData.weekdayOpeningTime || userData.openingTime,
-      weekdayClosingTime: userData.weekdayClosingTime || userData.closingTime
+      weekdayClosingTime: userData.weekdayClosingTime || userData.closingTime,
+      closedWeekends
     });
 }
 
@@ -205,13 +236,9 @@ function attachVendorDetailsForm(vendorId, userData) {
     const location = document.getElementById("location").value.trim();
     const storeSlogan = document.getElementById("storeSlogan").value.trim();
     const storePhone = document.getElementById("storePhone").value.trim();
+    const cleanedStorePhone = cleanPhoneNumber(storePhone);
     const storeCategoryValue = document.getElementById("storeCategory").value;
-const customCategory = document.getElementById("customCategory")?.value.trim() || "";
-
-const storeCategory =
-  storeCategoryValue === "Other"
-    ? customCategory
-    : storeCategoryValue;
+    const customCategory = document.getElementById("customCategory")?.value.trim() || "";
 
     if (!shopName) {
       alert("Please enter your shop name.");
@@ -223,6 +250,16 @@ const storeCategory =
       return;
     }
 
+    if (!isValidPhoneNumber(storePhone)) {
+      alert("Phone number must be exactly 10 digits.");
+      return;
+    }
+
+    const storeCategory =
+      storeCategoryValue === "Other"
+        ? customCategory
+        : storeCategoryValue;
+
     const userRef = doc(db, "users", vendorId);
 
     try {
@@ -230,7 +267,7 @@ const storeCategory =
         shopName,
         location,
         storeSlogan,
-        storePhone,
+        storePhone: cleanedStorePhone,
         storeCategory
       };
 
@@ -239,7 +276,7 @@ const storeCategory =
       userData.shopName = shopName;
       userData.location = location;
       userData.storeSlogan = storeSlogan;
-      userData.storePhone = storePhone;
+      userData.storePhone = cleanedStorePhone;
       userData.storeCategory = storeCategory;
 
       if (selectedStoreLogo) {
@@ -294,11 +331,28 @@ function attachOperatingHoursForm(vendorId, userData) {
 
     const weekdayOpeningTime = document.getElementById("weekdayOpeningTime").value;
     const weekdayClosingTime = document.getElementById("weekdayClosingTime").value;
-    const weekendOpeningTime = document.getElementById("weekendOpeningTime").value;
-    const weekendClosingTime = document.getElementById("weekendClosingTime").value;
+
+    const closedWeekends =
+      document.getElementById("closedWeekends")?.checked || false;
+
+    const weekendOpeningTime = closedWeekends
+      ? ""
+      : document.getElementById("weekendOpeningTime").value;
+
+    const weekendClosingTime = closedWeekends
+      ? ""
+      : document.getElementById("weekendClosingTime").value;
 
     if (!validateTimePair(weekdayOpeningTime, weekdayClosingTime, "weekday")) return;
-    if (!validateTimePair(weekendOpeningTime, weekendClosingTime, "weekend")) return;
+
+    if (
+      !closedWeekends &&
+      !validateTimePair(
+        weekendOpeningTime,
+        weekendClosingTime,
+        "weekend"
+      )
+    ) return;
 
     try {
       const userRef = doc(db, "users", vendorId);
@@ -308,8 +362,7 @@ function attachOperatingHoursForm(vendorId, userData) {
         weekdayClosingTime,
         weekendOpeningTime,
         weekendClosingTime,
-
-        // Backwards compatibility for old vendor profile code.
+        closedWeekends,
         openingTime: weekdayOpeningTime,
         closingTime: weekdayClosingTime
       });
@@ -318,6 +371,7 @@ function attachOperatingHoursForm(vendorId, userData) {
       userData.weekdayClosingTime = weekdayClosingTime;
       userData.weekendOpeningTime = weekendOpeningTime;
       userData.weekendClosingTime = weekendClosingTime;
+      userData.closedWeekends = closedWeekends;
       userData.openingTime = weekdayOpeningTime;
       userData.closingTime = weekdayClosingTime;
 
@@ -381,7 +435,6 @@ function attachBankingDetailsForm(vendorId, userData) {
   });
 }
 
-
 function attachCustomCategoryListener() {
   const storeCategory = document.getElementById("storeCategory");
   const customCategorySection = document.getElementById("customCategorySection");
@@ -393,6 +446,21 @@ function attachCustomCategoryListener() {
       customCategorySection.classList.remove("hidden");
     } else {
       customCategorySection.classList.add("hidden");
+    }
+  });
+}
+
+function attachClosedWeekendListener() {
+  const checkbox = document.getElementById("closedWeekends");
+  const container = document.getElementById("weekendHoursContainer");
+
+  if (!checkbox || !container) return;
+
+  checkbox.addEventListener("change", () => {
+    if (checkbox.checked) {
+      container.classList.add("hidden");
+    } else {
+      container.classList.remove("hidden");
     }
   });
 }
@@ -434,10 +502,11 @@ export function initVendorSettings(locationObj = window.location) {
     fillOperatingHours(userData);
     fillBankingDetails(userData);
     attachCustomCategoryListener();
+    attachClosedWeekendListener();
 
     document.getElementById("deleteAccountBtn")?.addEventListener("click", async () => {
-  await requestAccountDeletion(user.uid, userData.email);
-});
+      await requestAccountDeletion(user.uid, userData.email);
+    });
 
     attachStoreLogoListener();
     attachVendorDetailsForm(user.uid, userData);
@@ -453,6 +522,7 @@ if (typeof window !== "undefined") {
     document.addEventListener("DOMContentLoaded", initVendorSettings);
   }
 }
+
 export {
   validateTimePair
 };

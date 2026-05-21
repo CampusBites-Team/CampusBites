@@ -16,6 +16,15 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/f
 
 let selectedProfileImage = null;
 
+function cleanPhoneNumber(phone) {
+  return phone.replace(/\s/g, "");
+}
+
+function isValidPhoneNumber(phone) {
+  const cleanedPhone = cleanPhoneNumber(phone);
+  return /^\d{10}$/.test(cleanedPhone);
+}
+
 function isValidProfileImage(file) {
   if (!file) return false;
 
@@ -56,6 +65,7 @@ export function initCustomerProfile() {
   const profileForm = document.getElementById("profileForm");
   const profileImageInput = document.getElementById("profileImageInput");
   const deleteAccountBtn = document.getElementById("deleteAccountBtn");
+
   let currentUser = null;
   let currentUserData = null;
 
@@ -120,6 +130,12 @@ export function initCustomerProfile() {
 
     const fullName = document.getElementById("fullName").value.trim();
     const phone = document.getElementById("phone").value.trim();
+    const cleanedPhone = cleanPhoneNumber(phone);
+
+    if (!isValidPhoneNumber(phone)) {
+      alert("Phone number must be exactly 10 digits.");
+      return;
+    }
 
     try {
       let imageURL = currentUserData.image || null;
@@ -132,37 +148,33 @@ export function initCustomerProfile() {
 
       await updateDoc(userRef, {
         fullName,
-        phone,
+        phone: cleanedPhone,
         image: imageURL
       });
 
       currentUserData = {
         ...currentUserData,
         fullName,
-        phone,
+        phone: cleanedPhone,
         image: imageURL
       };
 
       fillProfileFields(currentUserData);
       alert("Profile updated successfully.");
-
     } catch (error) {
       console.error(error);
       alert("Could not update profile.");
     }
   });
-  
-deleteAccountBtn?.addEventListener("click", async () => {
-  if (!currentUser || !currentUserData) {
-    alert("Profile could not be loaded.");
-    return;
-  }
 
-  await requestAccountDeletion(currentUser.uid, currentUserData.email);
-});
+  deleteAccountBtn?.addEventListener("click", async () => {
+    if (!currentUser || !currentUserData) {
+      alert("Profile could not be loaded.");
+      return;
+    }
 
-
-  
+    await requestAccountDeletion(currentUser.uid, currentUserData.email);
+  });
 }
 
 if (typeof window !== "undefined") {
