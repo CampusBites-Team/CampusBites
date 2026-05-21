@@ -3,599 +3,575 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>CampusBites - Store Settings</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="icon" type="image/png" href="assets/icons/1-removebg-preview.png">
-  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4f46e5">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="CampusBites">
 
-<style>
-  @keyframes floatSoft {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-14px) rotate(3deg); }
-  }
+  <link rel="icon" type="image/png" href="assets/icons/1-removebg-preview.png" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+  <link rel="manifest" href="manifest.json" />
 
-  .float-soft {
-    animation: floatSoft 5s ease-in-out infinite;
-  }
-</style>
+  <meta name="theme-color" content="#4f46e5" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="CampusBites" />
 
+  <style>
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .spinner {
+      width: 55px;
+      height: 55px;
+      border: 6px solid #ddd;
+      border-top: 6px solid #ff7a00;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .blurred {
+      filter: blur(6px);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes floatSoft {
+      0%, 100% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-14px) rotate(3deg);
+      }
+    }
+
+    .float-soft {
+      animation: floatSoft 5s ease-in-out infinite;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
 </head>
-<style>
-  #loading-screen {
-  position: fixed;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(8px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
 
-.spinner {
-  width: 55px;
-  height: 55px;
-  border: 6px solid #ddd;
-  border-top: 6px solid #ff7a00;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-.blurred {
-  filter: blur(6px);
-  pointer-events: none;
-  user-select: none;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-</style>
-
-<body class="min-h-screen bg-gray-100">
+<body class="min-h-screen bg-gradient-to-br from-white via-indigo-50 to-white text-slate-900 overflow-x-hidden">
   <section id="loading-screen" aria-live="polite">
-  <span class="spinner" aria-hidden="true"></span>
-  <p>Loading...</p>
-</section>
+    <span class="spinner" aria-hidden="true"></span>
+    <p class="mt-4 font-medium text-gray-700">Loading...</p>
+  </section>
 
-<main id="site-content" class="blurred">
-  <!-- your website content here -->
+  <main id="site-content" class="blurred">
+    <nav class="bg-white/95 backdrop-blur border-b border-indigo-100 shadow-sm sticky top-0 z-40">
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap md:flex-nowrap justify-between items-center gap-3 min-h-16 py-3">
+        <a href="index.html" class="flex items-center gap-2">
+          <img
+            src="assets/icons/1-removebg-preview.png"
+            alt="CampusBites logo"
+            class="h-10 sm:h-12 w-auto object-contain"
+          />
 
-<nav class="bg-white/95 backdrop-blur border-b border-indigo-100 shadow-sm sticky top-0 z-40">
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-    <a href="index.html" class="flex items-center gap-2">
-      <img
-        src="assets/icons/1-removebg-preview.png"
-        alt="CampusBites logo"
-        class="h-12 w-auto object-contain"
-        >
-
-        <span class="text-2xl font-extrabold tracking-tight">
+          <span class="text-xl sm:text-2xl font-extrabold tracking-tight">
             <span class="text-indigo-600">Campus</span><span class="text-orange-500">Bites</span>
-        </span>
-    </a>
-
-    <section id="navLinks" class="flex items-center gap-6 mx-auto">
-      <!-- Populated by navbar.js -->
-    </section>
-    <section
-      id="profileMenuContainer"
-      class="hidden flex items-center gap-4"
-    >
-
-      <!-- Notifications -->
-      <section class="relative">
-
-        <button
-          id="notificationBtn"
-          class="relative p-2 rounded-full
-                hover:bg-gray-100 transition"
-        >
-          <i
-            data-lucide="bell"
-            class="w-5 h-5 text-gray-700"
-          ></i>
-
-          <span
-            id="notificationBadge"
-            class="hidden absolute -top-1 -right-1
-                  bg-red-500 text-white text-[10px]
-                  font-bold rounded-full
-                  min-w-[18px] h-[18px]
-                  flex items-center justify-center"
-          >
-            0
           </span>
-        </button>
+        </a>
 
         <section
-          id="notificationDropdown"
-          class="hidden absolute right-0 mt-3 w-80
-                bg-white rounded-2xl shadow-xl
-                border border-gray-100
-                max-h-96 overflow-y-auto
-                z-50"
+          id="navLinks"
+          class="w-full md:w-auto order-3 md:order-none flex flex-wrap items-center justify-center gap-3 md:gap-6 mx-auto text-sm md:text-base"
         >
+          <!-- Populated by navbar.js -->
         </section>
 
+        <section id="profileMenuContainer" class="hidden flex items-center gap-4">
+          <section class="relative">
+            <button
+              id="notificationBtn"
+              type="button"
+              class="relative p-2 rounded-full hover:bg-gray-100 transition"
+            >
+              <i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
+
+              <span
+                id="notificationBadge"
+                class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center"
+              >
+                0
+              </span>
+            </button>
+
+            <section
+              id="notificationDropdown"
+              class="hidden fixed right-4 left-4 top-20 md:absolute md:left-auto md:right-0 md:top-auto md:mt-3 md:w-80 bg-white rounded-2xl shadow-xl border border-gray-100 max-h-96 overflow-y-auto z-50"
+            ></section>
+          </section>
+
+          <section class="relative">
+            <button
+              id="profileMenuBtn"
+              type="button"
+              class="flex items-center gap-2"
+            >
+              <img
+                id="profileAvatar"
+                src="assets/default-icon.png"
+                alt="Profile"
+                class="w-10 h-10 rounded-full object-cover border-2 border-indigo-500"
+              />
+            </button>
+
+            <section
+              id="profileDropdown"
+              class="hidden fixed right-4 left-4 top-20 md:absolute md:left-auto md:right-0 md:top-auto md:mt-3 md:w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50"
+            ></section>
+          </section>
+        </section>
       </section>
+    </nav>
 
-      <!-- Profile -->
-      <section class="relative">
+    <section class="relative overflow-hidden min-h-[calc(100vh-4rem)]">
+      <section class="hidden md:block absolute -left-28 top-32 w-96 h-80 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
+      <section class="hidden md:block absolute -right-20 bottom-6 w-[430px] h-[360px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
+      <section class="hidden md:block absolute right-56 top-24 w-60 h-48 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-80"></section>
 
-        <button
-          id="profileMenuBtn"
-          class="flex items-center gap-2"
-        >
-          <img
-            id="profileAvatar"
-            src="assets/default-icon.png"
-            alt="Profile"
-            class="w-10 h-10 rounded-full
-                  object-cover border-2
-                  border-indigo-500"
-          />
-        </button>
+      <span class="hidden md:block absolute left-28 top-40 text-indigo-500 text-5xl font-bold float-soft">+</span>
+      <span class="hidden md:block absolute right-80 top-72 text-orange-500 text-4xl font-bold float-soft">✦</span>
 
-        <section
-          id="profileDropdown"
-          class="hidden absolute right-0 mt-3 w-56
-                bg-white rounded-xl shadow-lg
-                border border-gray-100 py-2 z-50"
-        ></section>
+      <section class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        <header class="mb-8 bg-white/90 backdrop-blur rounded-[1.5rem] sm:rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-100 p-6 sm:p-8 max-w-4xl">
+          <p class="text-sm font-semibold text-orange-500 uppercase tracking-wide">
+            Vendor settings
+          </p>
 
-      </section>
+          <h1 class="text-3xl sm:text-5xl md:text-6xl font-extrabold text-indigo-950 leading-tight mt-1">
+            Store Settings
+          </h1>
 
-    </section>
-  </section>
-</nav>
-
-  <main class="relative overflow-hidden min-h-[calc(100vh-4rem)]">
-  <section class="absolute -left-28 top-32 w-96 h-80 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
-  <section class="absolute -right-20 bottom-6 w-[430px] h-[360px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
-  <section class="absolute right-56 top-24 w-60 h-48 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-80"></section>
-
-  <span class="absolute left-28 top-40 text-indigo-500 text-5xl font-bold float-soft">+</span>
-  <span class="absolute right-80 top-72 text-orange-500 text-4xl font-bold float-soft">✦</span>
-
-  <section class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-
-    <header class="mb-10 max-w-4xl">
-  <p class="text-sm font-semibold text-orange-500 uppercase tracking-wide">Vendor settings</p>
-
-  <h1 class="text-5xl md:text-6xl font-extrabold text-indigo-950 leading-tight mt-1">
-    Store Settings
-  </h1>
-
-  <p class="mt-4 text-gray-600 leading-relaxed">
-    Update your public vendor profile, operating hours, and payout banking details.
-  </p>
-</header>
-
-    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-      <article class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50 p-6">
-        <header class="mb-6">
-          <h2 class="text-2xl font-bold text-gray-900">
-            Vendor Details
-          </h2>
-          <p class="text-gray-600">
-            Update your shop logo, slogan, category, contact details, and location.
+          <p class="mt-4 text-gray-600 leading-relaxed">
+            Update your public vendor profile, operating hours, and payout banking details.
           </p>
         </header>
 
-        <form id="vendorDetailsForm" class="space-y-5">
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <article class="bg-white/95 backdrop-blur rounded-[1.5rem] sm:rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50 p-5 sm:p-6">
+            <header class="mb-6">
+              <h2 class="text-2xl font-bold text-gray-900">
+                Vendor Details
+              </h2>
+              <p class="text-gray-600">
+                Update your shop logo, slogan, category, contact details, and location.
+              </p>
+            </header>
 
-          <section>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Store Logo
-            </label>
+            <form id="vendorDetailsForm" class="space-y-5">
+              <section>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Store Logo
+                </label>
 
-            <section class="flex flex-col sm:flex-row sm:items-center gap-4">
-              <section
-                id="storeLogoFallback"
-                class="w-24 h-24 rounded-full bg-indigo-50 border-4 border-indigo-100 flex items-center justify-center shadow-xl shadow-indigo-100"
-              >
-                <i data-lucide="store" class="w-10 h-10 text-gray-400"></i>
+                <section class="flex flex-col sm:flex-row sm:items-center gap-4">
+                  <section
+                    id="storeLogoFallback"
+                    class="w-24 h-24 rounded-full bg-indigo-50 border-4 border-indigo-100 flex items-center justify-center shadow-xl shadow-indigo-100 shrink-0"
+                  >
+                    <i data-lucide="store" class="w-10 h-10 text-gray-400"></i>
+                  </section>
+
+                  <img
+                    id="storeLogoPreview"
+                    src=""
+                    alt="Store logo preview"
+                    class="hidden w-24 h-24 rounded-full object-cover border-4 border-indigo-100 bg-gray-100 shadow-xl shadow-indigo-100 shrink-0"
+                  />
+
+                  <section class="flex-1">
+                    <input
+                      type="file"
+                      id="storeLogoInput"
+                      accept="image/png, image/jpeg"
+                      class="block w-full text-sm text-gray-700 border border-gray-300 rounded-xl cursor-pointer bg-white focus:outline-none file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:bg-indigo-50 file:text-indigo-700 file:font-semibold"
+                    />
+
+                    <p class="mt-2 text-sm text-gray-500">
+                      Only PNG or JPG/JPEG images are allowed.
+                    </p>
+                  </section>
+                </section>
               </section>
 
-              <img
-                id="storeLogoPreview"
-                src=""
-                alt="Store logo preview"
-                class="hidden w-24 h-24 rounded-full object-cover border-4 border-indigo-100 bg-gray-100 shadow-xl shadow-indigo-100"
-              />
-
-              <section class="flex-1">
+              <section>
+                <label for="shopName" class="block text-sm font-medium text-gray-700 mb-1">
+                  Shop Name
+                </label>
                 <input
-                  type="file"
-                  id="storeLogoInput"
-                  accept="image/png, image/jpeg"
-                  class="block w-full text-sm text-gray-700 border border-gray-300 rounded-xl cursor-pointer bg-white focus:outline-none file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:bg-indigo-50 file:text-indigo-700 file:font-semibold"
+                  type="text"
+                  id="shopName"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                  placeholder="Enter your shop name"
                 />
+              </section>
 
-                <p class="mt-2 text-sm text-gray-500">
-                  Only PNG or JPG/JPEG images are allowed.
+              <section>
+                <label for="storeSlogan" class="block text-sm font-medium text-gray-700 mb-1">
+                  Store Slogan
+                </label>
+                <input
+                  type="text"
+                  id="storeSlogan"
+                  maxlength="80"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                  placeholder="Example: Fresh food, fast service"
+                />
+              </section>
+
+              <section>
+                <label for="storePhone" class="block text-sm font-medium text-gray-700 mb-1">
+                  Store Contact Number
+                </label>
+                <input
+                  type="tel"
+                  id="storePhone"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                  placeholder="Example: 0712345678"
+                />
+              </section>
+
+              <section>
+                <label for="storeCategory" class="block text-sm font-medium text-gray-700 mb-1">
+                  Store Category
+                </label>
+
+                <select
+                  id="storeCategory"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                >
+                  <option value="">Select a category</option>
+                  <option value="Fast Food">Fast Food</option>
+                  <option value="Café">Café</option>
+                  <option value="Bakery">Bakery</option>
+                  <option value="Healthy">Healthy</option>
+                  <option value="Beverages">Beverages</option>
+                  <option value="Desserts">Desserts</option>
+                  <option value="Traditional Food">Traditional Food</option>
+                  <option value="Snacks">Snacks</option>
+                  <option value="Other">Other</option>
+                </select>
+
+                <section id="customCategorySection" class="hidden mt-3">
+                  <label for="customCategory" class="block text-sm font-medium text-gray-700 mb-1">
+                    Custom Category
+                  </label>
+
+                  <input
+                    type="text"
+                    id="customCategory"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                    placeholder="Example: Korean Street Food"
+                  />
+                </section>
+              </section>
+
+              <section>
+                <label for="location" class="block text-sm font-medium text-gray-700 mb-1">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  id="location"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                  placeholder="Example: Matrix Ground Floor"
+                />
+              </section>
+
+              <section class="bg-indigo-50/70 rounded-2xl p-4 border border-indigo-100">
+                <h3 class="font-semibold text-gray-900 mb-1">
+                  Current Saved Details
+                </h3>
+                <p id="savedVendorDetails" class="text-gray-600">
+                  No vendor details set yet.
                 </p>
               </section>
-            </section>
-          </section>
 
-          <section>
-            <label for="shopName" class="block text-sm font-medium text-gray-700 mb-1">
-              Shop Name
-            </label>
-            <input
-              type="text"
-              id="shopName"
-              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
-              placeholder="Enter your shop name"
-            />
-          </section>
+              <footer class="flex justify-end">
+                <button
+                  type="submit"
+                  class="w-full sm:w-auto bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition shadow-xl shadow-indigo-100"
+                >
+                  Save Details
+                </button>
+              </footer>
+            </form>
+          </article>
 
-          <section>
-            <label for="storeSlogan" class="block text-sm font-medium text-gray-700 mb-1">
-              Store Slogan
-            </label>
-            <input
-              type="text"
-              id="storeSlogan"
-              maxlength="80"
-              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
-              placeholder="Example: Fresh food, fast service"
-            />
-          </section>
+          <article class="bg-white/95 backdrop-blur rounded-[1.5rem] sm:rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50 p-5 sm:p-6">
+            <header class="mb-6">
+              <h2 class="text-2xl font-bold text-gray-900">
+                Operating Hours
+              </h2>
+              <p class="text-gray-600">
+                Set different operating hours for weekdays and weekends.
+              </p>
+            </header>
 
-          <section>
-            <label for="storePhone" class="block text-sm font-medium text-gray-700 mb-1">
-              Store Contact Number
-            </label>
-            <input
-              type="tel"
-              id="storePhone"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              placeholder="Example: 0712345678"
-            />
-          </section>
-
-          <section>
-  <label for="storeCategory" class="block text-sm font-medium text-gray-700 mb-1">
-    Store Category
-  </label>
-
-  <select
-    id="storeCategory"
-    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-  >
-    <option value="">Select a category</option>
-    <option value="Fast Food">Fast Food</option>
-    <option value="Café">Café</option>
-    <option value="Bakery">Bakery</option>
-    <option value="Healthy">Healthy</option>
-    <option value="Beverages">Beverages</option>
-    <option value="Desserts">Desserts</option>
-    <option value="Traditional Food">Traditional Food</option>
-    <option value="Snacks">Snacks</option>
-    <option value="Other">Other</option>
-  </select>
-
-  <section id="customCategorySection" class="hidden mt-3">
-    <label for="customCategory" class="block text-sm font-medium text-gray-700 mb-1">
-      Custom Category
-    </label>
-
-    <input
-      type="text"
-      id="customCategory"
-      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-      placeholder="Example: Korean Street Food"
-    />
-  </section>
-</section>
-
-          <section>
-            <label for="location" class="block text-sm font-medium text-gray-700 mb-1">
-              Location
-            </label>
-            <input
-              type="text"
-              id="location"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              placeholder="Example: Matrix Ground Floor"
-            />
-          </section>
-
-          <section class="bg-indigo-50/70 rounded-2xl p-4 border border-indigo-100">
-            <h3 class="font-semibold text-gray-900 mb-1">
-              Current Saved Details
-            </h3>
-            <p id="savedVendorDetails" class="text-gray-600">
-              No vendor details set yet.
-            </p>
-          </section>
-
-          <footer class="flex justify-end">
-            <button
-              type="submit"
-              class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition shadow-xl shadow-indigo-100"            >
-              Save Details
-            </button>
-          </footer>
-
-        </form>
-      </article>
-
-      <article class="bg-white rounded-2xl shadow-md p-6">
-        <header class="mb-6">
-          <h2 class="text-2xl font-bold text-gray-900">
-            Operating Hours
-          </h2>
-          <p class="text-gray-600">
-            Set different operating hours for weekdays and weekends.
-          </p>
-        </header>
-
-        <form id="operatingHoursForm" class="space-y-6">
-
-          <section>
-            <h3 class="font-semibold text-gray-900 mb-3">
-              Weekdays
-            </h3>
-
-            <section class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <form id="operatingHoursForm" class="space-y-6">
               <section>
-                <label for="weekdayOpeningTime" class="block text-sm font-medium text-gray-700 mb-1">
-                  Opening Time
-                </label>
-                <input
-                  type="time"
-                  id="weekdayOpeningTime"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                />
+                <h3 class="font-semibold text-gray-900 mb-3">
+                  Weekdays
+                </h3>
+
+                <section class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <section>
+                    <label for="weekdayOpeningTime" class="block text-sm font-medium text-gray-700 mb-1">
+                      Opening Time
+                    </label>
+                    <input
+                      type="time"
+                      id="weekdayOpeningTime"
+                      class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                    />
+                  </section>
+
+                  <section>
+                    <label for="weekdayClosingTime" class="block text-sm font-medium text-gray-700 mb-1">
+                      Closing Time
+                    </label>
+                    <input
+                      type="time"
+                      id="weekdayClosingTime"
+                      class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                    />
+                  </section>
+                </section>
               </section>
 
               <section>
-                <label for="weekdayClosingTime" class="block text-sm font-medium text-gray-700 mb-1">
-                  Closing Time
-                </label>
-                <input
-                  type="time"
-                  id="weekdayClosingTime"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                />
+                <section class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                  <h3 class="font-semibold text-gray-900">
+                    Weekends
+                  </h3>
+
+                  <label class="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      id="closedWeekends"
+                      class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    Closed on weekends
+                  </label>
+                </section>
+
+                <section id="weekendHoursContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <section>
+                    <label for="weekendOpeningTime" class="block text-sm font-medium text-gray-700 mb-1">
+                      Opening Time
+                    </label>
+
+                    <input
+                      type="time"
+                      id="weekendOpeningTime"
+                      class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                    />
+                  </section>
+
+                  <section>
+                    <label for="weekendClosingTime" class="block text-sm font-medium text-gray-700 mb-1">
+                      Closing Time
+                    </label>
+
+                    <input
+                      type="time"
+                      id="weekendClosingTime"
+                      class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                    />
+                  </section>
+                </section>
               </section>
-            </section>
-          </section>
 
-          <section>
-  <section class="flex items-center justify-between mb-3">
-    <h3 class="font-semibold text-gray-900">
-      Weekends
-    </h3>
+              <section class="bg-indigo-50/70 rounded-2xl p-4 border border-indigo-100">
+                <h3 class="font-semibold text-gray-900 mb-1">
+                  Current Saved Hours
+                </h3>
+                <p id="savedOperatingHours" class="text-gray-600">
+                  No operating hours set yet.
+                </p>
+              </section>
 
-    <label class="flex items-center gap-2 text-sm text-gray-700">
-      <input
-        type="checkbox"
-        id="closedWeekends"
-        class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-      />
-      Closed on weekends
-    </label>
-  </section>
+              <footer class="flex justify-end">
+                <button
+                  type="submit"
+                  class="w-full sm:w-auto bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition shadow-xl shadow-indigo-100"
+                >
+                  Save Hours
+                </button>
+              </footer>
+            </form>
+          </article>
 
-  <section
-    id="weekendHoursContainer"
-    class="grid grid-cols-1 sm:grid-cols-2 gap-4"
-  >
-    <section>
-      <label for="weekendOpeningTime" class="block text-sm font-medium text-gray-700 mb-1">
-        Opening Time
-      </label>
+          <article class="bg-white/95 backdrop-blur rounded-[1.5rem] sm:rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50 p-5 sm:p-6 lg:col-span-2">
+            <header class="mb-6">
+              <h2 class="text-2xl font-extrabold text-gray-900">
+                Payment Settings
+              </h2>
+              <p class="text-gray-600">
+                Update the bank account your payouts are sent to.
+              </p>
+            </header>
 
-      <input
-        type="time"
-        id="weekendOpeningTime"
-        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-      />
-    </section>
+            <form id="bankingDetailsForm" class="space-y-5">
+              <section class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <section>
+                  <label for="settings-bank-name" class="block text-sm font-medium text-gray-700 mb-1">
+                    Bank
+                  </label>
+                  <select
+                    id="settings-bank-name"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                  >
+                    <option value="">Select your bank</option>
+                    <option value="absa">ABSA</option>
+                    <option value="capitec">Capitec</option>
+                    <option value="discovery">Discovery Bank</option>
+                    <option value="fnb">FNB</option>
+                    <option value="investec">Investec</option>
+                    <option value="nedbank">Nedbank</option>
+                    <option value="standard_bank">Standard Bank</option>
+                    <option value="tymebank">TymeBank</option>
+                    <option value="african_bank">African Bank</option>
+                    <option value="bidvest">Bidvest Bank</option>
+                  </select>
+                </section>
 
-    <section>
-      <label for="weekendClosingTime" class="block text-sm font-medium text-gray-700 mb-1">
-        Closing Time
-      </label>
+                <section>
+                  <label for="settings-account-type" class="block text-sm font-medium text-gray-700 mb-1">
+                    Account Type
+                  </label>
+                  <select
+                    id="settings-account-type"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                  >
+                    <option value="">Select account type</option>
+                    <option value="cheque">Cheque / Current</option>
+                    <option value="savings">Savings</option>
+                    <option value="transmission">Transmission</option>
+                  </select>
+                </section>
 
-      <input
-        type="time"
-        id="weekendClosingTime"
-        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-      />
-    </section>
-  </section>
-</section>
+                <section>
+                  <label for="settings-account-holder" class="block text-sm font-medium text-gray-700 mb-1">
+                    Account Holder Name
+                  </label>
+                  <input
+                    type="text"
+                    id="settings-account-holder"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                    placeholder="Name as it appears on the account"
+                  />
+                </section>
 
-          <section class="bg-indigo-50/70 rounded-2xl p-4 border border-indigo-100">
-            <h3 class="font-semibold text-gray-900 mb-1">
-              Current Saved Hours
-            </h3>
-            <p id="savedOperatingHours" class="text-gray-600">
-              No operating hours set yet.
-            </p>
-          </section>
+                <section>
+                  <label for="settings-account-number" class="block text-sm font-medium text-gray-700 mb-1">
+                    Account Number
+                  </label>
+                  <input
+                    type="text"
+                    id="settings-account-number"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                    placeholder="6–12 digits"
+                  />
+                </section>
 
-          <footer class="flex justify-end">
+                <section>
+                  <label for="settings-branch-code" class="block text-sm font-medium text-gray-700 mb-1">
+                    Universal Branch Code
+                  </label>
+                  <input
+                    type="text"
+                    id="settings-branch-code"
+                    inputmode="numeric"
+                    maxlength="6"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                    placeholder="6-digit branch code"
+                  />
+                </section>
+              </section>
+
+              <section class="bg-indigo-50/70 rounded-2xl p-4 border border-indigo-100">
+                <h3 class="font-semibold text-gray-900 mb-1">
+                  Current Saved Banking Details
+                </h3>
+                <p id="savedBankingDetails" class="text-gray-600">
+                  No banking details set yet.
+                </p>
+              </section>
+
+              <footer class="flex justify-end">
+                <button
+                  type="submit"
+                  class="w-full sm:w-auto bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition shadow-xl shadow-indigo-100"
+                >
+                  Save Banking Details
+                </button>
+              </footer>
+            </form>
+          </article>
+
+          <article class="bg-red-50 border border-red-200 rounded-[1.5rem] sm:rounded-[2rem] p-5 sm:p-6 lg:col-span-2">
+            <header class="mb-4">
+              <h2 class="text-xl font-bold text-red-700">
+                Delete Vendor Account
+              </h2>
+
+              <p class="text-sm text-red-600 mt-1">
+                Your vendor account will be deactivated immediately and permanently deleted after 30 days.
+              </p>
+            </header>
+
             <button
-              type="submit"
-              class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition shadow-xl shadow-indigo-100"
+              type="button"
+              id="deleteAccountBtn"
+              class="w-full sm:w-auto bg-red-600 text-white px-5 py-3 rounded-xl font-semibold hover:bg-red-700 transition"
             >
-              Save Hours
+              Delete My Vendor Account
             </button>
-          </footer>
-
-        </form>
-      </article>
-
-      <article class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50 p-6 lg:col-span-2">
-        <header class="mb-6">
-          <h2 class="text-2xl font-extrabold text-gray-900">
-            Payment Settings
-          </h2>
-          <p class="text-gray-600">
-            Update the bank account your payouts are sent to.
-          </p>
-        </header>
-
-        <form id="bankingDetailsForm" class="space-y-5">
-
-          <section class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-
-            <section>
-              <label for="settings-bank-name" class="block text-sm font-medium text-gray-700 mb-1">
-                Bank
-              </label>
-              <select
-                id="settings-bank-name"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              >
-                <option value="">Select your bank</option>
-                <option value="absa">ABSA</option>
-                <option value="capitec">Capitec</option>
-                <option value="discovery">Discovery Bank</option>
-                <option value="fnb">FNB</option>
-                <option value="investec">Investec</option>
-                <option value="nedbank">Nedbank</option>
-                <option value="standard_bank">Standard Bank</option>
-                <option value="tymebank">TymeBank</option>
-                <option value="african_bank">African Bank</option>
-                <option value="bidvest">Bidvest Bank</option>
-              </select>
-            </section>
-
-            <section>
-              <label for="settings-account-type" class="block text-sm font-medium text-gray-700 mb-1">
-                Account Type
-              </label>
-              <select
-                id="settings-account-type"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              >
-                <option value="">Select account type</option>
-                <option value="cheque">Cheque / Current</option>
-                <option value="savings">Savings</option>
-                <option value="transmission">Transmission</option>
-              </select>
-            </section>
-
-            <section>
-              <label for="settings-account-holder" class="block text-sm font-medium text-gray-700 mb-1">
-                Account Holder Name
-              </label>
-              <input
-                type="text"
-                id="settings-account-holder"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                placeholder="Name as it appears on the account"
-              />
-            </section>
-
-            <section>
-              <label for="settings-account-number" class="block text-sm font-medium text-gray-700 mb-1">
-                Account Number
-              </label>
-              <input
-                type="text"
-                id="settings-account-number"
-                inputmode="numeric"
-                autocomplete="off"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                placeholder="6–12 digits"
-              />
-            </section>
-
-            <section>
-              <label for="settings-branch-code" class="block text-sm font-medium text-gray-700 mb-1">
-                Universal Branch Code
-              </label>
-              <input
-                type="text"
-                id="settings-branch-code"
-                inputmode="numeric"
-                maxlength="6"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                placeholder="6-digit branch code"
-              />
-            </section>
-
-          </section>
-
-          <section class="bg-indigo-50/70 rounded-2xl p-4 border border-indigo-100">
-            <h3 class="font-semibold text-gray-900 mb-1">
-              Current Saved Banking Details
-            </h3>
-            <p id="savedBankingDetails" class="text-gray-600">
-              No banking details set yet.
-            </p>
-          </section>
-
-          <footer class="flex justify-end">
-            <button
-              type="submit"
-              class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition shadow-xl shadow-indigo-100"
-            >
-              Save Banking Details
-            </button>
-          </footer>
-
-        </form>
-      </article>
-
+          </article>
+        </section>
+      </section>
     </section>
-
-    </section>
-</main>
-
-<script src="scripts/pwa.js"></script>
-    <section class="bg-red-50 border border-red-200 rounded-2xl p-6 mt-8">
-  <header class="mb-3">
-    <h2 class="text-xl font-bold text-red-700">Delete Vendor Account</h2>
-    <p class="text-sm text-red-600">
-      Your vendor account will be deactivated immediately and permanently deleted after 30 days.
-    </p>
-  </header>
-
-  <button
-    type="button"
-    id="deleteAccountBtn"
-    class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
-  >
-    Delete My Vendor Account
-  </button>
-
-</section>
-
   </main>
-</main>
 
   <script src="scripts/pwa.js"></script>
   <script type="module" src="./scripts/navbar.js"></script>
+  <script type="module" src="./scripts/vendor-settings.js"></script>
 
   <script type="module">
     import { initAuthUI, logout } from "./scripts/auth.js";
 
     initAuthUI();
-    lucide.createIcons();
+
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+
     document.getElementById("logoutBtn")?.addEventListener("click", logout);
   </script>
-
-  <script type="module" src="./scripts/vendor-settings.js"></script>
-
 </body>
 </html>

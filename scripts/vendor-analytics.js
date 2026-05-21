@@ -10,6 +10,7 @@ import {
   onAuthStateChanged
 } from "./database.js";
 import { showToast } from "./toast.js";
+import Papa from "https://cdn.jsdelivr.net/npm/papaparse@5.4.1/+esm";
 
 let allVendorOrders = [];
 let analyticsChart;
@@ -19,21 +20,21 @@ let currentFilteredOrders = [];
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    window.location.href = "login.html";
+    window.location.assign("login.html");
     return;
   }
 
   const userSnap = await getDoc(doc(db, "users", user.uid));
 
   if (!userSnap.exists()) {
-    window.location.href = "login.html";
+    window.location.assign("login.html");
     return;
   }
 
   const userData = userSnap.data();
 
   if (userData.role !== "vendor") {
-    window.location.href = "index.html";
+    window.location.assign("index.html");
     return;
   }
 

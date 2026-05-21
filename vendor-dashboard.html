@@ -3,428 +3,370 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>CampusBites - Vendor Dashboard</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="icon" type="image/png" href="assets/icons/1-removebg-preview.png">
-  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4f46e5">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="CampusBites">
+
+  <link rel="icon" type="image/png" href="assets/icons/1-removebg-preview.png" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+  <link rel="manifest" href="manifest.json" />
+
+  <meta name="theme-color" content="#4f46e5" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="CampusBites" />
 
   <style>
-  @keyframes floatSoft {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-14px) rotate(3deg); }
-  }
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
 
-  .float-soft {
-    animation: floatSoft 5s ease-in-out infinite;
-  }
-</style>
+    .spinner {
+      width: 55px;
+      height: 55px;
+      border: 6px solid #ddd;
+      border-top: 6px solid #ff7a00;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
 
+    .blurred {
+      filter: blur(6px);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes floatSoft {
+      0%, 100% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-14px) rotate(3deg);
+      }
+    }
+
+    .float-soft {
+      animation: floatSoft 5s ease-in-out infinite;
+    }
+
+    .slide-in {
+      animation: slideIn 0.25s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
 </head>
-<style>
-  #loading-screen {
-  position: fixed;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(8px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
 
-.spinner {
-  width: 55px;
-  height: 55px;
-  border: 6px solid #ddd;
-  border-top: 6px solid #ff7a00;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
+<body class="min-h-screen bg-gradient-to-br from-white via-indigo-50 to-white text-slate-900 overflow-x-hidden">
 
-.blurred {
-  filter: blur(6px);
-  pointer-events: none;
-  user-select: none;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-</style>
-
-<body class="min-h-screen bg-gray-100">
+  <!-- LOADER -->
   <section id="loading-screen" aria-live="polite">
-  <span class="spinner" aria-hidden="true"></span>
-  <p>Loading...</p>
-</section>
-
-<main id="site-content" class="blurred">
-  <!-- your website content here -->
-
-<nav class="bg-white/95 backdrop-blur border-b border-indigo-100 shadow-sm sticky top-0 z-40">
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-    <a href="index.html" class="flex items-center gap-2">
-      <img
-        src="assets/icons/1-removebg-preview.png"
-        alt="CampusBites logo"
-        class="h-12 w-auto object-contain"
-        >
-
-        <span class="text-2xl font-extrabold tracking-tight">
-            <span class="text-indigo-600">Campus</span><span class="text-orange-500">Bites</span>
-        </span>
-    </a>
-
-    <section id="navLinks" class="flex items-center gap-6 mx-auto">
-      <!-- Populated by navbar.js -->
-    </section>
-    <section
-      id="profileMenuContainer"
-      class="hidden flex items-center gap-4"
-    >
-
-      <!-- Notifications -->
-      <section class="relative">
-
-        <button
-          id="notificationBtn"
-          class="relative p-2 rounded-full
-                hover:bg-gray-100 transition"
-        >
-          <i
-            data-lucide="bell"
-            class="w-5 h-5 text-gray-700"
-          ></i>
-
-          <span
-            id="notificationBadge"
-            class="hidden absolute -top-1 -right-1
-                  bg-red-500 text-white text-[10px]
-                  font-bold rounded-full
-                  min-w-[18px] h-[18px]
-                  flex items-center justify-center"
-          >
-            0
-          </span>
-        </button>
-
-        <section
-          id="notificationDropdown"
-          class="hidden absolute right-0 mt-3 w-80
-                bg-white rounded-2xl shadow-xl
-                border border-gray-100
-                max-h-96 overflow-y-auto
-                z-50"
-        >
-        </section>
-
-      </section>
-
-      <!-- Profile -->
-      <section class="relative">
-
-        <button
-          id="profileMenuBtn"
-          class="flex items-center gap-2"
-        >
-          <img
-            id="profileAvatar"
-            src="assets/default-icon.png"
-            alt="Profile"
-            class="w-10 h-10 rounded-full
-                  object-cover border-2
-                  border-indigo-500"
-          />
-        </button>
-
-        <section
-          id="profileDropdown"
-          class="hidden absolute right-0 mt-3 w-56
-                bg-white rounded-xl shadow-lg
-                border border-gray-100 py-2 z-50"
-        ></section>
-
-      </section>
-
-    </section>
+    <span class="spinner" aria-hidden="true"></span>
+    <p class="mt-4 font-medium text-gray-700">Loading...</p>
   </section>
-</nav>
 
-  <main class="relative overflow-hidden min-h-[calc(100vh-4rem)]">
-  <section class="absolute -left-28 top-32 w-96 h-80 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
-  <section class="absolute -right-20 bottom-6 w-[430px] h-[360px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
-  <section class="absolute right-56 top-24 w-60 h-48 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-80"></section>
+  <main id="site-content" class="blurred">
 
-  <span class="absolute left-28 top-40 text-indigo-500 text-5xl font-bold float-soft">+</span>
-  <span class="absolute right-80 top-72 text-orange-500 text-4xl font-bold float-soft">✦</span>
+    <!-- NAVBAR -->
+    <nav class="bg-white/95 backdrop-blur border-b border-indigo-100 shadow-sm sticky top-0 z-40">
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap md:flex-nowrap justify-between items-center gap-3 min-h-16 py-3">
 
-  <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <a href="index.html" class="flex items-center gap-2">
+          <img
+            src="assets/icons/1-removebg-preview.png"
+            alt="CampusBites logo"
+            class="h-10 sm:h-12 w-auto object-contain"
+          />
 
-  <header class="mb-10 max-w-4xl">
-  <p class="text-sm font-semibold text-orange-500 uppercase tracking-wide">Vendor hub</p>
-
-  <h1 id="dashboardTitle" class="text-5xl md:text-7xl font-extrabold leading-[1.05] text-indigo-950 mt-1">
-    Vendor Dashboard
-  </h1>
-
-  <p id="dashboardSubtitle" class="mt-4 text-gray-600">
-    Welcome to your dashboard!
-  </p>
-
-  <p class="mt-2 text-gray-600 leading-relaxed">
-    Manage incoming orders, menu updates, order history, store settings, and vendor performance.
-  </p>
-</header>
-
-    <section class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-10">
-
-      <article class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50 hover:-translate-y-1 transition">
-        <header class="flex items-center gap-3 mb-4">
-          <i data-lucide="clipboard-list" class="w-6 h-6 text-indigo-600"></i>
-          <h2 class="text-xl font-semibold text-gray-900">Incoming Orders</h2>
-        </header>
-
-        <p class="text-gray-600 mb-4">
-          Review new orders and update preparation progress.
-        </p>
-
-        <a href="vendor-orders.html" class="text-indigo-600 font-semibold hover:underline">
-          Manage Orders
+          <span class="text-xl sm:text-2xl font-extrabold tracking-tight">
+            <span class="text-indigo-600">Campus</span><span class="text-orange-500">Bites</span>
+          </span>
         </a>
-      </article>
 
-      <article class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50 hover:-translate-y-1 transition">
-        <header class="flex items-center gap-3 mb-4">
-          <i data-lucide="menu-square" class="w-6 h-6 text-indigo-600"></i>
-          <h2 class="text-xl font-semibold text-gray-900">Menu Management</h2>
-        </header>
+        <section
+          id="navLinks"
+          class="w-full md:w-auto order-3 md:order-none flex flex-wrap items-center justify-center gap-3 md:gap-6 mx-auto text-sm md:text-base"
+        >
+          <!-- Populated by navbar.js -->
+        </section>
 
-        <p class="text-gray-600 mb-4">
-          Add items, edit prices, and update availability.
-        </p>
+        <section id="profileMenuContainer" class="hidden flex items-center gap-4">
 
-        <a href="menu-management.html" class="text-indigo-600 font-semibold hover:underline">
-          Update Menu
-        </a>
-      </article>
+          <!-- Notifications -->
+          <section class="relative">
 
-      <article class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50 hover:-translate-y-1 transition">
-        <header class="flex items-center gap-3 mb-4">
-          <i data-lucide="bar-chart-3" class="w-6 h-6 text-indigo-600"></i>
-          <h2 class="text-xl font-semibold text-gray-900">Sales Overview</h2>
-        </header>
+            <button
+              id="notificationBtn"
+              type="button"
+              class="relative p-2 rounded-full hover:bg-gray-100 transition"
+            >
+              <i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
 
-        <p class="text-gray-600 mb-4">
-          Track sales and see how you are performing.
-        </p>
+              <span
+                id="notificationBadge"
+                class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center"
+              >
+                0
+              </span>
+            </button>
 
-        <a href="vendor-analytics.html" class="text-indigo-600 font-semibold hover:underline">
-          View Analytics
-        </a>
-      </article>
+            <section
+              id="notificationDropdown"
+              class="hidden fixed right-4 left-4 top-20 md:absolute md:left-auto md:right-0 md:top-auto md:mt-3 md:w-80 bg-white rounded-2xl shadow-xl border border-gray-100 max-h-96 overflow-y-auto z-50"
+            ></section>
 
-      <article class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50 hover:-translate-y-1 transition">
-        <header class="flex items-center gap-3 mb-4">
-          <i data-lucide="clock" class="w-6 h-6 text-indigo-600"></i>
-          <h2 class="text-xl font-extrabold text-gray-900">Order History</h2>
-        </header>
+          </section>
 
-        <p class="text-gray-600 mb-4">
-          View a list of all orders that have been made in the past
-        </p>
+          <!-- PROFILE -->
+          <section class="relative">
 
-        <button id = "history" class="text-indigo-600 font-semibold hover:underline">
-         <a href="vendor-orderHistory.html"> View All Orders</a>
-        </button>
-      </article>
-      
-      <article class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50 hover:-translate-y-1 transition">
-        <header class="flex items-center gap-3 mb-4">
-          <i data-lucide="settings" class="w-6 h-6 text-indigo-600"></i>
-          <h2 class="text-xl font-semibold text-gray-900">Store Settings</h2>
-        </header>
+            <button
+              id="profileMenuBtn"
+              type="button"
+              class="flex items-center gap-2"
+            >
+              <img
+                id="profileAvatar"
+                src="assets/default-icon.png"
+                alt="Profile"
+                class="w-10 h-10 rounded-full object-cover border-2 border-indigo-500"
+              />
+            </button>
 
-        <p class="text-gray-600 mb-4">
-          Update shop name, location, and operating hours.
-        </p>
+            <section
+              id="profileDropdown"
+              class="hidden fixed right-4 left-4 top-20 md:absolute md:left-auto md:right-0 md:top-auto md:mt-3 md:w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50"
+            ></section>
 
-        <a href="vendor-settings.html" class="text-indigo-600 font-semibold hover:underline">
-          Edit Storefront
-        </a>
-      </article>
-
-    </section>
-
-    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-
-      <section class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50 hover:-translate-y-1 transition">
-        <header class="mb-6">
-          <h2 class="text-2xl font-extrabold text-gray-900">Quick Stats</h2>
-        </header>
-
-        <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <article class="bg-indigo-50 rounded-2xl p-5 border border-indigo-100">
-            <p class="text-sm text-gray-500">Pending Orders</p>
-            <p id="pending-count" class="text-2xl font-bold text-gray-900">0</p>
-          </article>
-
-          <article class="bg-green-50 rounded-2xl p-5 border border-green-100">
-            <p class="text-sm text-gray-500">Preparing Orders</p>
-            <p id="preparing-count" class="text-2xl font-bold text-gray-900">0</p>
-          </article>
-
-          <article class="bg-orange-50 rounded-2xl p-5 border border-orange-100">
-            <p class="text-sm text-gray-500">Ready Orders</p>
-            <p id="ready-count" class="text-2xl font-bold text-gray-900">0</p>
-          </article>
-
-          <article class="bg-red-50 rounded-2xl p-5 border border-red-100">
-            <p class="text-sm text-gray-500">Collected Orders</p>
-            <p id="collected-count" class="text-2xl font-bold text-gray-900">0</p>
-          </article>
+          </section>
         </section>
       </section>
+    </nav>
 
-      <section class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50 hover:-translate-y-1 transition">
-        <header class="mb-6">
-          <h2 class="text-2xl font-bold text-gray-900">Today’s Orders</h2>
-        </header>
+    <!-- PAGE -->
+    <section class="relative overflow-hidden min-h-[calc(100vh-4rem)]">
 
-        <section id="orders-list" class="space-y-4">
-          <p class="text-gray-500">No current orders available.</p>
-        </section>
-      </section>
+      <!-- BACKGROUND SHAPES -->
+      <section class="hidden md:block absolute -left-28 top-32 w-96 h-80 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
+      <section class="hidden md:block absolute -right-20 bottom-6 w-[430px] h-[360px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
 
-    </section>
+      <span class="hidden md:block absolute left-28 top-40 text-indigo-500 text-5xl font-bold float-soft">+</span>
+      <span class="hidden md:block absolute right-80 top-72 text-orange-500 text-4xl font-bold float-soft">✦</span>
 
-    <section id="order-history-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-      
-      <article class="bg-white rounded-[2rem] max-w-5xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
-        <section class="grid-cols-1 place-items-center">
-          <h1 class="font-semibold mb-4 flex items-center gap-2 text-4xl">
-            Past Orders
+      <!-- CONTENT -->
+      <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+
+        <!-- HERO -->
+        <header class="mb-10 bg-white/90 backdrop-blur rounded-[1.5rem] sm:rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-100 p-6 sm:p-8 max-w-5xl">
+
+          <p class="text-sm font-semibold text-orange-500 uppercase tracking-wide">
+            Vendor hub
+          </p>
+
+          <h1
+            id="dashboardTitle"
+            class="text-3xl sm:text-5xl md:text-6xl font-extrabold leading-tight text-indigo-950 mt-2"
+          >
+            Vendor Dashboard
           </h1>
-        <button id="toggleFilters" class="relative bg-indigo-600 text-white px-5 py-3 rounded-2xl hover:bg-indigo-700 transition flex items-center gap-2 text-lg font-semibold shadow-xl shadow-indigo-100">
-          <i data-lucide="filter" class="w-4 h-4"></i> Filters
-        </button>
+
+          <p id="dashboardSubtitle" class="mt-4 text-gray-600">
+            Welcome to your dashboard!
+          </p>
+
+          <p class="mt-2 text-gray-600 leading-relaxed">
+            Manage incoming orders, menu updates, order history, store settings, and vendor performance.
+          </p>
+
+        </header>
+
+        <!-- DASHBOARD CARDS -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6 mb-10">
+
+          <article class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50 hover:-translate-y-1 transition">
+            <header class="flex items-center gap-3 mb-4">
+              <i data-lucide="clipboard-list" class="w-6 h-6 text-indigo-600"></i>
+              <h2 class="text-xl font-semibold text-gray-900">Incoming Orders</h2>
+            </header>
+
+            <p class="text-gray-600 mb-4">
+              Review new orders and update preparation progress.
+            </p>
+
+            <a href="vendor-orders.html" class="text-indigo-600 font-semibold hover:underline">
+              Manage Orders
+            </a>
+          </article>
+
+          <article class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50 hover:-translate-y-1 transition">
+            <header class="flex items-center gap-3 mb-4">
+              <i data-lucide="menu-square" class="w-6 h-6 text-indigo-600"></i>
+              <h2 class="text-xl font-semibold text-gray-900">Menu Management</h2>
+            </header>
+
+            <p class="text-gray-600 mb-4">
+              Add items, edit prices, and update availability.
+            </p>
+
+            <a href="menu-management.html" class="text-indigo-600 font-semibold hover:underline">
+              Update Menu
+            </a>
+          </article>
+
+          <article class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50 hover:-translate-y-1 transition">
+            <header class="flex items-center gap-3 mb-4">
+              <i data-lucide="bar-chart-3" class="w-6 h-6 text-indigo-600"></i>
+              <h2 class="text-xl font-semibold text-gray-900">Sales Overview</h2>
+            </header>
+
+            <p class="text-gray-600 mb-4">
+              Track sales and see how you are performing.
+            </p>
+
+            <a href="vendor-analytics.html" class="text-indigo-600 font-semibold hover:underline">
+              View Analytics
+            </a>
+          </article>
+
+          <article class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50 hover:-translate-y-1 transition">
+            <header class="flex items-center gap-3 mb-4">
+              <i data-lucide="clock" class="w-6 h-6 text-indigo-600"></i>
+              <h2 class="text-xl font-semibold text-gray-900">Order History</h2>
+            </header>
+
+            <p class="text-gray-600 mb-4">
+              View all previous orders and customer purchases.
+            </p>
+
+            <a href="vendor-orderHistory.html" class="text-indigo-600 font-semibold hover:underline">
+              View Orders
+            </a>
+          </article>
+
+          <article class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50 hover:-translate-y-1 transition">
+            <header class="flex items-center gap-3 mb-4">
+              <i data-lucide="settings" class="w-6 h-6 text-indigo-600"></i>
+              <h2 class="text-xl font-semibold text-gray-900">Store Settings</h2>
+            </header>
+
+            <p class="text-gray-600 mb-4">
+              Update shop name, location, and operating hours.
+            </p>
+
+            <a href="vendor-settings.html" class="text-indigo-600 font-semibold hover:underline">
+              Edit Storefront
+            </a>
+          </article>
+
         </section>
-        
-        
 
-        <section id="filterDropdown" class="hidden bg-white p-4 rounded-xl shadow-sm">
-          <section class="mb-4">
-            <label for="orderDate">Select Date:</label>
-            <input type="date" id="orderDate" name="order-date">
+        <!-- QUICK STATS -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+
+          <section class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50">
+            <header class="mb-6">
+              <h2 class="text-2xl font-extrabold text-gray-900">
+                Quick Stats
+              </h2>
+            </header>
+
+            <section class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+              <article class="bg-indigo-50 rounded-2xl p-5 border border-indigo-100">
+                <p class="text-sm text-gray-500">Pending Orders</p>
+                <p id="pending-count" class="text-2xl font-bold text-gray-900">0</p>
+              </article>
+
+              <article class="bg-green-50 rounded-2xl p-5 border border-green-100">
+                <p class="text-sm text-gray-500">Preparing Orders</p>
+                <p id="preparing-count" class="text-2xl font-bold text-gray-900">0</p>
+              </article>
+
+              <article class="bg-orange-50 rounded-2xl p-5 border border-orange-100">
+                <p class="text-sm text-gray-500">Ready Orders</p>
+                <p id="ready-count" class="text-2xl font-bold text-gray-900">0</p>
+              </article>
+
+              <article class="bg-red-50 rounded-2xl p-5 border border-red-100">
+                <p class="text-sm text-gray-500">Collected Orders</p>
+                <p id="collected-count" class="text-2xl font-bold text-gray-900">0</p>
+              </article>
+
+            </section>
           </section>
-          
-          <section class="mb-4">
-            <label class="text-sm font-medium text-gray-700 mb-2 block">Sort by</label>
-            <select id="SortBy" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-              <option value="Default" selected>Default</option>
-              <option value="PriceLowToHigh">Revenue: Low to High</option>
-              <option value="PriceHighToLow">Revenue: High to Low</option>
-              <option value="Newest">Newest First</option>
-              <option value="Oldest">Oldest First</option>
-            </select>
-          </section>
 
-          <section class="mb-4">
-            <label class="text-sm font-medium text-gray-700 mb-2 block">Containing Dietary Restriction</label>
+          <!-- TODAY ORDERS -->
+          <section class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50">
+            <header class="mb-6">
+              <h2 class="text-2xl font-bold text-gray-900">
+                Today's Orders
+              </h2>
+            </header>
 
-            <section class="space-y-2">
-              <label class="flex items-center gap-2 text-sm">
-                <input id="Vegan" type="checkbox" class="rounded text-green-600">
-                Vegan
-              </label>
-
-              <label class="flex items-center gap-2 text-sm">
-                <input id="Vegetarian" type="checkbox" class="rounded text-green-600">
-                Vegetarian
-              </label>
-
-              <label class="flex items-center gap-2 text-sm">
-                <input id="Gluten-Free" type="checkbox" class="rounded text-green-600">
-                Gluten-Free
-              </label>
-
-              <label class="flex items-center gap-2 text-sm">
-                <input id="Halal" type="checkbox" class="rounded text-green-600">
-                Halal
-              </label>
+            <section id="orders-list" class="space-y-4">
+              <p class="text-gray-500">
+                No current orders available.
+              </p>
             </section>
           </section>
 
         </section>
-        <section id="orderList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></section>
 
-        
-
-        
-
-        <section class="flex gap-3 mt-6">
-          <button type="button" id="closeHistoryModal" class="flex-1 border border-gray-300 py-3 rounded-xl hover:bg-gray-50 font-semibold transition">
-            Close
-          </button>
-        </section>
-
-      </article>
-    </section>
-
-    <section
-      id="order-details-modal"
-      class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-      <article class="bg-white rounded-[2rem] max-w-2xl w-full max-h-[90vh] overflow-y-auto slide-in p-6 shadow-2xl">
-
-        <header class="flex justify-center">
-          <h3 class="text-xl font-bold mb-4" id="modal-title">
-            Order Details
-          </h3>
-        </header>
-
-        <section id="itemList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></section>
-
-        <section class="flex gap-3 mt-6">
-          <button
-            type="button"
-            onclick="document.getElementById('order-details-modal').classList.add('hidden')"
-            class="flex-1 border border-gray-300 py-3 rounded-xl hover:bg-gray-50 font-semibold transition"
-          >
-            Close
-          </button>
-        </section>
-
-        <p id="numItemsOrder" class="text-sm text-gray-500">
-          0 items in order
-        </p>
-
-      </article>
+      </section>
     </section>
 
   </main>
-</main>
 
   <script src="scripts/pwa.js"></script>
+
   <script type="module" src="./scripts/navbar.js"></script>
+
   <script type="module">
     import { initAuthUI, logout } from "./scripts/auth.js";
 
     initAuthUI();
-    lucide.createIcons();
+
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+
     document.getElementById("logoutBtn")?.addEventListener("click", logout);
   </script>
 
   <script type="module">
     import { initVendorDashboard } from "./scripts/vendor-dashboard.js";
+
     initVendorDashboard();
   </script>
 

@@ -20,6 +20,9 @@ jest.mock(
   }),
   { virtual: true }
 );
+jest.mock("../scripts/account-deletion.js", () => ({
+  requestAccountDeletion: jest.fn()
+}));
 
 const {
   doc,
@@ -29,7 +32,6 @@ const {
   uploadBytes,
   getDownloadURL
 } = require("../scripts/database.js");
-
 const { requestAccountDeletion } = require("../scripts/account-deletion.js");
 
 const {
@@ -420,7 +422,7 @@ describe("customer-profile.js", () => {
 
     await Promise.resolve();
 
-    expect(global.alert).toHaveBeenCalledWith("Profile could not be loaded.");
+    expect(showToast).toHaveBeenCalledWith("Profile could not be loaded.", "error");
     expect(requestAccountDeletion).not.toHaveBeenCalled();
   });
 

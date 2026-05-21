@@ -123,7 +123,6 @@ describe("adminAnalytics.js", () => {
 
   test("updateCustomView populates the report table", async () => {
     const recentDate = new Date();
-    const recentDate = new Date();
 
     database.getDocs
       .mockResolvedValueOnce({
@@ -174,7 +173,6 @@ describe("adminAnalytics.js", () => {
   test("updateCustomView filters by selected vendor", async () => {
     document.getElementById("report-vendor").value = "vendor-2";
 
-    const recentDate = new Date();
     const recentDate = new Date();
 
     database.getDocs
@@ -233,7 +231,6 @@ describe("adminAnalytics.js", () => {
   test("updateCustomView updates metric header for orders", async () => {
     document.getElementById("report-metric").value = "orders";
 
-    const recentDate = new Date();
     const recentDate = new Date();
 
     database.getDocs

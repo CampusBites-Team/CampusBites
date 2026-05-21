@@ -10,6 +10,7 @@ import {
   getDownloadURL
 } from "./database.js";
 import { showToast } from "./toast.js";
+import { requestAccountDeletion } from "./account-deletion.js";
 
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
@@ -132,7 +133,7 @@ export function initCustomerProfile() {
     const cleanedPhone = cleanPhoneNumber(phone);
 
     if (!isValidPhoneNumber(phone)) {
-      alert("Phone number must be exactly 10 digits.");
+      showToast("Phone number must be exactly 10 digits.", "error");
       return;
     }
 
@@ -169,7 +170,7 @@ export function initCustomerProfile() {
 
   deleteAccountBtn?.addEventListener("click", async () => {
     if (!currentUser || !currentUserData) {
-      alert("Profile could not be loaded.");
+      showToast("Profile could not be loaded.", "error");
       return;
     }
 

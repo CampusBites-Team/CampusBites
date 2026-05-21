@@ -265,23 +265,31 @@ describe("vendor-settings.js", () => {
   });
 
   test("rejects invalid vendor phone number", async () => {
-    mockApprovedVendor();
+  mockApprovedVendor();
 
-    initVendorSettings({ href: "" });
-    await flush();
+  initVendorSettings({ href: "" });
+  await flush();
 
-    document.getElementById("shopName").value = "Shop";
-    document.getElementById("location").value = "Matrix";
-    document.getElementById("storePhone").value = "07123";
-    document.getElementById("storeCategory").value = "Fast Food";
+  document.getElementById("shopName").value = "Shop";
+  document.getElementById("location").value = "Matrix";
+  document.getElementById("storeSlogan").value = "Fresh";
+  document.getElementById("storePhone").value = "07123";
+  document.getElementById("storeCategory").value = "Fast Food";
 
-    document.getElementById("vendorDetailsForm").dispatchEvent(
-      new Event("submit", { bubbles: true, cancelable: true })
-    );
+  document.getElementById("vendorDetailsForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
 
-    expect(showToast).toHaveBeenCalledWith("Phone number must be exactly 10 digits.", "error");
-    expect(updateDoc).not.toHaveBeenCalled();
-  });
+  await flush();
+
+  expect(showToast).toHaveBeenCalledWith(
+    "Phone number must be exactly 10 digits.",
+    "error"
+  );
+
+  expect(updateDoc).not.toHaveBeenCalled();
+});
+
 
   test("rejects invalid store logo type", async () => {
     mockApprovedVendor();

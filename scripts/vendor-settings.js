@@ -251,8 +251,8 @@ function attachVendorDetailsForm(vendorId, userData) {
       return;
     }
 
-    if (!isValidPhoneNumber(storePhone)) {
-      alert("Phone number must be exactly 10 digits.");
+    if (!storePhone || !isValidPhoneNumber(storePhone)) {
+      showToast("Phone number must be exactly 10 digits.", "error");
       return;
     }
 

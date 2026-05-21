@@ -1,190 +1,321 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>CampusBites - Admin Analytics</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <link rel="icon" type="image/png" href="assets/icons/1-removebg-preview.png">
-    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4f46e5">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="CampusBites">
-    <style>
-  @keyframes floatSoft {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-14px) rotate(3deg); }
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  .float-soft {
-    animation: floatSoft 5s ease-in-out infinite;
-  }
-</style>
+  <title>CampusBites - Admin Analytics</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <link rel="icon" type="image/png" href="assets/icons/1-removebg-preview.png" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+  <link rel="manifest" href="manifest.json" />
+
+  <meta name="theme-color" content="#4f46e5" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="CampusBites" />
+
+  <style>
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .spinner {
+      width: 55px;
+      height: 55px;
+      border: 6px solid #ddd;
+      border-top: 6px solid #ff7a00;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .blurred {
+      filter: blur(6px);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes floatSoft {
+      0%, 100% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-14px) rotate(3deg);
+      }
+    }
+
+    .float-soft {
+      animation: floatSoft 5s ease-in-out infinite;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-white via-indigo-50 to-white text-gray-900">
+
+<body class="min-h-screen bg-gradient-to-br from-white via-indigo-50 to-white text-gray-900 overflow-x-hidden">
+  <section id="loading-screen" aria-live="polite">
+    <span class="spinner" aria-hidden="true"></span>
+    <p>Loading...</p>
+  </section>
+
+  <main id="site-content" class="blurred">
     <nav class="bg-white/95 backdrop-blur border-b border-indigo-100 shadow-sm sticky top-0 z-40">
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-    <a href="index.html" class="flex items-center gap-2">
-      <img
-        src="assets/icons/1-removebg-preview.png"
-        alt="CampusBites logo"
-        class="h-12 w-auto object-contain"
-        >
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap md:flex-nowrap justify-between items-center gap-3 min-h-16 py-3">
+        <a href="index.html" class="flex items-center gap-2">
+          <img
+            src="assets/icons/1-removebg-preview.png"
+            alt="CampusBites logo"
+            class="h-10 sm:h-12 w-auto object-contain"
+          />
 
-        <span class="text-2xl font-extrabold tracking-tight">
+          <span class="text-xl sm:text-2xl font-extrabold tracking-tight">
             <span class="text-indigo-600">Campus</span><span class="text-orange-500">Bites</span>
-        </span>
-    </a>
-
-        <section id="navLinks" class="flex items-center gap-6 mx-auto">
-        <!-- Populated by navbar.js -->
-        </section>
-        <section id="profileMenuContainer" class="relative hidden">
-        <button id="profileMenuBtn" class="flex items-center gap-2">
-            <img
-            id="profileAvatar"
-             src="assets/default-icon.png"
-            alt="Profile"
-            class="w-10 h-10 rounded-full object-cover border-2 border-indigo-500"
-            />
-        </button>
+          </span>
+        </a>
 
         <section
-            id="profileDropdown"
-            class="hidden absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50"
-        ></section>
-        </section>
-    </section>
-    </nav>
-
-    <main class="relative overflow-hidden min-h-[calc(100vh-4rem)]">
-  <section class="absolute -left-28 top-32 w-96 h-80 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
-  <section class="absolute -right-20 bottom-6 w-[430px] h-[360px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
-  <section class="absolute right-56 top-24 w-60 h-48 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-80"></section>
-
-  <span class="absolute left-28 top-40 text-indigo-500 text-5xl font-bold float-soft">+</span>
-  <span class="absolute right-80 top-72 text-orange-500 text-4xl font-bold float-soft">✦</span>
-
-  <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-
-        <header class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
-    <section>
-        <p class="text-sm font-semibold text-orange-500 uppercase tracking-wide">Admin insights</p>
-        <h2 class="text-4xl font-extrabold text-gray-900 mt-1">Analytics Dashboard</h2>
-        <p class="mt-3 text-gray-600 leading-relaxed">
-            Track sales, ordering patterns, popular items, and custom reports across CampusBites.
-        </p>
-    </section>
-
-            <section class="flex gap-2">
-                <button id="exportCsvBtn"
-                    class="bg-green-600 text-white px-5 py-3 rounded-2xl hover:bg-green-700 flex items-center gap-2 text-sm font-semibold shadow-xl shadow-green-100 transition">
-                    <i data-lucide="download" class="w-4 h-4"></i> Export CSV
-                </button>
-
-                <button id="exportPdfBtn"
-                    class="bg-red-600 text-white px-5 py-3 rounded-2xl hover:bg-red-700 flex items-center gap-2 text-sm font-semibold shadow-xl shadow-red-100 transition">
-                    <i data-lucide="file-text" class="w-4 h-4"></i> Export PDF
-                </button>
-            </section>
-        </header>
-
-        <section class="grid md:grid-cols-3 gap-6 mb-8">
-            <article class="bg-white/95 backdrop-blur p-6 rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50">
-                <h3 class="text-gray-500 text-sm mb-2">Sales per Vendor (Last 7 Days)</h3>
-                <canvas id="salesChart" height="200"></canvas>
-            </article>
-
-            <article class="bg-white/95 backdrop-blur p-6 rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50">
-                <h3 class="text-gray-700 text-sm font-bold mb-4">>Peak Ordering Hours</h3>
-                <canvas id="peakChart" height="200"></canvas>
-            </article>
-
-            <article class="bg-white/95 backdrop-blur p-6 rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50">
-                <h3 class="text-gray-700 text-sm font-bold mb-4">>Popular Items</h3>
-                <canvas id="itemsChart" height="200"></canvas>
-            </article>
+          id="navLinks"
+          class="w-full md:w-auto order-3 md:order-none flex flex-wrap items-center justify-center gap-3 md:gap-6 mx-auto text-sm md:text-base"
+        >
+          <!-- Populated by navbar.js -->
         </section>
 
-        <section class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50">
-            <h3 class="text-xl font-extrabold mb-4 text-gray-900">Custom Report</h3>
+        <section id="profileMenuContainer" class="hidden flex items-center gap-4">
+          <section class="relative">
+            <button
+              id="notificationBtn"
+              type="button"
+              class="relative p-2 rounded-full hover:bg-gray-100 transition"
+            >
+              <i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
 
-            <section class="grid md:grid-cols-4 gap-4 mb-6">
+              <span
+                id="notificationBadge"
+                class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center"
+              >
+                0
+              </span>
+            </button>
 
-                <section>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
-                    <select id="report-range" class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
-                        <option value="7">Last 7 Days</option>
-                        <option value="30">Last 30 Days</option>
-                        <option value="90">Last 90 Days</option>
-                    </select>
-                </section>
+            <section
+              id="notificationDropdown"
+              class="hidden fixed right-4 left-4 top-20 md:absolute md:left-auto md:right-0 md:top-auto md:mt-3 md:w-80 bg-white rounded-2xl shadow-xl border border-gray-100 max-h-96 overflow-y-auto z-50"
+            ></section>
+          </section>
 
-                <section>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Vendor</label>
-                    <select id="report-vendor" class="w-full border rounded-lg px-3 py-2">
-                        <option value="">All Vendors</option>
-                    </select>
-                </section>
+          <section class="relative">
+            <button
+              id="profileMenuBtn"
+              type="button"
+              class="flex items-center gap-2"
+            >
+              <img
+                id="profileAvatar"
+                src="assets/default-icon.png"
+                alt="Profile"
+                class="w-10 h-10 rounded-full object-cover border-2 border-indigo-500"
+              />
+            </button>
 
-                <section>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Metric</label>
-                    <select id="report-metric" class="w-full border rounded-lg px-3 py-2">
-                        <option value="revenue">Revenue</option>
-                        <option value="orders">Order Count</option>
-                        <option value="items">Items Sold</option>
-                    </select>
-                </section>
-
-                <section class="flex items-end">
-                    <button id="generateReportBtn"
-                        class="w-full bg-indigo-600 text-white px-4 py-3 rounded-xl hover:bg-indigo-700 font-semibold shadow-xl shadow-indigo-100 transition">
-                        Generate Report
-                    </button>
-                </section>
-
-            </section>
-
-            <section id="custom-report-view" class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead class="bg-indigo-50">
-                        <tr>
-                            <th class="px-4 py-2 text-left">Date</th>
-                            <th class="px-4 py-2 text-left">Vendor</th>
-                            <th class="px-4 py-2 text-right">Orders</th>
-                            <th class="px-4 py-2 text-right">Revenue</th>
-                            <th class="px-4 py-2 text-right">Avg Order Value</th>
-                        </tr>
-                    </thead>
-                    <tbody id="custom-report-body" class="divide-y divide-gray-200"></tbody>
-                </table>
-            </section>
+            <section
+              id="profileDropdown"
+              class="hidden fixed right-4 left-4 top-20 md:absolute md:left-auto md:right-0 md:top-auto md:mt-3 md:w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50"
+            ></section>
+          </section>
         </section>
       </section>
-</main>
+    </nav>
 
-<script src="scripts/pwa.js"></script>
-<script type="module" src="./scripts/navbar.js"></script>
-<script type="module">
-  import { initAuthUI, logout } from "./scripts/auth.js";
-  import { analytics, initAnalyticsPage, populateVendorFilter } from "./scripts/adminAnalytics.js";
+    <section class="relative overflow-hidden min-h-[calc(100vh-4rem)]">
+      <section class="hidden md:block absolute -left-28 top-32 w-96 h-80 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
+      <section class="hidden md:block absolute -right-20 bottom-6 w-[430px] h-[360px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
+      <section class="hidden md:block absolute right-56 top-24 w-60 h-48 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-80"></section>
 
-  initAuthUI();
-  lucide.createIcons();
+      <span class="hidden md:block absolute left-28 top-40 text-indigo-500 text-5xl font-bold float-soft">+</span>
+      <span class="hidden md:block absolute right-80 top-72 text-orange-500 text-4xl font-bold float-soft">✦</span>
 
-  document.getElementById("logoutBtn")?.addEventListener("click", logout);
+      <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        <header class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-5 mb-8">
+          <section>
+            <p class="text-sm font-semibold text-orange-500 uppercase tracking-wide">
+              Admin insights
+            </p>
 
-  initAnalyticsPage();
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mt-1">
+              Analytics Dashboard
+            </h1>
 
-  document.getElementById("report-range")?.addEventListener("change", analytics.updateCustomView);
-  document.getElementById("report-vendor")?.addEventListener("change", analytics.updateCustomView);
-  document.getElementById("report-metric")?.addEventListener("change", analytics.updateCustomView);
-  document.getElementById("generateReportBtn")?.addEventListener("click", analytics.generateReport);
-  document.getElementById("exportCsvBtn")?.addEventListener("click", analytics.exportCSV);
-  document.getElementById("exportPdfBtn")?.addEventListener("click", analytics.exportPDF);
-</script>
-</body>
-</html>
+            <p class="mt-3 text-gray-600 leading-relaxed max-w-2xl">
+              Track sales, ordering patterns, popular items, and custom reports across CampusBites.
+            </p>
+          </section>
+
+          <section class="flex flex-col sm:flex-row gap-3">
+            <button
+              id="exportCsvBtn"
+              type="button"
+              class="w-full sm:w-auto bg-green-600 text-white px-5 py-3 rounded-2xl hover:bg-green-700 flex items-center justify-center gap-2 text-sm font-semibold shadow-xl shadow-green-100 transition"
+            >
+              <i data-lucide="download" class="w-4 h-4"></i>
+              Export CSV
+            </button>
+
+            <button
+              id="exportPdfBtn"
+              type="button"
+              class="w-full sm:w-auto bg-red-600 text-white px-5 py-3 rounded-2xl hover:bg-red-700 flex items-center justify-center gap-2 text-sm font-semibold shadow-xl shadow-red-100 transition"
+            >
+              <i data-lucide="file-text" class="w-4 h-4"></i>
+              Export PDF
+            </button>
+          </section>
+        </header>
+
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6 mb-8">
+          <article class="bg-white/95 backdrop-blur p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50 overflow-x-auto">
+            <h2 class="text-gray-700 text-sm font-bold mb-4">
+              Sales per Vendor Last 7 Days
+            </h2>
+
+            <section class="min-w-[260px]">
+              <canvas id="salesChart" height="200"></canvas>
+            </section>
+          </article>
+
+          <article class="bg-white/95 backdrop-blur p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50 overflow-x-auto">
+            <h2 class="text-gray-700 text-sm font-bold mb-4">
+              Peak Ordering Hours
+            </h2>
+
+            <section class="min-w-[260px]">
+              <canvas id="peakChart" height="200"></canvas>
+            </section>
+          </article>
+
+          <article class="bg-white/95 backdrop-blur p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50 overflow-x-auto">
+            <h2 class="text-gray-700 text-sm font-bold mb-4">
+              Popular Items
+            </h2>
+
+            <section class="min-w-[260px]">
+              <canvas id="itemsChart" height="200"></canvas>
+            </section>
+          </article>
+        </section>
+
+        <section class="bg-white/95 backdrop-blur rounded-[1.5rem] sm:rounded-[2rem] shadow-xl shadow-indigo-100 p-5 sm:p-6 border border-indigo-50">
+          <h2 class="text-xl sm:text-2xl font-extrabold mb-4 text-gray-900">
+            Custom Report
+          </h2>
+
+          <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <section>
+              <label for="report-range" class="block text-sm font-medium text-gray-700 mb-1">
+                Date Range
+              </label>
+
+              <select
+                id="report-range"
+                class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+              >
+                <option value="7">Last 7 Days</option>
+                <option value="30">Last 30 Days</option>
+                <option value="90">Last 90 Days</option>
+              </select>
+            </section>
+
+            <section>
+              <label for="report-vendor" class="block text-sm font-medium text-gray-700 mb-1">
+                Vendor
+              </label>
+
+              <select
+                id="report-vendor"
+                class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+              >
+                <option value="">All Vendors</option>
+              </select>
+            </section>
+
+            <section>
+              <label for="report-metric" class="block text-sm font-medium text-gray-700 mb-1">
+                Metric
+              </label>
+
+              <select
+                id="report-metric"
+                class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+              >
+                <option value="revenue">Revenue</option>
+                <option value="orders">Order Count</option>
+                <option value="items">Items Sold</option>
+              </select>
+            </section>
+
+            <section class="flex items-end">
+              <button
+                id="generateReportBtn"
+                type="button"
+                class="w-full bg-indigo-600 text-white px-4 py-3 rounded-xl hover:bg-indigo-700 font-semibold shadow-xl shadow-indigo-100 transition"
+              >
+                Generate Report
+              </button>
+            </section>
+          </section>
+
+          <section id="custom-report-view" class="overflow-x-auto">
+            <table class="min-w-[760px] w-full text-sm">
+              <thead class="bg-indigo-50">
+                <tr>
+                  <th class="px-4 py-3 text-left">Date</th>
+                  <th class="px-4 py-3 text-left">Vendor</th>
+                  <th class="px-4 py-3 text-right">Orders</th>
+                  <th class="px-4 py-3 text-right">Revenue</th>
+                  <th class="px-4 py-3 text-right">Avg Order Value</th>
+                </tr>
+              </thead>
+
+              <tbody id="custom-report-body" class="divide-y divide-gray-200"></tbody>
+            </table>
+          </section>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script src="scripts/pwa.js"></script>
+  <script type="module" src="./scripts/navbar.js"></script>
+
+  <script type="module">
+    import { initAuthUI, logout } from "./scripts/auth.js";
+    import { analytics, initAnalyticsPage } from "./scripts/adminAnalytics.js";
+
+    initAuthUI();
+
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+
+    document.getElement

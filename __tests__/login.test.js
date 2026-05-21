@@ -23,6 +23,10 @@ jest.mock('../scripts/database.js', () => ({
 jest.mock("../scripts/toast.js", () => ({
   showToast: jest.fn()
 }));
+jest.mock("../scripts/account-deletion.js", () => ({
+  reactivateAccount: jest.fn(),
+  requestAccountDeletion: jest.fn()
+}));
 import {
   navigateTo,
   redirectUser,
@@ -44,7 +48,7 @@ import{
   sendEmailVerification,
   signOut
 } from '../scripts/database.js';
-
+const { reactivateAccount } = require("../scripts/account-deletion.js");
 describe('navigateTo', () => {
   test('calls location.assign with the given page', () => {
     const mockAssign = jest.fn();

@@ -1,214 +1,235 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<style>
-  @keyframes floatSoft {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-14px) rotate(3deg); }
-  }
-
-  .float-soft {
-    animation: floatSoft 5s ease-in-out infinite;
-  }
-</style>
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>CampusBites - Recommendations</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="icon" type="image/png" href="assets/icons/1-removebg-preview.png">
-  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4f46e5">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="CampusBites">
+
+  <link rel="icon" type="image/png" href="assets/icons/1-removebg-preview.png" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+  <link rel="manifest" href="manifest.json" />
+
+  <meta name="theme-color" content="#4f46e5" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="CampusBites" />
+
+  <style>
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .spinner {
+      width: 55px;
+      height: 55px;
+      border: 6px solid #ddd;
+      border-top: 6px solid #ff7a00;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .blurred {
+      filter: blur(6px);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes floatSoft {
+      0%, 100% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-14px) rotate(3deg);
+      }
+    }
+
+    .float-soft {
+      animation: floatSoft 5s ease-in-out infinite;
+    }
+  </style>
 </head>
-<style>
-  #loading-screen {
-  position: fixed;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(8px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
 
-.spinner {
-  width: 55px;
-  height: 55px;
-  border: 6px solid #ddd;
-  border-top: 6px solid #ff7a00;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-.blurred {
-  filter: blur(6px);
-  pointer-events: none;
-  user-select: none;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-</style>
-
-<body class="min-h-screen bg-gray-100">
+<body class="min-h-screen bg-white text-slate-900 overflow-x-hidden">
   <section id="loading-screen" aria-live="polite">
-  <span class="spinner" aria-hidden="true"></span>
-  <p>Loading...</p>
-</section>
+    <span class="spinner" aria-hidden="true"></span>
+    <p>Loading...</p>
+  </section>
 
-<main id="site-content" class="blurred">
-  <!-- your website content here -->
+  <main id="site-content" class="blurred">
+    <nav class="bg-white border-b border-gray-200 shadow-sm">
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap md:flex-nowrap justify-between items-center gap-3 min-h-16 py-3">
+        <a href="index.html" class="flex items-center gap-2">
+          <img
+            src="assets/icons/1-removebg-preview.png"
+            alt="CampusBites logo"
+            class="h-10 sm:h-12 w-auto object-contain"
+          />
 
-  <nav class="bg-white border-b border-gray-200 shadow-sm">
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-      <a href="index.html" class="flex items-center gap-2">
-        <img
-          src="assets/icons/1-removebg-preview.png"
-          alt="CampusBites logo"
-          class="h-12 w-auto object-contain"
-          >
-
-          <span class="text-2xl font-extrabold tracking-tight">
-              <span class="text-indigo-600">Campus</span><span class="text-orange-500">Bites</span>
+          <span class="text-xl sm:text-2xl font-extrabold tracking-tight">
+            <span class="text-indigo-600">Campus</span><span class="text-orange-500">Bites</span>
           </span>
-      </a>
+        </a>
 
-      <section id="navLinks" class="flex items-center gap-6 mx-auto">
-        <!-- Populated by navbar.js -->
-      </section>
-      <section
-        id="profileMenuContainer"
-        class="hidden flex items-center gap-4"
-      >
+        <section
+          id="navLinks"
+          class="w-full md:w-auto order-3 md:order-none flex flex-wrap items-center justify-center gap-3 md:gap-6 mx-auto text-sm md:text-base"
+        >
+          <!-- Populated by navbar.js -->
+        </section>
 
-        <!-- Notifications -->
-        <section class="relative">
-
-          <button
-            id="notificationBtn"
-            class="relative p-2 rounded-full
-                  hover:bg-gray-100 transition"
-          >
-            <i
-              data-lucide="bell"
-              class="w-5 h-5 text-gray-700"
-            ></i>
-
-            <span
-              id="notificationBadge"
-              class="hidden absolute -top-1 -right-1
-                    bg-red-500 text-white text-[10px]
-                    font-bold rounded-full
-                    min-w-[18px] h-[18px]
-                    flex items-center justify-center"
+        <section id="profileMenuContainer" class="hidden flex items-center gap-4">
+          <section class="relative">
+            <button
+              id="notificationBtn"
+              type="button"
+              class="relative p-2 rounded-full hover:bg-gray-100 transition"
             >
-              0
-            </span>
-          </button>
+              <i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
 
-          <section
-            id="notificationDropdown"
-            class="hidden absolute right-0 mt-3 w-80
-                  bg-white rounded-2xl shadow-xl
-                  border border-gray-100
-                  max-h-96 overflow-y-auto
-                  z-50"
-          >
+              <span
+                id="notificationBadge"
+                class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center"
+              >
+                0
+              </span>
+            </button>
+
+            <section
+              id="notificationDropdown"
+              class="hidden fixed right-4 left-4 top-20 md:absolute md:left-auto md:right-0 md:top-auto md:mt-3 md:w-80 bg-white rounded-2xl shadow-xl border border-gray-100 max-h-96 overflow-y-auto z-50"
+            ></section>
           </section>
 
+          <section class="relative">
+            <button id="profileMenuBtn" type="button" class="flex items-center gap-2">
+              <img
+                id="profileAvatar"
+                src="assets/default-icon.png"
+                alt="Profile"
+                class="w-10 h-10 rounded-full object-cover border-2 border-indigo-500"
+              />
+            </button>
+
+            <section
+              id="profileDropdown"
+              class="hidden fixed right-4 left-4 top-20 md:absolute md:left-auto md:right-0 md:top-auto md:mt-3 md:w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50"
+            ></section>
+          </section>
+        </section>
+      </section>
+    </nav>
+
+    <section class="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50 to-white px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <section class="hidden md:block absolute -left-28 top-28 w-[430px] h-[340px] bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
+      <section class="hidden md:block absolute -right-24 top-40 w-[460px] h-[360px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
+      <section class="hidden md:block absolute left-16 bottom-20 w-80 h-56 bg-orange-100 rounded-[55%_45%_40%_60%] opacity-55 rotate-[-10deg]"></section>
+      <section class="hidden md:block absolute right-28 bottom-12 w-96 h-64 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-55 rotate-[8deg]"></section>
+
+      <span class="hidden md:block absolute left-20 top-36 text-indigo-500 text-6xl font-bold float-soft">+</span>
+      <span class="hidden md:block absolute right-32 top-52 text-orange-500 text-5xl font-bold float-soft">✦</span>
+      <span class="hidden md:block absolute left-[48%] bottom-24 text-indigo-400 text-4xl font-bold float-soft">↝</span>
+
+      <i data-lucide="sparkles" class="hidden md:block absolute right-24 top-32 w-24 h-24 text-orange-500 float-soft"></i>
+      <i data-lucide="utensils-crossed" class="hidden md:block absolute left-28 bottom-28 w-24 h-24 text-indigo-600 float-soft"></i>
+      <i data-lucide="chef-hat" class="hidden md:block absolute right-[40%] bottom-20 w-20 h-20 text-indigo-500 float-soft"></i>
+
+      <section class="relative z-10 max-w-7xl mx-auto">
+        <header class="text-center mb-8 sm:mb-10 bg-white/95 backdrop-blur rounded-[1.4rem] sm:rounded-[2rem] p-5 sm:p-8 md:p-10 shadow-2xl shadow-indigo-100 border border-indigo-100">
+          <section class="inline-flex items-center gap-2 bg-orange-100 text-orange-600 px-4 sm:px-5 py-2 rounded-2xl text-xs sm:text-sm font-bold uppercase tracking-wide mb-5">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            Personalized picks
+          </section>
+
+          <h1 class="text-3xl sm:text-4xl md:text-6xl font-extrabold text-indigo-950 mb-4">
+            Recommended For You
+          </h1>
+
+          <p class="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto">
+            Based on your order history and dietary preferences.
+          </p>
+        </header>
+
+        <section class="relative overflow-hidden mb-8 sm:mb-10 bg-indigo-600 rounded-[1.4rem] sm:rounded-[2rem] p-5 sm:p-8 md:p-10 text-white shadow-2xl shadow-indigo-200">
+          <section class="absolute -right-16 -top-16 w-56 h-56 bg-white/10 rounded-full"></section>
+          <section class="absolute -left-16 -bottom-16 w-64 h-64 bg-orange-400/20 rounded-full"></section>
+
+          <i data-lucide="brain-circuit" class="hidden sm:block absolute right-10 bottom-8 w-20 md:w-24 h-20 md:h-24 text-white/20"></i>
+
+          <h2 class="relative z-10 inline-flex items-center gap-2 px-4 py-2 bg-white/15 border border-white/20 rounded-full text-sm font-semibold backdrop-blur mb-5">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+            ML-Powered Meal Suggestions
+          </h2>
+
+          <p class="relative z-10 mb-6 text-indigo-100 max-w-3xl text-base sm:text-lg">
+            Our system analyzes your past orders, dietary restrictions, and popular combinations to suggest meals you'll love.
+          </p>
+
+          <section class="relative z-10 flex gap-3 flex-wrap">
+            <span class="px-4 py-2 bg-white/15 border border-white/20 rounded-full text-xs sm:text-sm font-semibold backdrop-blur">
+              Collaborative Filtering
+            </span>
+
+            <span class="px-4 py-2 bg-white/15 border border-white/20 rounded-full text-xs sm:text-sm font-semibold backdrop-blur">
+              Content-Based Matching
+            </span>
+
+            <span class="px-4 py-2 bg-white/15 border border-white/20 rounded-full text-xs sm:text-sm font-semibold backdrop-blur">
+              Dietary Constraint Optimization
+            </span>
+          </section>
         </section>
 
-        <!-- Profile -->
-        <section class="relative">
+        <section
+          id="recommendations-grid"
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+        ></section>
 
-          <button
-            id="profileMenuBtn"
-            class="flex items-center gap-2"
-          >
-            <img
-              id="profileAvatar"
-              src="assets/default-icon.png"
-              alt="Profile"
-              class="w-10 h-10 rounded-full
-                    object-cover border-2
-                    border-indigo-500"
-            />
-          </button>
+        <section class="mt-8 sm:mt-12 bg-white/90 backdrop-blur rounded-[1.4rem] sm:rounded-[2rem] p-5 sm:p-6 md:p-8 shadow-xl shadow-indigo-100 border border-indigo-100">
+          <header class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <section>
+              <p class="text-orange-500 font-bold uppercase tracking-wide mb-1 text-sm">
+                Your Taste, Our Tech
+              </p>
+
+              <h2 class="text-2xl sm:text-3xl font-extrabold text-indigo-950">
+                Your favorite meals
+              </h2>
+            </section>
+
+            <figure class="w-12 h-12 sm:w-14 sm:h-14 bg-orange-100 rounded-2xl flex items-center justify-center">
+              <i data-lucide="trending-up" class="w-6 h-6 sm:w-7 sm:h-7 text-orange-500"></i>
+            </figure>
+          </header>
 
           <section
-            id="profileDropdown"
-            class="hidden absolute right-0 mt-3 w-56
-                  bg-white rounded-xl shadow-lg
-                  border border-gray-100 py-2 z-50"
+            id="trending-grid"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
           ></section>
-
         </section>
-
       </section>
     </section>
-  </nav>
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  </main>
 
-      <header class="text-center mb-8">
-        <h1 class="text-3xl font-bold mb-2">
-          Recommended For You
-        </h1>
-        <p class="text-gray-600">
-          Based on your order history and dietary preferences.
-        </p>
-      </header>
-
-      <section class="mb-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-8 text-white">
-        <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
-          <i data-lucide="sparkles" class="w-6 h-6"></i>
-          ML-Powered Meal Suggestions
-        </h2>
-
-        <p class="mb-4 text-indigo-100">
-          Our system analyzes your past orders, dietary restrictions, and popular combinations to suggest meals you'll love.
-        </p>
-
-        <section class="flex gap-2 flex-wrap">
-          <span class="px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm">
-            Collaborative Filtering
-          </span>
-
-          <span class="px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm">
-            Content-Based Matching
-          </span>
-
-          <span class="px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm">
-            Dietary Constraint Optimization
-          </span>
-        </section>
-      </section>
-
-      <section id="recommendations-grid" class="grid md:grid-cols-3 gap-6"></section>
-
-      <section class="mt-12">
-        <h2 class="text-xl font-bold mb-6">
-          Trending Now
-        </h2>
-
-        <section id="trending-grid" class="grid md:grid-cols-4 gap-4"></section>
-      </section>
-
-    </main>
-</main>
-
-
-  <script src="scripts/pwa.js"></script>
+  <script src="./scripts/pwa.js"></script>
   <script type="module" src="./scripts/ForYou.js"></script>
   <script type="module" src="./scripts/navbar.js"></script>
 
@@ -216,10 +237,12 @@
     import { initAuthUI, logout } from "./scripts/auth.js";
 
     initAuthUI();
-    lucide.createIcons();
+
+    if (window.lucide) {
+      lucide.createIcons();
+    }
 
     document.getElementById("logoutBtn")?.addEventListener("click", logout);
   </script>
-
 </body>
 </html>
