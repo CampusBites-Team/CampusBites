@@ -36,6 +36,7 @@ const flush = async () => {
 
 describe("vendor-profile.js", () => {
   let database;
+  let showToast;
 
   function setupDom() {
     document.body.innerHTML = `
@@ -167,7 +168,6 @@ describe("vendor-profile.js", () => {
       exists: () => true,
       data: () => defaultVendorData(overrides)
     });
-const { showToast } = require("../scripts/toast.js");
   }
 
   function mockSnapshots({
@@ -213,6 +213,7 @@ const { showToast } = require("../scripts/toast.js");
     window.history.pushState({}, "", "/vendor-profile.html?vendorId=vendor-1");
 
     database = await import("../scripts/database.js");
+    showToast = require("../scripts/toast.js").showToast;
 
     mockVendorData();
     mockSnapshots();

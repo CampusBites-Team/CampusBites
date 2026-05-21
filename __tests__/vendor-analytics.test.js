@@ -82,7 +82,7 @@ function setupDatabaseMock() {
       authCallback = callback;
     })
   }));
-  jest.mock("../toast.js", () => ({
+jest.doMock("../scripts/toast.js", () => ({
   showToast: jest.fn()
 }));
 }

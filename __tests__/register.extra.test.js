@@ -7,7 +7,7 @@ const { initRegisterUI } = require("../scripts/register.js");
 global.lucide = {
   createIcons: jest.fn()
 };
-jest.mock("../toast.js", () => ({
+jest.mock("../scripts/toast.js", () => ({
   showToast: jest.fn()
 }));
 

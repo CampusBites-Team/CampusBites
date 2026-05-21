@@ -16,7 +16,7 @@ jest.mock("../scripts/database.js", () => ({
   where: jest.fn(),
   doc: jest.fn()
 }));
-jest.mock("../toast.js", () => ({
+jest.mock("../scripts/toast.js", () => ({
   showToast: jest.fn()
 }));
 

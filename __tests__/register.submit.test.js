@@ -30,7 +30,6 @@ global.alert = jest.fn();
 import { initRegisterUI } from "../scripts/register.js";
 
 import {
-import { showToast } from "../scripts/toast.js";
   createUserWithEmailAndPassword,
   setDoc,
   getDoc,
@@ -38,6 +37,7 @@ import { showToast } from "../scripts/toast.js";
   uploadBytes,
   getDownloadURL
 } from "../scripts/database.js";
+const { showToast } = require("../scripts/toast.js");
 
 const flush = async () => {
   await Promise.resolve();
@@ -147,7 +147,7 @@ describe("register submit flow", () => {
 
     await flush();
 
-    expect(showToast).toHaveBeenCalledWith("Shop name required", "warning");
+    expect(showToast).toHaveBeenCalledWith("Shop name required", "error");
     expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
   });
 
@@ -161,7 +161,7 @@ describe("register submit flow", () => {
 
     await flush();
 
-    expect(showToast).toHaveBeenCalledWith("Shop location required", "warning");
+    expect(showToast).toHaveBeenCalledWith("Shop location required", "error");
     expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
   });
 
@@ -176,7 +176,7 @@ describe("register submit flow", () => {
 
     await flush();
 
-    expect(showToast).toHaveBeenCalledWith("Shop logo required", "warning");
+    expect(showToast).toHaveBeenCalledWith("Shop logo required", "error");
     expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
   });
 
@@ -207,7 +207,7 @@ describe("register submit flow", () => {
 
     logoInput.dispatchEvent(new Event("change", { bubbles: true }));
 
-    expect(showToast).toHaveBeenCalledWith("Shop logo must be a PNG or JPEG image.", "warning");
+    expect(showToast).toHaveBeenCalledWith("Shop logo must be a PNG or JPEG image.", "error");
   });
 
   test("valid vendor logo file type is accepted on change", async () => {

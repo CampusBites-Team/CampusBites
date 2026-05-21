@@ -266,7 +266,7 @@ test('alerts if user profile does not exist', async () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(showToast).toHaveBeenCalledWith('Invalid credentials', "error");
+    expect(showToast).toHaveBeenCalledWith('Invalid email or password.', "error");
   });
 });
 
@@ -383,7 +383,7 @@ describe('initLoginPage', () => {
 
   expect(showToast).toHaveBeenCalledWith(
       "Please verify your email before logging in. A new verification email has been sent.",
-      "info"
+      "error"
     );
 });
 });

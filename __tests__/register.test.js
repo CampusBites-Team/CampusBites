@@ -51,6 +51,7 @@ const {
 const {
   createUserWithEmailAndPassword
 } = require('../scripts/database.js');
+const { showToast } = require("../scripts/toast.js");
 
 describe('buildUserObject', () => {
   test('builds customer object correctly', () => {
@@ -179,7 +180,7 @@ test("alerts when branch code is invalid", async () => {
 
   await new Promise(r => setTimeout(r,0));
 
-  expect(showToast).toHaveBeenCalledWith("Branch code must be exactly 6 digits.", "warning");
+  expect(showToast).toHaveBeenCalledWith("Branch code must be exactly 6 digits.", "error");
 });
 test("handles registration failure", async()=>{
 
@@ -266,7 +267,7 @@ test("shows error and resets when invalid logo is selected", async () => {
 
   logoInput.dispatchEvent(new Event("change"));
 
-  expect(showToast).toHaveBeenCalledWith("Shop logo must be a PNG or JPEG image.", "warning");
+  expect(showToast).toHaveBeenCalledWith("Shop logo must be a PNG or JPEG image.", "error");
 
   expect(logoInput.value).toBe("");
 });

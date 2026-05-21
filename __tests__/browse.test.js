@@ -2,8 +2,6 @@
  * @jest-environment jsdom
  */
 
-const { showToast } = require("../scripts/toast.js");
-
 global.lucide = { createIcons: jest.fn() };
 
 jest.mock("../scripts/database.js", () => ({
@@ -167,6 +165,7 @@ describe("browse.js", () => {
   let db;
   let alertSpy;
   let errorSpy;
+  let showToast;
 
   const bootBrowse = async () => {
     const mod = await import("../scripts/browse.js");
@@ -236,6 +235,7 @@ describe("browse.js", () => {
     sessionStorage.clear();
 
     db = require("../scripts/database.js");
+    showToast = require("../scripts/toast.js").showToast;
 
     alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
     errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
@@ -516,7 +516,7 @@ describe("browse.js", () => {
 
     mod.addToCart(item);
 
-    expect(showToast).toHaveBeenCalledWith("You can order at most 10 items from the same vendor");
+    expect(showToast).toHaveBeenCalledWith("You can order at most 10 items from the same vendor", "warning");
   });
 
   test("removes item from cart", async () => {
@@ -573,7 +573,7 @@ describe("browse.js", () => {
 
     document.getElementById("checkOut").click();
 
-    expect(showToast).toHaveBeenCalledWith("You must be logged in to proceed to checkout");
+    expect(showToast).toHaveBeenCalledWith("You must be logged in to proceed to checkout", "warning");
   });
 
   test("posts cart items to Paystack", async () => {
@@ -630,7 +630,7 @@ describe("browse.js", () => {
 
     await flush();
 
-    expect(showToast).toHaveBeenCalledWith(expect.stringContaining("boom"));
+    expect(showToast).toHaveBeenCalledWith(expect.stringContaining("boom"), "error");
     expect(document.getElementById("checkOut").disabled).toBe(false);
   });
 
@@ -947,9 +947,10 @@ describe("browse.js", () => {
     await flush();
     await flush();
 
-    expect(showToast).toHaveBeenCalledWith(
-      expect.stringContaining("Payment provider did not return a redirect URL")
-    );
+expect(showToast).toHaveBeenCalledWith(
+  expect.stringContaining("Payment provider did not return a redirect URL"),
+  "error"
+);
     expect(document.getElementById("checkOut").disabled).toBe(false);
   });
 
@@ -996,8 +997,11 @@ describe("browse.js", () => {
 
       expect(JSON.parse(localStorage.getItem("cart") || "[]")).toEqual([]);
       expect(document.getElementById("item-edit-modal").classList.contains("hidden")).toBe(true);
-expect(document.getElementById("toast-container").innerHTML)
-  .toContain("Order placed successfully! The vendor has been notified.");
+
+      expect(showToast).toHaveBeenCalledWith(
+        "Order placed successfully! The vendor has been notified.",
+        "success"
+      );
         expect(document.getElementById("item-edit-modal").classList.contains("hidden")).toBe(true);
     });
 
@@ -1067,16 +1071,12 @@ expect(document.getElementById("toast-container").innerHTML)
     await bootBrowse();
 
     // ensure container does not exist yet
-    document.getElementById("toast-container")?.remove();
-
     const addButton = document.querySelector(".add-cart-btn");
 
     addButton.click();
 
-    const toastContainer = document.getElementById("toast-container");
-
-    expect(toastContainer).not.toBeNull();
-
-    expect(toastContainer.innerHTML).toContain("added to cart");
+    expect(showToast).toHaveBeenCalledWith(
+      expect.stringContaining("added to cart")
+    );
   });
 });

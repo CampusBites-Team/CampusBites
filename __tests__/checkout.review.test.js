@@ -37,6 +37,7 @@ const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 describe("customer-orders review flow", () => {
   let database;
+  let showToast;
 
   beforeEach(async () => {
     jest.resetModules();
@@ -54,11 +55,10 @@ describe("customer-orders review flow", () => {
       <p id="numItemsOrder"></p>
     `;
 
-    global.alert = jest.fn();
     jest.spyOn(console, "error").mockImplementation(() => {});
 
-const { showToast } = require("../scripts/toast.js");
     database = await import("../scripts/database.js");
+    showToast = require("../scripts/toast.js").showToast;
 
     database.onAuthStateChanged.mockImplementation((auth, callback) => {
       callback({

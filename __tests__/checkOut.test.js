@@ -30,7 +30,6 @@ const makeSnapshot = (orders) => ({
   }))
 });
 
-const { showToast } = require("../scripts/toast.js");
 const flush = async () => {
   await Promise.resolve();
   await Promise.resolve();
@@ -39,6 +38,7 @@ const flush = async () => {
 
 describe("checkOut.js", () => {
   let db;
+  let showToast;
 
   beforeEach(() => {
     jest.resetModules();
@@ -56,8 +56,8 @@ describe("checkOut.js", () => {
     `;
 
     db = require("../scripts/database.js");
+    showToast = require("../scripts/toast.js").showToast;
 
-    window.alert = jest.fn();
 
     db.collection.mockImplementation((_db, collectionName) => collectionName);
 
@@ -456,6 +456,8 @@ describe("checkOut.js", () => {
     document.body.appendChild(fakeBtn);
 
     fakeBtn.click();
+    await flush();
+
 
     expect(showToast).toHaveBeenCalledWith("Order cannot be cancelled, it is already in progress.", "warning");
   });
@@ -485,8 +487,10 @@ describe("checkOut.js", () => {
     document.body.appendChild(fakeBtn);
 
     fakeBtn.click();
+    await flush();
 
-    expect(showToast).toHaveBeenCalledWith("Order is already cancelled", "error");
+
+    expect(showToast).toHaveBeenCalledWith("Order is already cancelled", "warning");
   });
 
   test("alerts when order status is capital Cancelled", async () => {
@@ -514,8 +518,8 @@ describe("checkOut.js", () => {
     document.body.appendChild(fakeBtn);
 
     fakeBtn.click();
-
-    expect(showToast).toHaveBeenCalledWith("Order is already cancelled", "error");
+    await flush();
+    expect(showToast).toHaveBeenCalledWith("Order is already cancelled", "warning");
   });
 
   test("handles updateDoc failure when cancelling order", async () => {
@@ -546,7 +550,7 @@ describe("checkOut.js", () => {
     await flush();
 
     expect(errorSpy).toHaveBeenCalled();
-    expect(showToast).toHaveBeenCalledWith("Failed to cancel order", "error");
+    expect(showToast).toHaveBeenCalledWith("Failed to cancel order.", "error");
   });
 
   test("does nothing when order is not found in cache", async () => {
@@ -740,7 +744,7 @@ describe("checkOut.js", () => {
 
     fakeBtn.click();
 
-    expect(showToast).toHaveBeenCalledWith("Order has already been refunded.", "error");
+    expect(showToast).toHaveBeenCalledWith("Order has already been refunded.", "warning");
   });
 
   test("initiates Paystack refund for paid pending order", async () => {

@@ -5,7 +5,7 @@
 jest.mock("../scripts/orders.js", () => ({
   formatTimestamp: jest.fn(() => "Today")
 }));
-jest.mock("../toast.js", () => ({
+jest.mock("../scripts/toast.js", () => ({
   showToast: jest.fn()
 }));
 

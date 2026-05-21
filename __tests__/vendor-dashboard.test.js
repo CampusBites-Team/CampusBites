@@ -23,6 +23,7 @@ jest.mock("../scripts/toast.js", () => ({
 }));
 
 const dbModule = require("../scripts/database.js");
+const { showToast } = require("../scripts/toast.js");
 
 const vendorDashboard = require("../scripts/vendor-dashboard.js");
 
@@ -42,7 +43,6 @@ function mockOrderStatusUpdate(orderData = {}) {
   dbModule.doc.mockReturnValue("order-ref");
   dbModule.updateDoc.mockResolvedValue();
   dbModule.addDoc.mockResolvedValue({ id: "notification-1" });
-const { showToast } = require("../scripts/toast.js");
   dbModule.collection.mockReturnValue("notifications-ref");
   dbModule.serverTimestamp.mockReturnValue("mock-timestamp");
   dbModule.getDoc.mockResolvedValue({

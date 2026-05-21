@@ -40,11 +40,11 @@ import {
 } from '../scripts/login.js';
 
 import {
-import { showToast } from "../scripts/toast.js";
   signInWithEmailAndPassword,
   getDoc,
   signInWithPopup,
 } from '../scripts/database.js';
+import { showToast } from "../scripts/toast.js";
 
 window.alert = jest.fn();
 global.lucide = { createIcons: jest.fn() };
@@ -137,7 +137,7 @@ test("alerts when user profile is missing after email login", async () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(showToast).toHaveBeenCalledWith("Invalid credentials", "error");
+    expect(showToast).toHaveBeenCalledWith("Invalid email or password.", "error");
   });
 });
 

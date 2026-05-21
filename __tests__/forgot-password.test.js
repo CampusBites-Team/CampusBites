@@ -11,10 +11,12 @@ jest.mock('../scripts/database.js', () => ({
 
 describe('forgot-password.js', () => {
   let sendPasswordResetEmail;
+  let showToast;
 
   beforeEach(() => {
     jest.resetModules();
     jest.clearAllMocks();
+    showToast = require("../scripts/toast.js").showToast;
 
     document.body.innerHTML = `
       <form id="forgotPasswordForm">
@@ -23,11 +25,9 @@ describe('forgot-password.js', () => {
       </form>
     `;
 
-    global.alert = jest.fn();
     global.console.error = jest.fn();
   });
 
-const { showToast } = require("../scripts/toast.js");
   test('successful password reset flow', async () => {
     ({ sendPasswordResetEmail } = await import('../scripts/database.js'));
     sendPasswordResetEmail.mockResolvedValue();
@@ -41,7 +41,7 @@ const { showToast } = require("../scripts/toast.js");
     await Promise.resolve();
 
     expect(sendPasswordResetEmail).toHaveBeenCalledWith({}, 'user@example.com');
-    expect(showToast).toHaveBeenCalledWith('If an account exists for this email, a password reset link has been set.', "info");
+    expect(showToast).toHaveBeenCalledWith('If an account exists for this email, a password reset link has been set.', "success");
   });
 
   test('handles password reset error', async () => {
@@ -58,6 +58,6 @@ const { showToast } = require("../scripts/toast.js");
 
     expect(sendPasswordResetEmail).toHaveBeenCalledWith({}, 'user@example.com');
     expect(global.console.error).toHaveBeenCalled();
-    expect(showToast).toHaveBeenCalledWith('User not found', "error");
+    expect(showToast).toHaveBeenCalledWith('Could not send password reset email.', "error");
   });
 });

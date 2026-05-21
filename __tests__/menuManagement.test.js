@@ -39,6 +39,7 @@ describe("menuManagement.js", () => {
   let deleteDoc;
   let uploadBytes;
   let getDownloadURL;
+  let showToast;
 
   const loadModule = async () => {
     await import("../scripts/menuManagement.js");
@@ -86,10 +87,10 @@ describe("menuManagement.js", () => {
       uploadBytes,
       getDownloadURL
     } = require("../scripts/database.js"));
+    showToast = require("../scripts/toast.js").showToast;
 
     auth.onAuthStateChanged.mockImplementation((callback) => {
       callback({ uid: "user123" });
-const { showToast } = require("../scripts/toast.js");
     });
 
     getDoc.mockResolvedValue({
@@ -318,7 +319,7 @@ const { showToast } = require("../scripts/toast.js");
       preventDefault: jest.fn()
     });
 
-    expect(showToast).toHaveBeenCalledWith("Price must be a positive amount greater than 0.", "warning");
+    expect(showToast).toHaveBeenCalledWith("Price must be a positive amount greater than 0.", "error");
     expect(addDoc).not.toHaveBeenCalled();
   });
 
@@ -334,7 +335,7 @@ const { showToast } = require("../scripts/toast.js");
       preventDefault: jest.fn()
     });
 
-    expect(showToast).toHaveBeenCalledWith("Price must be a positive amount greater than 0.", "warning");
+    expect(showToast).toHaveBeenCalledWith("Price must be a positive amount greater than 0.", "error");
     expect(addDoc).not.toHaveBeenCalled();
   });
 
@@ -357,7 +358,7 @@ const { showToast } = require("../scripts/toast.js");
       preventDefault: jest.fn()
     });
 
-    expect(showToast).toHaveBeenCalledWith("Only PNG and JPEG images are allowed.", "warning");
+    expect(showToast).toHaveBeenCalledWith("Only PNG and JPEG images are allowed.", "error");
     expect(addDoc).not.toHaveBeenCalled();
   });
 
@@ -385,7 +386,7 @@ const { showToast } = require("../scripts/toast.js");
       preventDefault: jest.fn()
     });
 
-    expect(showToast).toHaveBeenCalledWith("Image must be smaller than 5MB.", "warning");
+    expect(showToast).toHaveBeenCalledWith("Image must be smaller than 5MB.", "error");
     expect(addDoc).not.toHaveBeenCalled();
   });
 
@@ -487,7 +488,7 @@ const { showToast } = require("../scripts/toast.js");
       preventDefault: jest.fn()
     });
 
-    expect(showToast).toHaveBeenCalledWith("Price cannot exceed R1000", "warning");
+    expect(showToast).toHaveBeenCalledWith("Price cannot exceed R1000", "error");
 
     expect(addDoc).not.toHaveBeenCalled();
   });

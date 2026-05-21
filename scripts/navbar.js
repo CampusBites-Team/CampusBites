@@ -293,8 +293,10 @@ window.addEventListener("load", () => {
   const loader = document.getElementById("loading-screen");
   const siteContent = document.getElementById("site-content");
 
-  loader.style.display = "none";
-  siteContent.classList.remove("blurred");
+  if (loader && siteContent) {
+    loader.style.display = "none";
+    siteContent.classList.remove("blurred");
+  }
 });
 
 //Notification code for navbar

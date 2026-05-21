@@ -28,6 +28,7 @@ jest.mock("../scripts/database.js", () => ({
 // causes beforeEach mock setup to configure a different object than what
 // isolateModules sees, leading to unhandled rejections that crash the worker.
 const db = require("../scripts/database.js");
+const { showToast } = require("../scripts/toast.js");
 
 const flush = async () => {
   await Promise.resolve();
@@ -47,7 +48,6 @@ function mockStatusUpdateOrder(orderData = {}) {
       paymentStatus: "paid",
       ...orderData
     })
-const { showToast } = require("../scripts/toast.js");
   });
 
   db.addDoc.mockResolvedValue({ id: "notification-1" });
@@ -739,7 +739,9 @@ describe("orders.js", () => {
 
     await flush();
 
-    expect(showToast).toHaveBeenCalledWith(expect.stringContaining("Mark this cash order as paid", "error")
+    expect(showToast).toHaveBeenCalledWith(
+      expect.stringContaining("Mark this cash order as paid"),
+      "error"
     );
     expect(db.updateDoc).not.toHaveBeenCalled();
   });

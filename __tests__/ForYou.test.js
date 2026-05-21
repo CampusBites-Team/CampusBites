@@ -20,6 +20,7 @@ describe("ForYou.js", () => {
   let getDocs;
   let collection;
   let query;
+  let showToast;
   let where;
 
   const flushPromises = async () => {
@@ -32,7 +33,6 @@ describe("ForYou.js", () => {
     await import("../scripts/ForYou.js");
     await flushPromises();
   }
-
   beforeEach(async () => {
     jest.resetModules();
 
@@ -47,14 +47,13 @@ describe("ForYou.js", () => {
       createIcons: jest.fn()
     };
 
-    global.alert = jest.fn();
 
     jest.spyOn(console, "error").mockImplementation(() => {});
 
-const { showToast } = require("../scripts/toast.js");
     localStorage.clear();
 
     const dbModule = await import("../scripts/database.js");
+    showToast = (await import("../scripts/toast.js")).showToast;
 
     onAuthStateChanged = dbModule.onAuthStateChanged;
     getDocs = dbModule.getDocs;

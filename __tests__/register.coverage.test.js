@@ -37,6 +37,7 @@ const {
   uploadBytes,
   getDownloadURL
 } = require("../scripts/database.js");
+const { showToast } = require("../scripts/toast.js");
 
 const flush = async () => {
   for (let i = 0; i < 6; i++) await Promise.resolve();
@@ -88,7 +89,6 @@ const setupDom = () => {
 const attachValidLogo = () => {
   const logoInput = document.getElementById("logoInput");
   const file = new File(["fake"], "logo.png", { type: "image/png" });
-const { showToast } = require("../scripts/toast.js");
   Object.defineProperty(logoInput, "files", {
     value: [file],
     configurable: true
@@ -136,7 +136,7 @@ describe("register coverage gaps", () => {
       submit();
       await flush();
 
-      expect(showToast).toHaveBeenCalledWith("Bank required", "warning");
+      expect(showToast).toHaveBeenCalledWith("Bank required", "error");
       expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
     });
 
@@ -146,7 +146,7 @@ describe("register coverage gaps", () => {
       submit();
       await flush();
 
-      expect(showToast).toHaveBeenCalledWith("Account holder name required", "warning");
+      expect(showToast).toHaveBeenCalledWith("Account holder name required", "error");
       expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
     });
 
@@ -158,7 +158,7 @@ describe("register coverage gaps", () => {
       submit();
       await flush();
 
-      expect(showToast).toHaveBeenCalledWith("Account number must be 6 to 12 digits.", "warning");
+      expect(showToast).toHaveBeenCalledWith("Account number must be 6 to 12 digits.", "error");
       expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
     });
 
@@ -170,7 +170,7 @@ describe("register coverage gaps", () => {
       submit();
       await flush();
 
-      expect(showToast).toHaveBeenCalledWith("Account number must be 6 to 12 digits.", "warning");
+      expect(showToast).toHaveBeenCalledWith("Account number must be 6 to 12 digits.", "error");
     });
 
     test("rejects when branch code is not exactly 6 digits", async () => {
@@ -182,7 +182,7 @@ describe("register coverage gaps", () => {
       submit();
       await flush();
 
-      expect(showToast).toHaveBeenCalledWith("Branch code must be exactly 6 digits.", "warning");
+      expect(showToast).toHaveBeenCalledWith("Branch code must be exactly 6 digits.", "error");
       expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
     });
 
@@ -196,7 +196,7 @@ describe("register coverage gaps", () => {
       submit();
       await flush();
 
-      expect(showToast).toHaveBeenCalledWith("Account type required", "warning");
+      expect(showToast).toHaveBeenCalledWith("Account type required", "error");
       expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
     });
 
@@ -237,12 +237,12 @@ describe("register coverage gaps", () => {
       roleSelect.value = "vendor";
       roleSelect.dispatchEvent(new Event("change", { bubbles: true }));
 
-      const bankName = document.getElementById("bank-name");
-      const accountHolder = document.getElementById("account-holder");
-      const accountNumber = document.getElementById("account-number");
-      const branchCode = document.getElementById("branch-code");
-      const accountType = document.getElementById("account-type");
-
+expect(showToast).not.toHaveBeenCalled();
+const bankName = document.getElementById("bank-name");
+const accountHolder = document.getElementById("account-holder");
+const accountNumber = document.getElementById("account-number");
+const branchCode = document.getElementById("branch-code");
+const accountType = document.getElementById("account-type");
       bankName.value = "FNB";
       accountHolder.value = "Jane";
       accountNumber.value = "12345678";

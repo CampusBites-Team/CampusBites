@@ -46,13 +46,15 @@ describe("customer-profile.js", () => {
     };
   });
 
-const { showToast } = require("../scripts/toast.js");
+  let showToast;
+
   afterAll(() => {
-    console.error = originalError;
-  });
+      console.error = originalError;
+    });
 
   beforeEach(() => {
     jest.clearAllMocks();
+    showToast = require("../scripts/toast.js").showToast;
 
     document.body.innerHTML = `
       <section id="profileImageFallback" class=""></section>
@@ -228,7 +230,7 @@ const { showToast } = require("../scripts/toast.js");
 
     imageInput.dispatchEvent(new Event("change"));
 
-    expect(showToast).toHaveBeenCalledWith("Profile picture must be a PNG or JPEG image.", "warning");
+    expect(showToast).toHaveBeenCalledWith("Profile picture must be a PNG or JPEG image.", "error");
   });
 
   test("uploads valid image and saves new image URL", async () => {

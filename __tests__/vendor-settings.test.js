@@ -90,7 +90,6 @@ describe("vendor-settings.js", () => {
       </form>
     `;
 
-    global.alert = jest.fn();
     global.fetch = jest.fn();
   });
 
@@ -294,7 +293,7 @@ expect(updateDoc).toHaveBeenCalled();  });
 
     logoInput.dispatchEvent(new Event("change"));
 
-    expect(showToast).toHaveBeenCalledWith("Store logo must be a PNG or JPG/JPEG image.", "warning");
+    expect(showToast).toHaveBeenCalledWith("Store logo must be a PNG or JPG/JPEG image.", "error");
   });
 
   test("requires shop name and location", async () => {
@@ -322,7 +321,7 @@ expect(updateDoc).toHaveBeenCalled();  });
       new Event("submit", { bubbles: true, cancelable: true })
     );
 
-    expect(showToast).toHaveBeenCalledWith("Please enter your shop name.", "warning");
+    expect(showToast).toHaveBeenCalledWith("Please enter your shop name.", "error");
 
     document.getElementById("shopName").value = "Shop";
     document.getElementById("location").value = "";
@@ -331,7 +330,7 @@ expect(updateDoc).toHaveBeenCalled();  });
       new Event("submit", { bubbles: true, cancelable: true })
     );
 
-    expect(showToast).toHaveBeenCalledWith("Please enter your shop location.", "warning");
+    expect(showToast).toHaveBeenCalledWith("Please enter your shop location.", "error");
   });
 
   test("saves updated weekday and weekend operating hours", async () => {
@@ -408,7 +407,7 @@ expect(updateDoc).toHaveBeenCalled();  });
       new Event("submit", { bubbles: true, cancelable: true })
     );
 
-    expect(showToast).toHaveBeenCalledWith("Please enter both weekday opening and closing times.", "warning");
+    expect(showToast).toHaveBeenCalledWith("Please enter both weekday opening and closing times.", "error");
 
     document.getElementById("weekdayOpeningTime").value = "18:00";
     document.getElementById("weekdayClosingTime").value = "17:00";
@@ -417,7 +416,7 @@ expect(updateDoc).toHaveBeenCalled();  });
       new Event("submit", { bubbles: true, cancelable: true })
     );
 
-    expect(showToast).toHaveBeenCalledWith("weekday closing time must be after opening time.", "warning");
+    expect(showToast).toHaveBeenCalledWith("weekday closing time must be after opening time.", "error");
 
     document.getElementById("weekdayOpeningTime").value = "08:00";
     document.getElementById("weekdayClosingTime").value = "17:00";
@@ -427,8 +426,10 @@ expect(updateDoc).toHaveBeenCalled();  });
     document.getElementById("operatingHoursForm").dispatchEvent(
       new Event("submit", { bubbles: true, cancelable: true })
     );
-
-    expect(showToast).toHaveBeenCalledWith("weekend closing time must be after opening time.", "warning");
+expect(showToast).toHaveBeenCalledWith(
+  "weekend closing time must be after opening time.",
+  "error"
+);
   });
 
   test("redirects when user is not logged in", () => {
@@ -653,27 +654,27 @@ expect(updateDoc).toHaveBeenCalled();  });
 
     document.getElementById("settings-bank-name").value = "";
     submit();
-    expect(showToast).toHaveBeenCalledWith("Please select a bank.", "warning");
+    expect(showToast).toHaveBeenCalledWith("Please select a bank.", "error");
 
     document.getElementById("settings-bank-name").value = "fnb";
     document.getElementById("settings-account-holder").value = "";
     submit();
-    expect(showToast).toHaveBeenCalledWith("Please enter the account holder name.", "warning");
+    expect(showToast).toHaveBeenCalledWith("Please enter the account holder name.", "error");
 
     document.getElementById("settings-account-holder").value = "Jane";
     document.getElementById("settings-account-number").value = "123";
     submit();
-    expect(showToast).toHaveBeenCalledWith("Account number must be 6 to 12 digits.", "warning");
+    expect(showToast).toHaveBeenCalledWith("Account number must be 6 to 12 digits.", "error");
 
     document.getElementById("settings-account-number").value = "123456";
     document.getElementById("settings-branch-code").value = "123";
     submit();
-    expect(showToast).toHaveBeenCalledWith("Branch code must be exactly 6 digits.", "warning");
+    expect(showToast).toHaveBeenCalledWith("Branch code must be exactly 6 digits.", "error");
 
     document.getElementById("settings-branch-code").value = "632005";
     document.getElementById("settings-account-type").value = "";
     submit();
-    expect(showToast).toHaveBeenCalledWith("Please select an account type.", "warning");
+    expect(showToast).toHaveBeenCalledWith("Please select an account type.", "error");
   });
 
   test("handles API error when saving banking details", async () => {
@@ -711,7 +712,7 @@ expect(updateDoc).toHaveBeenCalled();  });
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(showToast).toHaveBeenCalledWith("Could not update banking details: Bank validation failed", "error");
+    expect(showToast).toHaveBeenCalledWith("Could not update banking details.", "error");
   });
 test("validates missing opening and closing times", async () => {
   const mod = await import("../scripts/vendor-settings.js");
