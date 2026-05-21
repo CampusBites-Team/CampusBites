@@ -31,9 +31,18 @@
 .animate-slide-in {
   animation: slide-in 0.3s ease;
 }
+
+@keyframes floatSoft {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-14px) rotate(3deg); }
+}
+
+.float-soft {
+  animation: floatSoft 5s ease-in-out infinite;
+}
 </style>
 
-<body class="bg-gray-100">
+<body class="bg-white text-slate-900">
 
 <nav class="bg-white border-b border-gray-200 shadow-sm">
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
@@ -124,34 +133,51 @@
   </section>
 </nav>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
+ <main class="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50 to-white px-4 sm:px-6 lg:px-8 pt-24 pb-12">
 
-    <section class="flex flex-col md:flex-row gap-6">
+<section class="absolute -left-28 top-24 w-[420px] h-[340px] bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
+<section class="absolute -right-24 top-40 w-[360px] h-[300px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
+<section class="absolute left-24 bottom-10 w-[360px] h-[260px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-60 rotate-[-10deg]"></section>
+<section class="absolute right-36 bottom-20 w-[460px] h-[300px] bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-60 rotate-[8deg]"></section>
+<section class="absolute left-[38%] top-32 w-52 h-40 bg-white/70 rounded-[45%_55%_60%_40%] opacity-80 border border-indigo-100"></section>
+
+<span class="absolute left-20 top-36 text-indigo-500 text-6xl font-bold float-soft">+</span>
+<span class="absolute left-72 bottom-36 text-orange-500 text-5xl font-bold float-soft">✦</span>
+<span class="absolute right-72 top-28 text-orange-500 text-5xl font-bold float-soft">✦</span>
+<span class="absolute right-20 bottom-44 text-indigo-500 text-6xl font-bold float-soft">+</span>
+<span class="absolute left-[48%] bottom-28 text-indigo-400 text-4xl font-bold float-soft">↝</span>
+
+<i data-lucide="hamburger" class="absolute right-64 top-36 w-20 h-20 text-indigo-600 float-soft"></i>
+<i data-lucide="coffee" class="absolute right-16 bottom-56 w-24 h-24 text-orange-500 float-soft"></i>
+<i data-lucide="pizza" class="absolute left-28 bottom-28 w-24 h-24 text-indigo-600 float-soft"></i>
+<i data-lucide="shopping-bag" class="absolute left-[42%] top-20 w-16 h-16 text-orange-500 float-soft"></i>
+<i data-lucide="utensils-crossed" class="absolute right-[38%] bottom-20 w-20 h-20 text-indigo-500 float-soft"></i>
+    <section class="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row gap-6">
 
       <aside class="w-full md:w-64 space-y-6">
 
-        <section class="bg-white p-4 rounded-xl shadow-sm">
+        <section class="bg-white p-5 rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100">
 
-          <h3 class="font-semibold mb-4 flex items-center gap-2">
-            <i data-lucide="filter" class="w-4 h-4"></i>
+          <h3 class="font-extrabold text-indigo-950 mb-5 flex items-center gap-2">
+            <i data-lucide="filter" class="w-5 h-5 text-indigo-600"></i>
             Filters
           </h3>
 
           <section class="mb-4">
             <label class="text-sm font-medium text-gray-700 mb-2 block">Vendor</label>
-            <select id="Vendors" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <select id="Vendors" class="w-full border border-indigo-100 rounded-xl px-3 py-2 bg-indigo-50/40 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-700">
               <option value="AllVendors" selected>All Vendors</option>
             </select>
           </section>
           <section class="mb-4">
             <label class="text-sm font-medium text-gray-700 mb-2 block">Vendor's Location</label>
-            <select id="VendorLocations" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <select id="VendorLocations" class="w-full border border-indigo-100 rounded-xl px-3 py-2 bg-indigo-50/40 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-700">
               <option value="AllLocations" selected>All Locations</option>
             </select>
           </section>
           <section class="mb-4">
             <label class="text-sm font-medium text-gray-700 mb-2 block">Sort by</label>
-            <select id="SortBy" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <select id="SortBy" class="w-full border border-indigo-100 rounded-xl px-3 py-2 bg-indigo-50/40 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-700">
               <option value="Default" selected>Default</option>
               <option value="PriceLowToHigh">Price: Low to High</option>
               <option value="PriceHighToLow">Price: High to Low</option>
@@ -163,7 +189,7 @@
 
           <section class="mb-4">
             <label class="text-sm font-medium text-gray-700 mb-2 block">Category</label>
-            <select id="Categories" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <select id="Categories" class="w-full border border-indigo-100 rounded-xl px-3 py-2 bg-indigo-50/40 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-700">
               <option value="AllCategories" selected>All Categories</option>
               <option value="Light Meals">Light Meals</option>
               <option value="Main Course">Main Course</option>
@@ -178,22 +204,22 @@
 
             <section class="space-y-2">
               <label class="flex items-center gap-2 text-sm">
-                <input id="Vegan" type="checkbox" class="rounded text-green-600">
+                <input id="Vegan" type="checkbox" class="rounded text-indigo-600 focus:ring-indigo-500">
                 Vegan
               </label>
 
               <label class="flex items-center gap-2 text-sm">
-                <input id="Vegetarian" type="checkbox" class="rounded text-green-600">
+                <input id="Vegetarian" type="checkbox" class="rounded text-indigo-600 focus:ring-indigo-500">
                 Vegetarian
               </label>
 
               <label class="flex items-center gap-2 text-sm">
-                <input id="Gluten-Free" type="checkbox" class="rounded text-green-600">
+                <input id="Gluten-Free" type="checkbox" class="rounded text-indigo-600 focus:ring-indigo-500">
                 Gluten-Free
               </label>
 
               <label class="flex items-center gap-2 text-sm">
-                <input id="Halal" type="checkbox" class="rounded text-green-600">
+                <input id="Halal" type="checkbox" class="rounded text-indigo-600 focus:ring-indigo-500">
                 Halal
               </label>
             </section>
@@ -203,20 +229,20 @@
                         <label id = "PriceLabel" class="text-sm font-medium text-gray-700 mb-2 block">
                             Max Price: R200
                         </label>
-                        <input id = "PriceSlider" type="range" min="0" max="200" value="200" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                        <input id = "PriceSlider" type="range" min="0" max="200" value="200" >
                      </section>
-          <section class="bg-indigo-50 p-4 rounded-xl mt-4">
-            <h4 class="text-sm font-semibold text-indigo-900 mb-2">Allergen Information</h4>
-            <p class="text-xs text-indigo-700">
+          <section class="bg-orange-50 p-4 rounded-2xl mt-5 border border-orange-100">
+            <h4 class="text-sm font-bold text-indigo-950 mb-2">Allergen Information</h4>
+            <p class="text-xs text-slate-600">
               All menu items comply with SA Regulation R.146 of 2010 regarding allergen declaration.
             </p>
           </section>
 
         </section>
 
-        <section class="bg-white p-4 rounded-xl shadow-sm">
+        <section class="bg-white p-5 rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100">
           <section class="flex items-center gap-3">
-            <button id="cart" class="relative bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2">
+            <button id="cart" class="relative bg-indigo-600 text-white px-5 py-3 rounded-2xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 flex items-center gap-2">
               <i data-lucide="shopping-cart" class="w-5 h-5"></i>
               View Cart
 
@@ -230,9 +256,9 @@
       </aside>
 
       <section class="flex-1">
-        <header class="mb-6 flex justify-between items-center">
+        <header class="mb-8 flex justify-between items-center bg-white rounded-[1.7rem] p-6 shadow-xl shadow-indigo-100 border border-indigo-100">
           <h2 class="text-4xl font-bold text-indigo-950">Browse Menu</h2>
-          <p id="numItems" class="text-sm text-gray-500">0 items found</p>
+          <p id="numItems" class="text-sm font-semibold text-orange-500">0 items found</p>
         </header>
 
         <section id="menu" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></section>
@@ -241,7 +267,7 @@
     </section>
 
     <section id="item-edit-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-      <article class="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto p-6">
+      <article class="bg-white rounded-[1.7rem] max-w-5xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl border border-indigo-100">
 
         <header class="flex justify-center">
           <h3 class="text-xl font-bold mb-4">Items in Cart</h3>
@@ -270,13 +296,13 @@
         </fieldset>
 
         <section class="flex gap-3 mt-6">
-          <button type="button" id="closeCartModal" class="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50">
+          <button type="button" id="closeCartModal" class="flex-1 border-2 border-orange-400 text-indigo-700 py-3 rounded-2xl font-bold hover:bg-orange-50 transition">
             Close
           </button>
-          <button type="button" id="empty" class="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50">
+          <button type="button" id="empty" class="flex-1 border-2 border-orange-400 text-indigo-700 py-3 rounded-2xl font-bold hover:bg-orange-50 transition">
             Empty Cart
           </button>
-          <button id="checkOut" class="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
+          <button id="checkOut" class="flex-1 bg-indigo-600 text-white px-4 py-3 rounded-2xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">
             Check Out
           </button>
         </section>

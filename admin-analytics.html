@@ -13,9 +13,19 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="CampusBites">
+    <style>
+  @keyframes floatSoft {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-14px) rotate(3deg); }
+  }
+
+  .float-soft {
+    animation: floatSoft 5s ease-in-out infinite;
+  }
+</style>
 </head>
-<body>
-    <nav class="bg-white border-b border-gray-200 shadow-sm">
+<body class="min-h-screen bg-gradient-to-br from-white via-indigo-50 to-white text-gray-900">
+    <nav class="bg-white/95 backdrop-blur border-b border-indigo-100 shadow-sm sticky top-0 z-40">
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
     <a href="index.html" class="flex items-center gap-2">
       <img
@@ -50,49 +60,63 @@
     </section>
     </nav>
 
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+    <main class="relative overflow-hidden min-h-[calc(100vh-4rem)]">
+  <section class="absolute -left-28 top-32 w-96 h-80 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
+  <section class="absolute -right-20 bottom-6 w-[430px] h-[360px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
+  <section class="absolute right-56 top-24 w-60 h-48 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-80"></section>
 
-        <header class="flex justify-between items-center mb-8">
-            <h2 class="text-2xl font-bold">Analytics Dashboard</h2>
+  <span class="absolute left-28 top-40 text-indigo-500 text-5xl font-bold float-soft">+</span>
+  <span class="absolute right-80 top-72 text-orange-500 text-4xl font-bold float-soft">✦</span>
+
+  <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+        <header class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
+    <section>
+        <p class="text-sm font-semibold text-orange-500 uppercase tracking-wide">Admin insights</p>
+        <h2 class="text-4xl font-extrabold text-gray-900 mt-1">Analytics Dashboard</h2>
+        <p class="mt-3 text-gray-600 leading-relaxed">
+            Track sales, ordering patterns, popular items, and custom reports across CampusBites.
+        </p>
+    </section>
 
             <section class="flex gap-2">
                 <button id="exportCsvBtn"
-                    class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2 text-sm">
+                    class="bg-green-600 text-white px-5 py-3 rounded-2xl hover:bg-green-700 flex items-center gap-2 text-sm font-semibold shadow-xl shadow-green-100 transition">
                     <i data-lucide="download" class="w-4 h-4"></i> Export CSV
                 </button>
 
                 <button id="exportPdfBtn"
-                    class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2 text-sm">
+                    class="bg-red-600 text-white px-5 py-3 rounded-2xl hover:bg-red-700 flex items-center gap-2 text-sm font-semibold shadow-xl shadow-red-100 transition">
                     <i data-lucide="file-text" class="w-4 h-4"></i> Export PDF
                 </button>
             </section>
         </header>
 
         <section class="grid md:grid-cols-3 gap-6 mb-8">
-            <article class="bg-white p-6 rounded-xl shadow-sm">
+            <article class="bg-white/95 backdrop-blur p-6 rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50">
                 <h3 class="text-gray-500 text-sm mb-2">Sales per Vendor (Last 7 Days)</h3>
                 <canvas id="salesChart" height="200"></canvas>
             </article>
 
-            <article class="bg-white p-6 rounded-xl shadow-sm">
-                <h3 class="text-gray-500 text-sm mb-2">Peak Ordering Hours</h3>
+            <article class="bg-white/95 backdrop-blur p-6 rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50">
+                <h3 class="text-gray-700 text-sm font-bold mb-4">>Peak Ordering Hours</h3>
                 <canvas id="peakChart" height="200"></canvas>
             </article>
 
-            <article class="bg-white p-6 rounded-xl shadow-sm">
-                <h3 class="text-gray-500 text-sm mb-2">Popular Items</h3>
+            <article class="bg-white/95 backdrop-blur p-6 rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50">
+                <h3 class="text-gray-700 text-sm font-bold mb-4">>Popular Items</h3>
                 <canvas id="itemsChart" height="200"></canvas>
             </article>
         </section>
 
-        <section class="bg-white rounded-xl shadow-sm p-6">
-            <h3 class="font-semibold mb-4">Custom Report</h3>
+        <section class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50">
+            <h3 class="text-xl font-extrabold mb-4 text-gray-900">Custom Report</h3>
 
             <section class="grid md:grid-cols-4 gap-4 mb-6">
 
                 <section>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
-                    <select id="report-range" class="w-full border rounded-lg px-3 py-2">
+                    <select id="report-range" class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
                         <option value="7">Last 7 Days</option>
                         <option value="30">Last 30 Days</option>
                         <option value="90">Last 90 Days</option>
@@ -117,7 +141,7 @@
 
                 <section class="flex items-end">
                     <button id="generateReportBtn"
-                        class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+                        class="w-full bg-indigo-600 text-white px-4 py-3 rounded-xl hover:bg-indigo-700 font-semibold shadow-xl shadow-indigo-100 transition">
                         Generate Report
                     </button>
                 </section>
@@ -126,7 +150,7 @@
 
             <section id="custom-report-view" class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-50">
+                    <thead class="bg-indigo-50">
                         <tr>
                             <th class="px-4 py-2 text-left">Date</th>
                             <th class="px-4 py-2 text-left">Vendor</th>
@@ -139,7 +163,9 @@
                 </table>
             </section>
         </section>
-    </section>
+      </section>
+</main>
+
 <script src="scripts/pwa.js"></script>
 <script type="module" src="./scripts/navbar.js"></script>
 <script type="module">

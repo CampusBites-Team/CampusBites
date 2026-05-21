@@ -13,11 +13,23 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="CampusBites">
+
+  <style>
+  @keyframes floatSoft {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-14px) rotate(3deg); }
+  }
+
+  .float-soft {
+    animation: floatSoft 5s ease-in-out infinite;
+  }
+</style>
+
 </head>
 
-<body class="min-h-screen bg-gray-100">
+<body class="min-h-screen bg-gradient-to-br from-white via-indigo-50 to-white text-gray-900">
 
-<nav class="bg-white border-b border-gray-200 shadow-sm">
+<nav class="bg-white/95 backdrop-blur border-b border-indigo-100 shadow-sm sticky top-0 z-40">
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
     <a href="index.html" class="flex items-center gap-2">
       <img
@@ -106,14 +118,22 @@
   </section>
 </nav>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <main class="relative overflow-hidden min-h-[calc(100vh-4rem)]">
+  <section class="absolute -left-28 top-32 w-96 h-80 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
+  <section class="absolute -right-20 bottom-6 w-[430px] h-[360px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
+  <section class="absolute right-56 top-24 w-60 h-48 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-80"></section>
 
-    <section class="bg-white rounded-2xl shadow-md p-6 mb-8">
+  <span class="absolute left-28 top-40 text-indigo-500 text-5xl font-bold float-soft">+</span>
+  <span class="absolute right-80 top-72 text-orange-500 text-4xl font-bold float-soft">✦</span>
+
+  <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <section class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50 p-6 mb-8">
       <section class="flex flex-col md:flex-row gap-6 items-center md:items-start">
 
         <section
           id="vendorImageFallback"
-          class="w-32 h-32 rounded-full border border-gray-200 bg-gray-100 flex items-center justify-center"
+          class="w-32 h-32 rounded-full border-4 border-indigo-100 bg-indigo-50 flex items-center justify-center shadow-xl shadow-indigo-100"
         >
           <i data-lucide="store" class="w-14 h-14 text-gray-400"></i>
         </section>
@@ -122,7 +142,7 @@
           id="vendorImage"
           src=""
           alt="Vendor logo"
-          class="hidden w-32 h-32 rounded-full object-cover border border-gray-200 bg-gray-100"
+          class="hidden w-32 h-32 rounded-full object-cover border-4 border-indigo-100 bg-gray-100 shadow-xl shadow-indigo-100"
         />
 
         <section class="flex-1 text-center md:text-left">
@@ -142,7 +162,7 @@
             </span>
           </section>
 
-          <h1 id="vendorName" class="text-3xl md:text-4xl font-bold text-gray-900">
+          <h1 id="vendorName" class="text-4xl md:text-5xl font-extrabold text-indigo-950">
             Vendor Name
           </h1>
 
@@ -172,25 +192,30 @@
     </section>
 
     <section class="mb-8">
-      <header class="mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">
-          Vendor Menu
-        </h2>
-        <p class="text-gray-600">
-          View available items from this vendor.
-        </p>
-      </header>
+      <header class="mb-6 max-w-4xl">
+  <p class="text-sm font-semibold text-orange-500 uppercase tracking-wide">Browse food</p>
+
+  <h2 class="text-3xl font-extrabold text-gray-900">
+    Vendor Menu
+  </h2>
+
+  <p class="mt-2 text-gray-600 leading-relaxed">
+    View available items, prices, and details from this vendor.
+  </p>
+</header>
 
       <section id="vendorMenu" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <p class="text-gray-500">Loading menu items...</p>
       </section>
     </section>
-    <section class="mt-10">
-  <h2 class="text-2xl font-bold text-gray-900 mb-4">Reviews</h2>
+    <section class="mt-10 bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50 p-6">
+  <h2 class="text-3xl font-extrabold text-gray-900 mb-4">Reviews</h2>
   <section id="vendorReviews" class="space-y-4"></section>
 </section>
 
-  </main>
+    </section>
+</main>
+
 <script src="scripts/pwa.js"></script>
   <script type="module">
     import { initAuthUI, logout } from "./scripts/auth.js";
