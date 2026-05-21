@@ -18,19 +18,24 @@
       "src": "assets/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
+    },{
+          "src": "/assets/icons/maskable-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
   "screenshots": [
   {
     "src": "assets/screenshots/desktop-home.png",
-    "sizes": "1364x599",
+    "sizes": "1361x599",
     "type": "image/png",
     "form_factor": "wide",
     "label": "CampusBites desktop home page"
   },
   {
     "src": "assets/screenshots/mobile-home.png",
-    "sizes": "379x506",
+    "sizes": "335x508",
     "type": "image/png",
     "form_factor": "narrow",
     "label": "CampusBites mobile home page"
