@@ -1,5 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
+<style>
+  @keyframes floatSoft {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-14px) rotate(3deg); }
+  }
+
+  .float-soft {
+    animation: floatSoft 5s ease-in-out infinite;
+  }
+</style>
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,7 +27,7 @@
   <meta name="apple-mobile-web-app-title" content="CampusBites">
 </head>
 
-<body class="min-h-screen bg-gray-100">
+<body class="min-h-screen bg-white text-slate-900 overflow-x-hidden">
 
 <nav class="bg-white border-b border-gray-200 shadow-sm">
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
@@ -105,25 +117,40 @@
     </section>
   </section>
 </nav>
-  <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <main class="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50 to-white px-4 sm:px-6 lg:px-8 py-12">
 
-    <header class="mb-10">
-      <h1 class="text-3xl md:text-4xl font-bold text-gray-900">
+    <section class="absolute -left-28 top-28 w-96 h-80 bg-indigo-100 rounded-full opacity-60"></section>
+<section class="absolute -right-24 top-40 w-[430px] h-[340px] bg-orange-100 rounded-full opacity-60"></section>
+<section class="absolute left-16 bottom-20 w-80 h-56 bg-orange-100 rounded-full opacity-50"></section>
+<section class="absolute right-28 bottom-12 w-96 h-64 bg-indigo-100 rounded-full opacity-50"></section>
+
+<span class="absolute left-20 top-36 text-indigo-500 text-6xl font-bold float-soft">+</span>
+<span class="absolute right-32 top-52 text-orange-500 text-5xl font-bold float-soft">✦</span>
+<span class="absolute left-[48%] bottom-24 text-indigo-400 text-4xl font-bold float-soft">↝</span>
+
+<i data-lucide="user-circle" class="absolute right-24 top-32 w-24 h-24 text-orange-500 float-soft"></i>
+<i data-lucide="camera" class="absolute left-28 bottom-28 w-24 h-24 text-indigo-600 float-soft"></i>
+<i data-lucide="settings" class="absolute right-[40%] bottom-20 w-20 h-20 text-indigo-500 float-soft"></i>
+
+<section class="relative z-10 max-w-5xl mx-auto">
+
+    <header class="mb-10 bg-white/95 backdrop-blur rounded-[1.7rem] p-8 shadow-xl shadow-indigo-100 border border-indigo-100">
+      <h1 class="text-5xl md:text-6xl font-extrabold text-indigo-950">
         My Account
       </h1>
-      <p class="mt-2 text-gray-600">
+      <p class="mt-3 text-lg font-semibold text-slate-600">
         View your account details and update your customer information.
       </p>
     </header>
 
     <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-      <article class="bg-white rounded-2xl shadow-md p-6">
+      <article class="bg-white/95 backdrop-blur rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100 p-6">
         <header class="mb-6">
-          <h2 class="text-2xl font-bold text-gray-900">
+          <h2 class="text-2xl font-extrabold text-indigo-950">
             Account Preview
           </h2>
-          <p class="text-gray-600">
+          <p class="text-slate-600">
             This is your saved customer account information.
           </p>
         </header>
@@ -132,31 +159,31 @@
 
           <section
             id="profileImageFallback"
-            class="w-32 h-32 mx-auto rounded-full border border-gray-200 bg-gray-100 flex items-center justify-center"
+            class="w-32 h-32 mx-auto rounded-full border-4 border-indigo-100 bg-indigo-50 flex items-center justify-center shadow-lg"
           >
-            <i data-lucide="user" class="w-14 h-14 text-gray-400"></i>
+            <i data-lucide="user" class="w-14 h-14 text-indigo-400"></i>
           </section>
 
           <img
             id="profileImage"
             src=""
             alt="Customer profile picture"
-            class="hidden w-32 h-32 mx-auto rounded-full object-cover border border-gray-200 bg-gray-100"
+            class="hidden w-32 h-32 mx-auto rounded-full object-cover border-4 border-indigo-100 bg-indigo-50 shadow-lg"
           />
 
-          <h2 id="profileName" class="mt-4 text-xl font-semibold text-gray-900">
+          <h2 id="profileName" class="mt-4 text-xl font-extrabold text-indigo-950">
             Customer Name
           </h2>
 
-          <p id="profileEmail" class="text-gray-600">
+          <p id="profileEmail" class="text-slate-600">
             customer@email.com
           </p>
         </section>
       </article>
 
-      <article class="lg:col-span-2 bg-white rounded-2xl shadow-md p-6">
+      <article class="lg:col-span-2 bg-white/95 backdrop-blur rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100 p-6">
         <header class="mb-6">
-          <h2 class="text-2xl font-bold text-gray-900">
+          <h2 class="text-2xl font-extrabold text-indigo-950">
             Edit Account
           </h2>
           <p class="text-gray-600">
@@ -167,13 +194,13 @@
         <form id="profileForm" class="space-y-5">
 
           <section>
-            <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">
+            <label for="fullName" class="block text-sm font-semibold text-indigo-950 mb-2">
               Full Name
             </label>
             <input
               type="text"
               id="fullName"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              class="w-full px-4 py-3 border border-indigo-100 rounded-2xl bg-indigo-50/40 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm"
               placeholder="Enter your full name"
             />
           </section>
@@ -185,7 +212,7 @@
             <input
               type="email"
               id="email"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+              class="w-full px-4 py-3 border border-indigo-100 rounded-2xl bg-slate-100 text-slate-600 shadow-sm"
               readonly
             />
           </section>
@@ -197,7 +224,7 @@
             <input
               type="tel"
               id="phone"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              class="w-full px-4 py-3 border border-indigo-100 rounded-2xl bg-indigo-50/40 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm"
               placeholder="Optional"
             />
           </section>
@@ -209,13 +236,13 @@
             <input
               type="text"
               id="role"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+              class="w-full px-4 py-3 border border-indigo-100 rounded-2xl bg-slate-100 text-slate-600 shadow-sm"
               readonly
             />
           </section>
 
           <section>
-            <label for="profileImageInput" class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="profileImageInput" class="block text-sm font-semibold text-indigo-950 mb-2">
               Profile Picture
             </label>
 
@@ -223,10 +250,10 @@
               type="file"
               id="profileImageInput"
               accept="image/png, image/jpeg"
-              class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none"
+              class="block w-full text-sm text-slate-700 border border-indigo-100 rounded-2xl cursor-pointer bg-indigo-50/40 focus:outline-none shadow-sm file:mr-4 file:py-3 file:px-4 file:rounded-l-2xl file:border-0 file:bg-indigo-600 file:text-white file:font-bold hover:file:bg-indigo-700"
             />
 
-            <p class="mt-2 text-sm text-gray-500">
+            <p class="mt-2 text-sm text-slate-500">
               Only PNG or JPG images are allowed.
             </p>
           </section>
@@ -254,7 +281,7 @@
           <footer class="flex justify-end">
             <button
               type="submit"
-              class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition"
+              class="bg-indigo-600 text-white px-7 py-3 rounded-2xl font-bold hover:bg-indigo-700 transition shadow-xl shadow-indigo-200"
             >
               Save Changes
             </button>
@@ -264,7 +291,7 @@
       </article>
 
     </section>
-
+    </section>
   </main>
   <script src="scripts/pwa.js"></script>
   <script type="module" src="./scripts/navbar.js"></script>
