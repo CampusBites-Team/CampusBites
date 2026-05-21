@@ -1504,4 +1504,148 @@ test("redirects unauthenticated, missing, non-vendor, pending and suspended user
   expect(global.alert).toHaveBeenCalledWith("Your account is suspended");
   expect(locationFive.href).toBe("login.html");
 });
+test("covers shop name and location validation branches", async () => {
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.getElementById("shopName").value = "";
+  document.getElementById("location").value = "Matrix";
+
+  document.getElementById("vendorDetailsForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  expect(global.alert).toHaveBeenCalledWith("Please enter your shop name.");
+
+  global.alert.mockClear();
+
+  document.getElementById("shopName").value = "Test Shop";
+  document.getElementById("location").value = "";
+
+  document.getElementById("vendorDetailsForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  expect(global.alert).toHaveBeenCalledWith("Please enter your shop location.");
+});
+
+test("covers successful banking details save branch", async () => {
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  global.fetch.mockResolvedValue({
+    ok: true
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.getElementById("settings-bank-name").value = "absa";
+  document.getElementById("settings-account-holder").value = "Jane Doe";
+  document.getElementById("settings-account-number").value = "123456789";
+  document.getElementById("settings-branch-code").value = "632005";
+  document.getElementById("settings-account-type").value = "savings";
+
+  document.getElementById("bankingDetailsForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(document.getElementById("savedBankingDetails").textContent)
+    .toBe("ABSA • •••••6789");
+
+  expect(global.alert).toHaveBeenCalledWith(
+    "Banking details updated successfully."
+  );
+});
+
+test("covers weekend checkbox add and remove hidden branches", async () => {
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  const checkbox = document.getElementById("closedWeekends");
+  const container = document.getElementById("weekendHoursContainer");
+
+  checkbox.checked = true;
+  checkbox.dispatchEvent(new Event("change"));
+
+  expect(container.classList.contains("hidden")).toBe(true);
+
+  checkbox.checked = false;
+  checkbox.dispatchEvent(new Event("change"));
+
+  expect(container.classList.contains("hidden")).toBe(false);
+});
+
+test("covers immediate init when document is already loaded", async () => {
+  jest.resetModules();
+
+  Object.defineProperty(document, "readyState", {
+    value: "complete",
+    configurable: true
+  });
+
+  const database = require("../scripts/database.js");
+
+  database.getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved"
+    })
+  });
+
+  database.onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  require("../scripts/vendor-settings.js");
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(database.onAuthStateChanged).toHaveBeenCalled();
+});
 });
