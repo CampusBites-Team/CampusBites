@@ -111,7 +111,7 @@ function updateCart() {
       }
 
       html += `
-        <article class="relative bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <article class="relative bg-white p-4 rounded-xl shadow-sm border border-gray-100 w-full max-w-xs">
           <img 
             src="${cart[i].image || cart[i].imageUrl || "assets/default_vendor.jpg"}"
             alt="${cart[i].name || "Menu item"}"
