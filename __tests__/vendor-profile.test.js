@@ -457,4 +457,19 @@ describe("vendor-profile.js", () => {
 
     expect(showToast).toHaveBeenCalledWith("This vendor profile is not available.", "error");
   });
+  
+  test("shows weekends as closed when vendor is closed on weekends", async () => {
+  mockVendorData({
+    closedWeekends: true,
+    weekendOpeningTime: "",
+    weekendClosingTime: ""
+  });
+
+  mockSnapshots({ menuItems: [], reviews: [] });
+
+  await loadVendorProfile();
+
+  expect(document.getElementById("vendorHours").textContent)
+    .toContain("Weekends: Closed");
+});
 });

@@ -6,11 +6,24 @@
   <title>Order Management</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="icon" type="image/png" href="assets/icons/1-removebg-preview.png">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#4f46e5">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="CampusBites">
+
+  <style>
+  @keyframes floatSoft {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-14px) rotate(3deg); }
+  }
+
+  .float-soft {
+    animation: floatSoft 5s ease-in-out infinite;
+  }
+</style>
 </head>
 <style>
   #loading-screen {
@@ -144,37 +157,50 @@
   </section>
 </nav>
 
-  <main class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <header class="flex justify-between items-center mb-8">
-      <section>
-        <h2 class="text-2xl font-bold">Order Management</h2>
-        <p class="text-gray-600">Drag orders forward through the workflow.</p>
-      </section>
-    </header>
+  <main class="relative overflow-hidden min-h-[calc(100vh-4rem)]">
+  <section class="absolute -left-28 top-32 w-96 h-80 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
+  <section class="absolute -right-20 bottom-6 w-[430px] h-[360px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
+  <section class="absolute right-56 top-24 w-60 h-48 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-80"></section>
 
-    <section class="py-12 bg-gray-50 rounded-2xl shadow">
+  <span class="absolute left-28 top-40 text-indigo-500 text-5xl font-bold float-soft">+</span>
+  <span class="absolute right-80 top-72 text-orange-500 text-4xl font-bold float-soft">✦</span>
+
+  <section class="relative z-10 max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <header class="mb-8 max-w-4xl">
+  <p class="text-sm font-semibold text-orange-500 uppercase tracking-wide">Vendor workflow</p>
+
+  <h2 class="text-5xl md:text-6xl font-extrabold text-indigo-950 leading-tight mt-1">
+    Order Management
+  </h2>
+
+  <p class="mt-4 text-gray-600 leading-relaxed">
+    Drag orders forward through the workflow from pending to collected.
+  </p>
+</header>
+
+    <section class="py-8 bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50">
       <section class="max-w-full mx-auto px-4">
 
         <header class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
-          <article class="bg-white p-6 rounded-2xl shadow">
+          <article class="bg-indigo-50/70 p-6 rounded-[1.7rem] border border-indigo-100 shadow-sm">
             <i data-lucide="rocket" class="w-8 h-8 text-blue-500 mb-4"></i>
             <h3 class="text-xl font-semibold mb-2">Pending</h3>
             <p class="text-gray-600">Newly placed orders start here.</p>
           </article>
 
-          <article class="bg-white p-6 rounded-2xl shadow">
+          <article class="bg-indigo-50/70 p-6 rounded-[1.7rem] border border-indigo-100 shadow-sm">
             <i data-lucide="shield" class="w-8 h-8 text-green-500 mb-4"></i>
             <h3 class="text-xl font-semibold mb-2">Preparing</h3>
             <p class="text-gray-600">Drag Pending orders here when preparation starts.</p>
           </article>
 
-          <article class="bg-white p-6 rounded-2xl shadow">
+          <article class="bg-indigo-50/70 p-6 rounded-[1.7rem] border border-indigo-100 shadow-sm">
             <i data-lucide="badge-check" class="w-8 h-8 text-yellow-500 mb-4"></i>
             <h3 class="text-xl font-semibold mb-2">Ready</h3>
             <p class="text-gray-600">Drag Preparing orders here when ready for collection.</p>
           </article>
 
-          <article class="bg-white p-6 rounded-2xl shadow">
+          <article class="bg-indigo-50/70 p-6 rounded-[1.7rem] border border-indigo-100 shadow-sm">
             <i data-lucide="users" class="w-8 h-8 text-purple-500 mb-4"></i>
             <h3 class="text-xl font-semibold mb-2">Collected</h3>
             <p class="text-gray-600">Drag Ready orders here once collected.</p>
@@ -182,24 +208,25 @@
         </header>
 
         <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 mt-2">
-          <section id="newOrders" aria-label="Pending orders" class="bg-white p-6 rounded-2xl shadow min-h-64">
+          <section id="newOrders" aria-label="Pending orders" class="bg-white/95 p-6 rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-50 min-h-64">
             <i data-lucide="rocket" class="w-8 h-8 text-blue-500 mb-4"></i>
           </section>
 
-          <section id="preparingOrders" aria-label="Preparing orders" class="bg-white p-6 rounded-2xl shadow min-h-64">
+          <section id="preparingOrders" aria-label="Preparing orders" class="bg-white/95 p-6 rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-50 min-h-64">
             <i data-lucide="shield" class="w-8 h-8 text-green-500 mb-4"></i>
           </section>
 
-          <section id="readyOrders" aria-label="Ready orders" class="bg-white p-6 rounded-2xl shadow min-h-64">
+          <section id="readyOrders" aria-label="Ready orders" class="bg-white/95 p-6 rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-50 min-h-64">
             <i data-lucide="badge-check" class="w-8 h-8 text-yellow-500 mb-4"></i>
           </section>
 
-          <section id="completedOrders" aria-label="Collected orders" class="bg-white p-6 rounded-2xl shadow min-h-64">
+          <section id="completedOrders" aria-label="Collected orders" class="bg-white/95 p-6 rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-50 min-h-64">
             <i data-lucide="users" class="w-8 h-8 text-purple-500 mb-4"></i>
           </section>
         </section>
 
       </section>
+    </section>
     </section>
   </main>
 </main>

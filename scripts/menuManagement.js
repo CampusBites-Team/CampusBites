@@ -41,13 +41,20 @@ auth.onAuthStateChanged(async (user) => {
 });
 function getApprovalBadge(status = "pending") {
   const classes = {
-    pending: "bg-yellow-100 text-yellow-800",
-    approved: "bg-green-100 text-green-800",
-    suspended: "bg-red-100 text-red-800"
+    pending: "status-pill status-pending",
+    approved: "status-pill status-approved",
+    suspended: "status-pill status-sold-out"
+  };
+
+  const icons = {
+    pending: "clock",
+    approved: "circle-check",
+    suspended: "circle-alert"
   };
 
   return `
-    <span class="px-2 py-1 rounded-full text-xs font-semibold capitalize ${classes[status] || classes.pending}">
+    <span class="${classes[status] || classes.pending}">
+      <i data-lucide="${icons[status] || icons.pending}" class="w-4 h-4"></i>
       ${status}
     </span>
   `;
@@ -66,49 +73,59 @@ initMenuManagement: async () => {
     const tbody = document.getElementById('menu-table-body');
     if (!tbody) return;
     tbody.innerHTML = items.map(item => `
-        <tr>
-        <td class="px-6 py-4">
-        <section class="flex items-center gap-3">
-            <img src="${item.image}" class="w-10 h-10 rounded object-cover">
-            <span>${item.name}</span>
-            </section>
-        </td> 
-            <td class="px-6 py-4">${item.category}</td>
-            <td class="px-6 py-4">R${item.price}</td>
-            <td class="px-6 py-4 space-y-2">
-                <section>
-                    ${getApprovalBadge(item.status || "pending")}
+        <tr class="hover:bg-indigo-50/40 transition">
+            <td class="px-6 py-6">
+                <section class="flex items-center gap-4">
+                    <img src="${item.image}" alt="${item.name}" class="w-14 h-14 rounded-xl object-cover shadow-sm">
+                    <span class="font-medium text-gray-900">${item.name}</span>
                 </section>
+            </td>
 
-                <section>
-                    <span class="px-2 py-1 rounded-full text-xs ${item.available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+            <td class="px-6 py-6 text-gray-700">${item.category}</td>
+
+            <td class="px-6 py-6 font-semibold text-gray-900">R${item.price}</td>
+
+            <td class="px-6 py-6">
+                <section class="flex flex-col gap-2">
+                    ${getApprovalBadge(item.status || "pending")}
+
+                    <span class="status-pill ${item.available ? 'status-available' : 'status-sold-out'}">
+                        <i data-lucide="${item.available ? 'circle' : 'circle-x'}" class="w-4 h-4"></i>
                         ${item.available ? 'Available' : 'Sold Out'}
                     </span>
-                </section>
 
-                ${
-                item.status === "suspended" && item.reviewReason
-                    ? `<p class="text-xs text-red-600 mt-2">
-                        Admin review: ${item.reviewReason}
-                    </p>`
-                    : ""
-                }
+                    ${
+                    item.status === "suspended" && item.reviewReason
+                        ? `<p class="text-xs text-red-600 mt-2">
+                            Admin review: ${item.reviewReason}
+                        </p>`
+                        : ""
+                    }
+                </section>
             </td>
-            <td class="px-6 py-4">
-                <button onclick="views.openEditItem('${item.id}')">
-                    Edit
-                </button>
-                <button onclick="views.toggleAvailability('${item.id}', ${item.available} )"
-                    class="text-sm text-indigo-600 hover:text-indigo-800">
-                    ${item.available ? 'Mark Sold Out' : 'Restock'}
-                </button>
-                <button onclick="views.deleteItem('${item.id}')"
-                    class="text-red-600">
-                    Delete
-                </button>
+
+            <td class="px-6 py-6">
+                <section class="flex flex-wrap items-center gap-3">
+                    <button onclick="views.openEditItem('${item.id}')" class="action-btn action-edit">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                        Edit
+                    </button>
+
+                    <button onclick="views.toggleAvailability('${item.id}', ${item.available})" class="action-btn action-sold">
+                        <i data-lucide="${item.available ? 'badge-minus' : 'badge-plus'}" class="w-4 h-4"></i>
+                        ${item.available ? 'Mark Sold Out' : 'Restock'}
+                    </button>
+
+                    <button onclick="views.deleteItem('${item.id}')" class="action-btn action-delete">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        Delete
+                    </button>
+                </section>
             </td>
         </tr>
     `).join('');
+
+globalThis.lucide?.createIcons?.();
 },  
 openEditItem: async (id) => {
     const snap = await getDocs(query(collection(db, "menu_items"), where("vendorId", "==", currentUser.uid)));

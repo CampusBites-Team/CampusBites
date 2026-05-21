@@ -1,14 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <title>CampusBites - Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="icon" type="image/png" href="assets/icons/1-removebg-preview.png">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4f46e5">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="CampusBites">
+
+    <style>
+  @keyframes floatSoft {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-14px) rotate(3deg); }
+  }
+
+  .float-soft {
+    animation: floatSoft 5s ease-in-out infinite;
+  }
+</style>
+
 </head>
 <style>
     #loading-screen {
@@ -87,29 +102,46 @@
         </section>
     </section>
     </nav>
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <h2 class="text-5xl md:text-7xl font-extrabold leading-[1.05] text-indigo-950 mb-8">Admin Dashboard</h2>
+    <main class="relative overflow-hidden min-h-[calc(100vh-4rem)]">
+  <section class="absolute -left-28 top-32 w-96 h-80 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
+  <section class="absolute -right-20 bottom-6 w-[430px] h-[360px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
+  <section class="absolute right-56 top-24 w-60 h-48 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-80"></section>
+
+  <span class="absolute left-28 top-40 text-indigo-500 text-5xl font-bold float-soft">+</span>
+  <span class="absolute right-80 top-72 text-orange-500 text-4xl font-bold float-soft">✦</span>
+
+  <i data-lucide="shield-check" class="absolute right-28 bottom-48 w-20 h-20 text-orange-500 float-soft opacity-60 pointer-events-none -z-0"></i>
+<i data-lucide="layout-dashboard" class="absolute right-72 top-36 w-20 h-20 text-indigo-600 float-soft opacity-60 pointer-events-none -z-0"></i>
+
+  <section class="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <header class="mb-8 max-w-4xl">
+  <p class="text-sm font-semibold text-orange-500 uppercase tracking-wide">Admin overview</p>
+  <h2 class="text-5xl md:text-7xl font-extrabold leading-[1.05] text-indigo-950 mt-1">Admin Dashboard</h2>
+  <p class="mt-4 text-gray-600 leading-relaxed">
+    Monitor vendor activity, approval requests, revenue, system health, and key admin tools from one dashboard.
+  </p>
+</header>
     
     <section class="grid md:grid-cols-4 gap-6 mb-8">
 
-        <article class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-indigo-500">
+        <article class="bg-white/95 backdrop-blur p-6 rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100">
             <p class="text-gray-500 text-sm">Total Vendors</p>
             <p class="text-2xl font-bold" id="admin-total-vendors">0</p>
         </article>
 
-        <article class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
-            <p class="text-gray-500 text-sm">Active Today</p>
-            <p class="text-2xl font-bold" id="admin-active-today">0</p>
+        <article class="bg-white/95 backdrop-blur p-6 rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-green-100">
+            <p class="text-gray-500 text-sm font-medium">Active Today</p>
+            <p class="text-3xl font-extrabold mt-2" id="admin-active-today">0</p>
         </article>
 
-        <article class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500">
-            <p class="text-gray-500 text-sm">Pending Approval</p>
-            <p class="text-2xl font-bold" id="admin-pending">0</p>
+        <article class="bg-white/95 backdrop-blur p-6 rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-orange-100">
+            <p class="text-gray-500 text-sm font-medium">Pending Approval</p>
+            <p class="text-3xl font-extrabold mt-2" id="admin-pending">0</p>
         </article>
 
-        <article class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500">
-            <p class="text-gray-500 text-sm">Total Revenue</p>
-            <p class="text-2xl font-bold" id="admin-total-revenue">R0.00</p>
+        <article class="bg-white/95 backdrop-blur p-6 rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-red-100">
+            <p class="text-gray-500 text-sm font-medium">Total Revenue</p>
+            <p class="text-3xl font-extrabold mt-2" id="admin-total-revenue">R0.00</p>
         </article>
 
     </section>
@@ -117,14 +149,14 @@
     <section class="grid md:grid-cols-2 gap-6">
 
         <!-- System Health -->
-        <section class="bg-white rounded-xl shadow-sm p-6">
-            <h3 class="font-semibold mb-4">System Health</h3>
+        <section class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50">
+            <h3 class="text-xl font-extrabold mb-4 text-gray-900">System Health</h3>
 
             <section class="space-y-3">
 
-                <article class="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                <article id ="paystack-health" class="flex justify-between items-center p-3 bg-green-50 rounded-lg">
                     <span class="text-green-800">Payment Gateway</span>
-                    <span class="text-green-600 text-sm font-medium">Operational</span>
+                      <span class="text-gray-600 text-sm font-medium">Checking…</span>
                 </article>
 
                 <article class="flex justify-between items-center p-3 bg-green-50 rounded-lg">
@@ -141,25 +173,25 @@
         </section>
 
         <!-- Quick Actions -->
-        <section class="bg-white rounded-xl shadow-sm p-6">
-            <h3 class="font-semibold mb-4">Quick Actions</h3>
+        <section class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50">
+            <h3 class="text-xl font-extrabold mb-4 text-gray-900">Quick Actions</h3>
 
             <section class="grid grid-cols-2 gap-3">
 
                 <button id="manageVendorsBtn"
-                    class="p-3 border rounded-lg hover:bg-gray-50 text-left">
+                    class="p-4 border border-indigo-100 rounded-2xl hover:bg-indigo-50 text-left transition shadow-sm bg-white">
                     <i data-lucide="store" class="w-5 h-5 mb-2 text-indigo-600"></i>
                     <span class="text-sm font-medium">Manage Vendors</span>
                 </button>
 
                 <button id="viewAnalyticsBtn"
-                    class="p-3 border rounded-lg hover:bg-gray-50 text-left">
+                    class="p-4 border border-indigo-100 rounded-2xl hover:bg-indigo-50 text-left transition shadow-sm bg-white">
                     <i data-lucide="bar-chart-2" class="w-5 h-5 mb-2 text-green-600"></i>
                     <span class="text-sm font-medium">View Analytics</span>
                 </button>
 
                 <a href="admin-payouts.html"
-                    class="p-3 border rounded-lg hover:bg-gray-50 text-left block">
+                    class="p-4 border border-indigo-100 rounded-2xl hover:bg-indigo-50 text-left transition shadow-sm bg-white">
                     <i data-lucide="wallet" class="w-5 h-5 mb-2 text-indigo-600"></i>
                     <span class="text-sm font-medium">Vendor Payouts</span>
                 </a>

@@ -15,6 +15,15 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/f
 
 let selectedProfileImage = null;
 
+function cleanPhoneNumber(phone) {
+  return phone.replace(/\s/g, "");
+}
+
+function isValidPhoneNumber(phone) {
+  const cleanedPhone = cleanPhoneNumber(phone);
+  return /^\d{10}$/.test(cleanedPhone);
+}
+
 function isValidProfileImage(file) {
   if (!file) return false;
 
@@ -54,6 +63,7 @@ async function uploadProfileImage(file, uid) {
 export function initCustomerProfile() {
   const profileForm = document.getElementById("profileForm");
   const profileImageInput = document.getElementById("profileImageInput");
+  const deleteAccountBtn = document.getElementById("deleteAccountBtn");
 
   let currentUser = null;
   let currentUserData = null;
@@ -119,6 +129,12 @@ export function initCustomerProfile() {
 
     const fullName = document.getElementById("fullName").value.trim();
     const phone = document.getElementById("phone").value.trim();
+    const cleanedPhone = cleanPhoneNumber(phone);
+
+    if (!isValidPhoneNumber(phone)) {
+      alert("Phone number must be exactly 10 digits.");
+      return;
+    }
 
     try {
       let imageURL = currentUserData.image || null;
@@ -131,14 +147,14 @@ export function initCustomerProfile() {
 
       await updateDoc(userRef, {
         fullName,
-        phone,
+        phone: cleanedPhone,
         image: imageURL
       });
 
       currentUserData = {
         ...currentUserData,
         fullName,
-        phone,
+        phone: cleanedPhone,
         image: imageURL
       };
 
@@ -149,6 +165,15 @@ export function initCustomerProfile() {
       console.error(error);
       showToast("Could not update profile.", "error");
     }
+  });
+
+  deleteAccountBtn?.addEventListener("click", async () => {
+    if (!currentUser || !currentUserData) {
+      alert("Profile could not be loaded.");
+      return;
+    }
+
+    await requestAccountDeletion(currentUser.uid, currentUserData.email);
   });
 }
 

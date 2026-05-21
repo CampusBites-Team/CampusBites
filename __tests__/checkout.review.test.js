@@ -11,7 +11,8 @@ jest.mock("../scripts/database.js", () => ({
   getDoc: jest.fn(),
   addDoc: jest.fn(),
   updateDoc: jest.fn(),
-  doc: jest.fn((db, collectionName, id) => ({
+  collection: jest.fn((_db, collectionName) => collectionName),
+  doc: jest.fn((_db, collectionName, id) => ({
     collectionName,
     id
   })),
@@ -19,7 +20,7 @@ jest.mock("../scripts/database.js", () => ({
   collection: jest.fn((db, collectionName) => collectionName),
   query: jest.fn((collectionName, ...conditions) => ({
     collectionName,
-    conditions
+    condition
   })),
   where: jest.fn((field, operator, value) => ({
     field,
@@ -42,8 +43,12 @@ describe("customer-orders review flow", () => {
   beforeEach(async () => {
     jest.resetModules();
     jest.clearAllMocks();
+    database = require("../scripts/database.js");
 
     document.body.innerHTML = `
+      <input type="date" id="orderDateFilter" />
+      <select id="vendorFilter"></select>
+
       <section id="active-orders"></section>
       <section id="ready-orders"></section>
       <section id="refund-orders"></section>
@@ -77,63 +82,7 @@ describe("customer-orders review flow", () => {
       })
     });
 
-    database.getDocs.mockImplementation(async (queryObj) => {
-      if (queryObj.collectionName === "orders") {
-        return {
-          docs: [
-            {
-              id: "order-1",
-              data: () => ({
-                userId: "customer-1",
-                vendorId: "vendor-1",
-                vendorName: "Campus Café",
-                orderNumber: 7,
-                status: "Collected",
-                reviewed: false,
-                menuItems: [
-                  {
-                    name: "Cheese Burger",
-                    quantity: 2,
-                    vendorId: "vendor-1",
-                    vendorName: "Campus Café",
-                    price: 55
-                  }
-                ],
-                createdAt: {
-                  toDate: () => new Date("2026-05-01T10:00:00")
-                },
-                updatedAt: {
-                  toDate: () => new Date("2026-05-01T11:00:00")
-                }
-              })
-            },
-            {
-              id: "order-2",
-              data: () => ({
-                userId: "customer-1",
-                vendorId: "vendor-1",
-                vendorName: "Campus Café",
-                orderNumber: 8,
-                status: "Ready",
-                reviewed: false,
-                menuItems: [
-                  {
-                    name: "Pizza",
-                    quantity: 1
-                  }
-                ]
-              })
-            }
-          ]
-        };
-      }
-
-      if (queryObj.collectionName === "reviews") {
-        return { docs: [] };
-      }
-
-      return { docs: [] };
-    });
+    mockDefaultOrders();
 
     database.addDoc.mockResolvedValue({ id: "review-1" });
     database.updateDoc.mockResolvedValue();
@@ -144,9 +93,7 @@ describe("customer-orders review flow", () => {
   });
 
   test("shows review button only for collected unreviewed orders", async () => {
-    await import("../scripts/checkOut.js");
-    await flush();
-    await flush();
+await loadCheckout();
 
     const historyHtml = document.getElementById("order-history").innerHTML;
     const readyHtml = document.getElementById("ready-orders").innerHTML;
@@ -157,9 +104,7 @@ describe("customer-orders review flow", () => {
   });
 
   test("opens review modal with order number and items", async () => {
-    await import("../scripts/checkOut.js");
-    await flush();
-    await flush();
+await loadCheckout();
 
     document.querySelector(".review-order-btn").click();
 
@@ -172,9 +117,7 @@ describe("customer-orders review flow", () => {
   });
 
   test("validates rating before submitting review", async () => {
-    await import("../scripts/checkOut.js");
-    await flush();
-    await flush();
+await loadCheckout();
 
     document.querySelector(".review-order-btn").click();
 
@@ -188,9 +131,7 @@ describe("customer-orders review flow", () => {
   });
 
   test("validates comment before submitting review", async () => {
-    await import("../scripts/checkOut.js");
-    await flush();
-    await flush();
+await loadCheckout();
 
     document.querySelector(".review-order-btn").click();
 
@@ -204,9 +145,7 @@ describe("customer-orders review flow", () => {
   });
 
   test("submits review and marks order as reviewed", async () => {
-    await import("../scripts/checkOut.js");
-    await flush();
-    await flush();
+await loadCheckout();
 
     document.querySelector(".review-order-btn").click();
 
@@ -234,10 +173,10 @@ describe("customer-orders review flow", () => {
     );
 
     expect(database.updateDoc).toHaveBeenCalledWith(
-      expect.objectContaining({
+      {
         collectionName: "orders",
         id: "order-1"
-      }),
+      },
       expect.objectContaining({
         reviewed: true,
         updatedAt: "timestamp"
@@ -248,121 +187,89 @@ describe("customer-orders review flow", () => {
   });
 
   test("does not show review button if order already reviewed", async () => {
-    database.getDocs.mockImplementation(async (queryObj) => {
-      if (queryObj.collectionName === "orders") {
-        return {
-          docs: [
-            {
-              id: "order-1",
-              data: () => ({
-                userId: "customer-1",
-                vendorId: "vendor-1",
-                vendorName: "Campus Café",
-                orderNumber: 7,
-                status: "Collected",
-                reviewed: true,
-                menuItems: [{ name: "Cheese Burger", quantity: 1 }]
-              })
-            }
-          ]
-        };
-      }
+    mockDefaultOrders({ reviewed: true });
 
-      if (queryObj.collectionName === "reviews") {
-        return { docs: [] };
-      }
-
-      return { docs: [] };
-    });
-
-    await import("../scripts/checkOut.js");
-    await flush();
-    await flush();
+await loadCheckout();;
 
     expect(document.getElementById("order-history").innerHTML)
       .toContain("Review submitted");
 
     expect(document.querySelector(".review-order-btn")).toBeNull();
   });
+
   test("prevents review submission when user is missing", async () => {
-  database.onAuthStateChanged.mockImplementation((auth, callback) => {
-    callback(null);
+    database.onAuthStateChanged.mockImplementation((_auth, callback) => {
+      callback(null);
+    });
+
+await loadCheckout();
+
+expect(document.getElementById("active-orders").textContent)
+  .toContain("Please log in");
   });
 
-  await import("../scripts/checkOut.js");
-  await flush();
-
-  expect(
-    document.getElementById("active-orders").textContent
-  ).toContain("Please log in");
-});
-
-test("prevents duplicate reviews", async () => {
-  database.getDocs.mockImplementation(async (queryObj) => {
-    if (queryObj.collectionName === "orders") {
-      return {
-        docs: [
+  test("prevents duplicate reviews", async () => {
+    database.getDocs.mockImplementation(async (queryObj) => {
+      if (queryObj.collectionName === "orders") {
+        return makeSnapshot([
           {
             id: "order-1",
-            data: () => ({
-              userId: "customer-1",
-              vendorId: "vendor-1",
-              vendorName: "Campus Café",
-              orderNumber: 7,
-              status: "Collected",
-              reviewed: true,
-              menuItems: [
-                {
-                  name: "Cheese Burger",
-                  quantity: 1
-                }
-              ]
-            })
+            userId: "customer-1",
+            vendorId: "vendor-1",
+            vendorName: "Campus Café",
+            orderNumber: 7,
+            status: "Collected",
+            reviewed: true,
+            createdAt: todayTimestamp(),
+            updatedAt: todayTimestamp(),
+            menuItems: [
+              {
+                name: "Cheese Burger",
+                quantity: 1,
+                vendorId: "vendor-1",
+                vendorName: "Campus Café"
+              }
+            ]
           }
-        ]
-      };
-    }
+        ]);
+      }
 
-    if (queryObj.collectionName === "reviews") {
-      return {
-        docs: [
-          {
-            id: "review-1",
-            data: () => ({
-              orderId: "order-1"
-            })
-          }
-        ]
-      };
-    }
+      if (queryObj.collectionName === "reviews") {
+        return {
+          docs: [
+            {
+              id: "review-1",
+              data: () => ({
+                orderId: "order-1"
+              })
+            }
+          ]
+        };
+      }
 
-    return { docs: [] };
+      return { docs: [] };
+    });
+
+await loadCheckout();
+
+    expect(document.getElementById("order-history").innerHTML)
+      .toContain("Review submitted");
   });
 
-  await import("../scripts/checkOut.js");
-  await flush();
-  await flush();
+  test("shows review failure alert", async () => {
+    database.addDoc.mockRejectedValueOnce(new Error("fail"));
 
-  expect(
-    document.getElementById("order-history").innerHTML
-  ).toContain("Review submitted");
-});
+await loadCheckout();
 
-test("shows review failure alert", async () => {
-  database.addDoc.mockRejectedValueOnce(new Error("fail"));
+    document.querySelector(".review-order-btn").click();
 
-  await import("../scripts/checkOut.js");
-  await flush();
-  await flush();
+    document.getElementById("reviewRating").value = "5";
+    document.getElementById("reviewComment").value = "Excellent";
 
-  document.querySelector(".review-order-btn").click();
+    document.getElementById("submitReviewBtn").click();
 
-  document.getElementById("reviewRating").value = "5";
-  document.getElementById("reviewComment").value = "Excellent";
-
-  document.getElementById("submitReviewBtn").click();
-
-  await flush();
+    await flush();
+    await flush();
 
   expect(showToast).toHaveBeenCalledWith("Failed to submit review.", "error");
 });

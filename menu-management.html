@@ -1,11 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
+
+<style>
+  @keyframes floatSoft {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-14px) rotate(3deg); }
+  }
+
+  .float-soft {
+    animation: floatSoft 5s ease-in-out infinite;
+  }
+
+  .status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  width: fit-content;
+  text-transform: capitalize;
+}
+
+.status-approved {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.status-available {
+  background: #dbeafe;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+
+.status-sold-out {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 0.9rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.action-edit {
+  background: #eef2ff;
+  color: #4f46e5;
+  border: 1px solid #c7d2fe;
+}
+
+.action-sold {
+  background: #fff7ed;
+  color: #f97316;
+  border: 1px solid #fed7aa;
+}
+
+.action-delete {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(79, 70, 229, 0.12);
+}
+</style>
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CampusBites - Vendor Menu Management</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="icon" type="image/png" href="assets/icons/1-removebg-preview.png">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
   <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4f46e5">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -56,7 +141,7 @@
 <main id="site-content" class="blurred">
   <!-- your website content here -->
 
-<nav class="bg-white border-b border-gray-200 shadow-sm">
+<nav class="bg-white/95 backdrop-blur border-b border-indigo-100 shadow-sm sticky top-0 z-40">
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
     <a href="index.html" class="flex items-center gap-2">
       <img
@@ -144,22 +229,34 @@
     </section>
   </section>
 </nav>
-  <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <header class="flex justify-between items-center mb-8">
+  <main class="relative overflow-hidden min-h-[calc(100vh-4rem)]">
+  <section class="absolute -left-28 top-32 w-96 h-80 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
+  <section class="absolute -right-20 bottom-6 w-[430px] h-[360px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
+  <section class="absolute right-56 top-24 w-60 h-48 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-80"></section>
+
+  <span class="absolute left-28 top-40 text-indigo-500 text-5xl font-bold float-soft">+</span>
+  <span class="absolute right-80 top-72 text-orange-500 text-4xl font-bold float-soft">✦</span>
+
+  <i data-lucide="utensils" class="absolute right-28 bottom-48 w-20 h-20 text-orange-500 float-soft"></i>
+  <i data-lucide="store" class="absolute right-72 top-36 w-20 h-20 text-indigo-600 float-soft"></i>
+
+  <section class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <header class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
         <section>
-            <h2 class="text-2xl font-bold">Menu Management</h2>
-            <p class="text-gray-600">Update your offerings and availability</p>
+            <p class="text-sm font-semibold text-orange-500 uppercase tracking-wide">Vendor tools</p>
+            <h2 class="text-4xl font-extrabold text-gray-900">Menu Management</h2>
+            <p class="text-gray-600 mt-1">Update your offerings, pricing, availability, and dietary details.</p>
         </section>
 
         <button id="add-item-btn" 
-            class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center gap-2">
+            class="bg-indigo-600 text-white px-5 py-3 rounded-2xl hover:bg-indigo-700 flex items-center gap-2 shadow-xl shadow-indigo-100 font-semibold transition">
             <i data-lucide="plus" class="w-4 h-4"></i> Add Item
         </button>
     </header>
 
-    <section class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <section class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 overflow-hidden border border-indigo-50">
         <table class="w-full">
-            <thead class="bg-gray-50">
+            <thead class="bg-indigo-50">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
@@ -173,14 +270,15 @@
             </tbody>
         </table>
     </section>
-</section>
+  </section>
+</main>
 
 <!-- Add/Edit Item Modal -->
 <section id="item-edit-modal"
-    class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
 
-    <article class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto slide-in p-6">
-        <h3 class="text-xl font-bold mb-4" id="modal-title">Add Menu Item</h3>
+    <article class="bg-white rounded-[2rem] max-w-2xl w-full max-h-[90vh] overflow-y-auto slide-in p-6 shadow-2xl">
+        <h3 class="text-2xl font-extrabold mb-4 text-gray-900" id="modal-title">Add Menu Item</h3>
 
         <form id="item-form" onsubmit="vendorActions.saveItem(event)" class="space-y-4">
             <input type="hidden" id="edit-item-id">
@@ -188,25 +286,25 @@
             <section>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Item Name</label>
                 <input type="text" id="item-name" required
-                    class="w-full border rounded-lg px-3 py-2">
+                    class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
             </section>
 
             <section>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 <textarea id="item-description" rows="3" required
-                    class="w-full border rounded-lg px-3 py-2"></textarea>
+                    class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
             </section>
 
             <section class="grid grid-cols-2 gap-4">
                 <section>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Price (R)</label>
                     <input id="item-price" type="number" min="0.01" step="0.01" required
-                        class="w-full border rounded-lg px-3 py-2">
+                        class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                 </section>
 
                 <section>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                    <select id="item-category" class="w-full border rounded-lg px-3 py-2">
+                    <select id="item-category" class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                         <option>Light Meals</option>
                         <option>Main Course</option>
                         <option>Healthy</option>
@@ -271,31 +369,31 @@
                 </label>
 
                 <section class="flex flex-wrap gap-2">
-                        <label class="flex items-center gap-2 text-sm bg-gray-50 px-3 py-1 rounded-full">
+                        <label class="flex items-center gap-2 text-sm bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
                             <input type="checkbox" value="Vegan" class="item-dietary">
                             <span>Vegan</span>
                         </label>              
-                        <label class="flex items-center gap-2 text-sm bg-gray-50 px-3 py-1 rounded-full">
+                        <label class="flex items-center gap-2 text-sm bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100"
                             <input type="checkbox" value="Vegetarian" class="item-dietary">
                             <span>Vegetarian</span>
                         </label>
-                        <label class="flex items-center gap-2 text-sm bg-gray-50 px-3 py-1 rounded-full">
-                            <input type="checkbox" value="Halal" class="item-dietary    ">
+                        <label class="flex items-center gap-2 text-sm bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
+                            <input type="checkbox" value="Halal" class="item-dietary">
                             <span>Halal</span>
                         </label>
-                        <label class="flex items-center gap-2 text-sm bg-gray-50 px-3 py-1 rounded-full">
+                        <label class="flex items-center gap-2 text-sm bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
                             <input type="checkbox" value="Dairy-Free" class="item-dietary">
                             <span>Dairy-Free</span>
                         </label>
-                        <label class="flex items-center gap-2 text-sm bg-gray-50 px-3 py-1 rounded-full">
+                        <label class="flex items-center gap-2 text-sm bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
                             <input type="checkbox" value="Nut-Free" class="item-dietary">
                             <span>Nut-Free</span>
                         </label>
-                        <label class="flex items-center gap-2 text-sm bg-gray-50 px-3 py-1 rounded-full">
+                        <label class="flex items-center gap-2 text-sm bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
                             <input type="checkbox" value="Gluten-Free" class="item-dietary">
                             <span>Gluten-Free</span>
                         </label>
-                        <label class="flex items-center gap-2 text-sm bg-gray-50 px-3 py-1 rounded-full">
+                        <label class="flex items-center gap-2 text-sm bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
                             <input type="checkbox" value="Kosher" class="item-dietary">
                             <span>Kosher</span>
                         </label>
@@ -307,19 +405,19 @@
                     <section>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Calories (kcal)</label>
                         <input type="number" id="item-calories" min="0"
-                            class="w-full border rounded-lg px-3 py-2">
+                            class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     </section>
 
                     <section>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Protein (g)</label>
                         <input type="number" id="item-protein" min="0"
-                            class="w-full border rounded-lg px-3 py-2">
+                            class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     </section>
 
                     <section>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Carbohydrates (g)</label>
                         <input type="number" id="item-carbs" min="0"
-                            class="w-full border rounded-lg px-3 py-2">
+                            class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     </section>
             </section>
             <section>
@@ -329,18 +427,19 @@
                 <input
                 id="item-image"
                 type="file"
-                accept=".png,.jpg,.jpeg,image/png,image/jpeg">
+                accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                class="w-full border border-gray-300 rounded-xl px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
             </section>
 
             <section class="flex gap-3 mt-6">
                 <button type="button"
                     onclick="document.getElementById('item-edit-modal').classList.add('hidden')"
-                    class="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50">
+                    class="flex-1 border border-gray-300 py-3 rounded-xl hover:bg-gray-50 font-semibold transition">
                     Cancel
                 </button>
 
                 <button type="submit"
-                    class="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700">
+                    class="flex-1 bg-indigo-600 text-white py-3 rounded-xl hover:bg-indigo-700 font-semibold shadow-xl shadow-indigo-100 transition">
                     Save Item
                 </button>
             </section>

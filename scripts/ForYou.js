@@ -35,10 +35,7 @@ async function getApprovedVendors() {
 
   return usersSnapshot.docs
     .map(doc => ({ id: doc.id, ...doc.data() }))
-    .filter(user =>
-      user.role === "vendor" &&
-      user.status === "approved"
-    );
+    .filter(user => user.role === "vendor" && user.status === "approved");
 }
 
 async function getAvailableMenuItems() {
@@ -73,12 +70,27 @@ function buildVendorMap(vendors) {
   return map;
 }
 
+function getOrderedItemsFromOrders(orders) {
+  const orderedItems = [];
+
+  orders.forEach(order => {
+    const items = order.items || order.menuItems || [];
+
+    items.forEach(item => {
+      orderedItems.push(item);
+    });
+  });
+
+  return orderedItems;
+}
+
 function getRecommendedItems(orders, allItems) {
   if (!orders.length) {
-    return allItems.slice(0, 3);
+    return [];
   }
 
   const userDietary = new Set();
+  const userAllergens = new Set();
   const userCategories = new Set();
   const orderedItemIds = new Set();
 
@@ -93,12 +105,13 @@ function getRecommendedItems(orders, allItems) {
         getItemName(item) === orderItem.name
       );
 
-      if (matchedItem) {
-        (matchedItem.dietary || []).forEach(tag => userDietary.add(tag));
+      const sourceItem = matchedItem || orderItem;
 
-        if (matchedItem.category) {
-          userCategories.add(matchedItem.category);
-        }
+      (sourceItem.dietary || []).forEach(tag => userDietary.add(tag));
+      (sourceItem.allergens || []).forEach(tag => userAllergens.add(tag));
+
+      if (sourceItem.category) {
+        userCategories.add(sourceItem.category);
       }
     });
   });
@@ -106,39 +119,56 @@ function getRecommendedItems(orders, allItems) {
   const scoredItems = allItems
     .filter(item => !orderedItemIds.has(item.id))
     .map(item => {
-      let score = 1;
+      let score = 0;
 
       (item.dietary || []).forEach(tag => {
-        if (userDietary.has(tag)) score += 2;
+        if (userDietary.has(tag)) score += 3;
       });
 
       if (item.category && userCategories.has(item.category)) {
         score += 2;
       }
 
-      if (item.available !== false) {
+      const hasMatchingAllergen = (item.allergens || []).some(tag =>
+        userAllergens.has(tag)
+      );
+
+      if (hasMatchingAllergen) {
         score += 1;
       }
 
       return { item, score };
     })
+    .filter(result => result.score > 0)
     .sort((a, b) => b.score - a.score);
 
-  const recommendedItems = scoredItems
-  .slice(0, 3)
-  .map(result => result.item);
-
-if (recommendedItems.length < 3) {
-  const extraItems = allItems
-    .filter(item =>
-      !recommendedItems.some(rec => rec.id === item.id)
-    )
-    .slice(0, 3 - recommendedItems.length);
-
-  recommendedItems.push(...extraItems);
+  return scoredItems.slice(0, 3).map(result => result.item);
 }
 
-return recommendedItems;
+function getFavouriteItems(orders, allItems) {
+  if (!orders.length) {
+    return [];
+  }
+
+  const itemCounts = {};
+
+  getOrderedItemsFromOrders(orders).forEach(orderItem => {
+    const key = orderItem.id || orderItem.name;
+
+    if (!key) return;
+
+    itemCounts[key] = (itemCounts[key] || 0) + 1;
+  });
+
+  return allItems
+    .map(item => {
+      const count = itemCounts[item.id] || itemCounts[getItemName(item)] || 0;
+      return { item, count };
+    })
+    .filter(result => result.count > 0)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 4)
+    .map(result => result.item);
 }
 
 function renderRecommendations(items, vendorMap) {
@@ -147,16 +177,16 @@ function renderRecommendations(items, vendorMap) {
   if (!items.length) {
     recommendationsGrid.innerHTML = `
       <p class="text-center text-gray-500 col-span-3">
-        No recommendations available yet.
+        No recommendations yet. Place an order first so we can recommend items based on your diet and allergens.
       </p>
     `;
     return;
   }
 
   const reasons = [
-    "Best match for you",
-    "Based on your preferences",
-    "Popular campus pick"
+    "Best match for your previous orders",
+    "Based on your diet and allergens",
+    "Similar to what you ordered before"
   ];
 
   recommendationsGrid.innerHTML = items.map((item, index) => {
@@ -167,11 +197,7 @@ function renderRecommendations(items, vendorMap) {
         index === 0 ? "border-indigo-500" : "border-transparent"
       }">
         <section class="relative">
-          <img 
-            src="${getItemImage(item)}" 
-            alt="${getItemName(item)}" 
-            class="w-full h-48 object-cover"
-          >
+          <img src="${getItemImage(item)}" alt="${getItemName(item)}" class="w-full h-48 object-cover">
 
           <span class="absolute top-2 left-2 bg-indigo-600 text-white px-3 py-1 rounded-full text-xs font-medium">
             ${index === 0 ? "Best Match" : `${Math.round(85 - index * 5)}% Match`}
@@ -179,22 +205,12 @@ function renderRecommendations(items, vendorMap) {
         </section>
 
         <section class="p-4">
-          <p class="text-xs text-indigo-600 font-medium mb-1">
-            ${getVendorName(vendor)}
-          </p>
-
-          <h3 class="font-semibold text-lg mb-1">
-            ${getItemName(item)}
-          </h3>
-
-          <p class="text-sm text-gray-500 mb-3">
-            ${reasons[index] || "Recommended for you"}
-          </p>
+          <p class="text-xs text-indigo-600 font-medium mb-1">${getVendorName(vendor)}</p>
+          <h3 class="font-semibold text-lg mb-1">${getItemName(item)}</h3>
+          <p class="text-sm text-gray-500 mb-3">${reasons[index] || "Recommended for you"}</p>
 
           <section class="flex justify-between items-center">
-            <span class="font-bold text-lg">
-              ${formatCurrency(item.price)}
-            </span>
+            <span class="font-bold text-lg">${formatCurrency(item.price)}</span>
 
             <button 
               data-item-id="${item.id}"
@@ -209,21 +225,19 @@ function renderRecommendations(items, vendorMap) {
   }).join("");
 }
 
-function renderTrending(items, vendorMap) {
+function renderFavouriteItems(items, vendorMap) {
   if (!trendingGrid) return;
 
-  const trending = items.slice(0, 4);
-
-  if (!trending.length) {
+  if (!items.length) {
     trendingGrid.innerHTML = `
       <p class="text-center text-gray-500 col-span-4">
-        No trending items available.
+        No favourite items yet. Your most bought items will appear here after you place orders.
       </p>
     `;
     return;
   }
 
-  trendingGrid.innerHTML = trending.map(item => {
+  trendingGrid.innerHTML = items.map(item => {
     const vendor = vendorMap[item.vendorId];
 
     return `
@@ -231,23 +245,13 @@ function renderTrending(items, vendorMap) {
         class="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition cursor-pointer"
         onclick="openMenuItem('${item.id}')"
       >
-        <img 
-          src="${getItemImage(item)}" 
-          alt="${getItemName(item)}"
-          class="w-full h-32 object-cover rounded-lg mb-3"
-        >
+        <img src="${getItemImage(item)}" alt="${getItemName(item)}" class="w-full h-32 object-cover rounded-lg mb-3">
 
-        <h4 class="font-medium text-sm mb-1 line-clamp-1">
-          ${getItemName(item)}
-        </h4>
+        <h4 class="font-medium text-sm mb-1 line-clamp-1">${getItemName(item)}</h4>
 
-        <p class="text-xs text-gray-500 mb-2">
-          ${getVendorName(vendor)}
-        </p>
+        <p class="text-xs text-gray-500 mb-2">${getVendorName(vendor)}</p>
 
-        <span class="font-bold text-sm">
-          ${formatCurrency(item.price)}
-        </span>
+        <span class="font-bold text-sm">${formatCurrency(item.price)}</span>
       </article>
     `;
   }).join("");
@@ -257,13 +261,11 @@ function attachCartButtons(items) {
   document.querySelectorAll(".add-to-cart-btn").forEach(button => {
     button.addEventListener("click", () => {
       const itemId = button.dataset.itemId;
-
       const item = items.find(menuItem => menuItem.id === itemId);
 
       if (!item) return;
 
       const cart = JSON.parse(localStorage.getItem("cart")) || [];
-
       cart.push(item);
 
       localStorage.setItem("cart", JSON.stringify(cart));
@@ -288,7 +290,6 @@ async function initRecommendations(user) {
     ]);
 
     const vendorMap = buildVendorMap(vendors);
-
     const approvedVendorIds = vendors.map(vendor => vendor.id);
 
     const visibleItems = allItems.filter(item =>
@@ -296,9 +297,10 @@ async function initRecommendations(user) {
     );
 
     const recommendations = getRecommendedItems(orders, visibleItems);
+    const favouriteItems = getFavouriteItems(orders, visibleItems);
 
     renderRecommendations(recommendations, vendorMap);
-    renderTrending(visibleItems, vendorMap);
+    renderFavouriteItems(favouriteItems, vendorMap);
     attachCartButtons(visibleItems);
 
     lucide.createIcons();
@@ -316,14 +318,15 @@ async function initRecommendations(user) {
     if (trendingGrid) {
       trendingGrid.innerHTML = `
         <p class="text-center text-red-500 col-span-4">
-          Failed to load trending items.
+          Failed to load favourite items.
         </p>
       `;
     }
   }
-    updateCartCount();
 
+  updateCartCount();
 }
+
 const cartBtn = document.getElementById("cartBtn");
 const cartCount = document.getElementById("cartCount");
 
@@ -339,12 +342,12 @@ function updateCartCount() {
 }
 
 cartBtn?.addEventListener("click", () => {
-  window.location.href = "browse.html#cart";
+  window.location.assign("browse.html#cart");
 });
 
 onAuthStateChanged(auth, user => {
   if (!user) {
-    window.location.href = "login.html";
+    window.location.assign("login.html");
     return;
   }
 

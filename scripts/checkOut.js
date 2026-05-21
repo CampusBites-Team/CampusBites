@@ -30,7 +30,7 @@ onAuthStateChanged(auth, async (user) => {
 
     if (activeOrdersContainer) {
       activeOrdersContainer.innerHTML = `
-        <p class="text-sm text-gray-500 text-center py-8">
+        <p class="text-sm text-slate-500 text-center py-8">
           Please log in to view your orders.
         </p>
       `;
@@ -112,6 +112,8 @@ async function loadOrders() {
     });
 
     renderOrders(ordersCache);
+    setupOrderFilters();
+    applyOrderFilters();
   } catch (error) {
     console.error("Failed to load orders:", error);
 
@@ -180,26 +182,26 @@ function canReviewOrder(order) {
 function buildOrderCard(order, orderNumber) {
   const status = formatStatus(order.status || "Pending");
 
-  let statusColor = "bg-yellow-100 text-yellow-700";
+  let statusColor = "bg-orange-100 text-orange-600";
 
   if (status === "Preparing" || status === "In progress") {
-    statusColor = "bg-blue-100 text-blue-700";
+    statusColor = "bg-indigo-100 text-indigo-700";
   }
 
   if (status === "Ready") {
-    statusColor = "bg-green-100 text-green-700";
+    statusColor = "bg-indigo-100 text-indigo-700";
   }
 
   if (status === "Refund pending") {
-    statusColor = "bg-orange-100 text-orange-700";
+    statusColor = "bg-orange-100 text-orange-600";
   }
 
   if (status === "Refunded") {
-    statusColor = "bg-green-100 text-green-700";
+    statusColor = "bg-indigo-100 text-indigo-700";
   }
 
   if (status === "Collected" || status === "Cancelled") {
-    statusColor = "bg-gray-200 text-gray-700";
+    statusColor = "bg-slate-100 text-slate-600";
   }
 
   const refundMessage =
@@ -221,10 +223,10 @@ function buildOrderCard(order, orderNumber) {
   const isUnpaidCash = paymentMethod === "cash" && order.paymentStatus === "unpaid";
 
   const paymentBadge = paymentMethod === "cash"
-    ? `<span class="px-3 py-1 rounded-full text-xs font-semibold ${
-        isUnpaidCash ? "bg-yellow-100 text-yellow-700" : "bg-emerald-100 text-emerald-700"
-      }">${isUnpaidCash ? "Cash • Unpaid" : "Cash • Paid"}</span>`
-    : `<span class="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700">Card</span>`;
+  ? `<span class="px-4 py-1 rounded-full text-xs font-bold ${
+      isUnpaidCash ? "bg-orange-100 text-orange-600" : "bg-indigo-100 text-indigo-700"
+    }">${isUnpaidCash ? "Cash • Unpaid" : "Cash • Paid"}</span>`
+  : `<span class="px-4 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-600">Card</span>`;
 
   const cashNotice = isUnpaidCash
     ? `
@@ -240,15 +242,15 @@ function buildOrderCard(order, orderNumber) {
         <img
           src="${item.image || "assets/default.jpg"}"
           alt="${item.name || "Menu item"}"
-          class="w-12 h-12 rounded-lg object-cover"
+          class="w-14 h-14 rounded-2xl object-cover shadow-sm"
         >
 
         <section class="flex-1">
-          <p class="font-medium text-sm">
+          <p class="font-bold text-sm text-indigo-950">
             ${item.name || "Unnamed item"}
           </p>
 
-          <p class="text-xs text-gray-500">
+          <p class="text-xs text-slate-500">
             Qty: ${item.quantity ?? 1}
           </p>
         </section>
@@ -262,7 +264,7 @@ function buildOrderCard(order, orderNumber) {
         type="button"
         data-order-id="${order.id}"
         data-order-number="${getOrderNumber(order, orderNumber)}"
-        class="review-order-btn flex-1 bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600"
+        class="review-order-btn flex-1 bg-orange-500 text-white py-3 rounded-2xl font-bold hover:bg-orange-600 transition"
       >
         Review
       </button>
@@ -272,7 +274,7 @@ function buildOrderCard(order, orderNumber) {
         <button
           type="button"
           disabled
-          class="flex-1 bg-gray-200 text-gray-600 py-2 rounded-lg cursor-not-allowed"
+          class="flex-1 bg-slate-100 text-slate-500 py-3 rounded-2xl font-bold cursor-not-allowed"
         >
           Review submitted
         </button>
@@ -280,14 +282,14 @@ function buildOrderCard(order, orderNumber) {
       : "";
 
   return `
-    <article class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 hover:shadow-md transition">
+    <article class="bg-white/95 backdrop-blur border border-indigo-100 rounded-[1.7rem] shadow-xl shadow-indigo-100 p-6 hover:-translate-y-1 hover:shadow-2xl transition">
       <header class="flex justify-between items-start mb-4">
         <section>
-          <h3 class="text-lg font-bold text-gray-900">
+          <h3 class="text-xl font-extrabold text-indigo-950">
             Order ${getOrderNumber(order, orderNumber)}
           </h3>
 
-          <p class="text-sm text-gray-500">
+          <p class="text-sm text-slate-500">
             Placed: ${formatTimestamp(order.createdAt)}
           </p>
         </section>
@@ -308,7 +310,7 @@ function buildOrderCard(order, orderNumber) {
 
       ${refundMessage}
 
-      <p class="text-sm text-gray-500">
+      <p class="text-sm text-slate-500">
         Updated: ${formatTimestamp(order.updatedAt)}
       </p>
 
@@ -319,7 +321,7 @@ function buildOrderCard(order, orderNumber) {
               <button
                 type="button"
                 data-order-id="${order.id}"
-                class="cancel-order-btn flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700"
+                class="cancel-order-btn flex-1 bg-red-500 text-white py-3 rounded-2xl font-bold hover:bg-red-600 transition"
               >
                 Cancel
               </button>
@@ -332,7 +334,7 @@ function buildOrderCard(order, orderNumber) {
         <button
           type="button"
           data-order-id="${order.id}"
-          class="details-order-btn flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700"
+          class="details-order-btn flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200"
         >
           Details
         </button>
@@ -361,7 +363,7 @@ function renderOrders(orders) {
 
   if (!orders.length) {
     activeOrdersContainer.innerHTML = `
-      <p class="text-sm text-gray-500 text-center py-8">
+      <p class="text-sm text-slate-500 text-center py-8">
         No orders found.
       </p>
     `;
@@ -409,7 +411,7 @@ function renderOrders(orders) {
         .map((order) => buildOrderCard(order, orders.indexOf(order) + 1))
         .join("")
     : `
-      <p class="text-sm text-gray-500 text-center py-8">
+      <p class="text-sm text-slate-500 text-center py-8">
         No active orders.
       </p>
     `;
@@ -419,7 +421,7 @@ function renderOrders(orders) {
         .map((order) => buildOrderCard(order, orders.indexOf(order) + 1))
         .join("")
     : `
-      <p class="text-sm text-gray-500 text-center py-8">
+      <p class="text-sm text-slate-500 text-center py-8">
         No ready orders.
       </p>
     `;
@@ -429,7 +431,7 @@ function renderOrders(orders) {
         .map((order) => buildOrderCard(order, orders.indexOf(order) + 1))
         .join("")
     : `
-      <p class="text-sm text-gray-500 text-center py-8">
+      <p class="text-sm text-slate-500 text-center py-8">
         No refund requests.
       </p>
     `;
@@ -439,7 +441,7 @@ function renderOrders(orders) {
         .map((order) => buildOrderCard(order, orders.indexOf(order) + 1))
         .join("")
     : `
-      <p class="text-sm text-gray-500 text-center py-8">
+      <p class="text-sm text-slate-500 text-center py-8">
         No order history yet.
       </p>
     `;
@@ -485,7 +487,7 @@ function updateDetails(order) {
               ${item.name || "Unnamed item"}
             </h3>
 
-            <p class="text-sm text-gray-500">
+            <p class="text-sm text-slate-500">
               ${item.vendorName || "Vendor"}
             </p>
           </section>
@@ -572,7 +574,7 @@ function showReviewModal(order, orderNumber) {
           Review Order ${getOrderNumber(order, orderNumber)}
         </h2>
 
-        <p class="text-sm text-gray-500 mb-4">
+        <p class="text-sm text-slate-500 mb-4">
           Vendor: ${vendorName}
         </p>
 
@@ -586,7 +588,7 @@ function showReviewModal(order, orderNumber) {
                     ${item.name || "Unnamed item"} × ${item.quantity ?? 1}
                   </p>
                 `).join("")
-              : `<p class="text-sm text-gray-500">No items found.</p>`
+              : `<p class="text-sm text-slate-500">No items found.</p>`
           }
         </section>
 
@@ -705,7 +707,7 @@ async function submitReview(order, orderNumber) {
 
     document.getElementById("review-modal")?.remove();
 
-    renderOrders(ordersCache);
+    applyOrderFilters();
 
     showToast("Review submitted successfully.", "success");
   } catch (error) {
@@ -774,7 +776,7 @@ async function refundPaidOrder(order) {
         : cachedOrder
     );
 
-    renderOrders(ordersCache);
+    applyOrderFilters();
 
     showToast("Refund initiated. It usually clears within a few minutes.", "success");
   } catch (error) {
@@ -782,6 +784,81 @@ async function refundPaidOrder(order) {
     showToast("Could not initiate refund: " + error.message, "error");
   }
 }
+//-----
+// Order filters
+//-----
+function getOrderDateValue(order) {
+  if (!order.createdAt?.toDate) return "";
+
+  const date = order.createdAt.toDate();
+  return date.toISOString().split("T")[0];
+}
+
+function getTodayValue() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function setupOrderFilters() {
+  const dateFilter = document.getElementById("orderDateFilter");
+  const vendorFilter = document.getElementById("vendorFilter");
+
+  if (!dateFilter || !vendorFilter) return;
+
+  if (!dateFilter.value) {
+    dateFilter.value = getTodayValue();
+  }
+
+  const selectedVendor = vendorFilter.value || "all";
+
+  const vendors = new Map();
+
+  ordersCache.forEach((order) => {
+    const vendorId = getVendorId(order);
+    const vendorName = getVendorName(order);
+
+    if (vendorId) {
+      vendors.set(vendorId, vendorName);
+    }
+  });
+
+  vendorFilter.innerHTML = `
+    <option value="all">All Vendors</option>
+    ${Array.from(vendors.entries())
+      .map(([vendorId, vendorName]) => `
+        <option value="${vendorId}">${vendorName}</option>
+      `)
+      .join("")}
+  `;
+
+  vendorFilter.value = vendors.has(selectedVendor) ? selectedVendor : "all";
+
+  dateFilter.onchange = applyOrderFilters;
+  vendorFilter.onchange = applyOrderFilters;
+}
+
+function applyOrderFilters() {
+  const dateFilter = document.getElementById("orderDateFilter");
+  const vendorFilter = document.getElementById("vendorFilter");
+
+  const selectedDate = dateFilter?.value || getTodayValue();
+  const selectedVendor = vendorFilter?.value || "all";
+
+  const filteredOrders = ordersCache.filter((order) => {
+    const matchesDate = getOrderDateValue(order) === selectedDate;
+    const matchesVendor =
+      selectedVendor === "all" || getVendorId(order) === selectedVendor;
+
+    return matchesDate && matchesVendor;
+  });
+
+  renderOrders(filteredOrders);
+}
+export {
+  setupOrderFilters,
+  applyOrderFilters,
+  getOrderDateValue,
+  getTodayValue
+};
 
 // ----------------------
 // Card click handler

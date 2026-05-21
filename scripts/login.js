@@ -67,8 +67,29 @@ export function initLoginForm() {
         showToast("User profile not found.", "error");
         return;
       }
-
       const userData = userDocSnap.data();
+
+if (userData.accountStatus === "pendingDeletion") {
+  const reactivate = confirm(
+    "This account is scheduled for deletion. Do you want to reactivate it?"
+  );
+
+  if (reactivate) {
+    const { reactivateAccount } = await import("./account-deletion.js");
+    await reactivateAccount(user.uid);
+    redirectUser(userData.role);
+    return;
+  }
+
+  await auth.signOut();
+  return;
+}
+
+redirectUser(userData.role);
+
+
+    
+     // const userData = userDocSnap.data();
 
       if (
         userData.requiresEmailVerification === true &&

@@ -116,53 +116,58 @@ export const loadVendors = async () => {
         <td class="px-6 py-4 text-sm text-gray-500">${v.location || "Not specified"}</td>
 
         <td class="px-6 py-4">
-          <span class="px-2 py-1 rounded-full text-xs capitalize
+          <span class="px-3 py-1 rounded-full text-sm font-semibold capitalize
             ${
               v.status === "approved"
-                ? "bg-green-100 text-green-800"
+                ? "bg-green-100 text-green-700 border border-green-200"
                 : v.status === "pending"
-                ? "bg-yellow-100 text-yellow-800"
-                : "bg-red-100 text-red-800"
+                ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
+                : "bg-red-100 text-red-700 border border-red-200"
             }">
             ${v.status}
           </span>
         </td>
 
         <td class="px-6 py-4">
-          <section class="flex gap-2">
-            ${
-              v.status === "pending"
-                ? `
-              <button onclick="adminActions.approveVendor('${v.id}')"
-                class="text-green-600 hover:text-green-800">
-                Approve
-              </button>
+          <section class="flex flex-wrap items-center gap-3">
+  ${
+    v.status === "pending"
+      ? `
+    <button onclick="adminActions.approveVendor('${v.id}')"
+      class="admin-action-btn admin-approve-btn">
+      <i data-lucide="check" class="w-4 h-4"></i>
+      Approve
+    </button>
 
-              <button onclick="adminActions.suspendVendor('${v.id}')"
-                class="text-red-600 hover:text-red-800">
-                Reject
-              </button>
-            `
-                : v.status === "approved"
-                ? `
-              <button onclick="adminActions.suspendVendor('${v.id}')"
-                class="text-yellow-600 hover:text-yellow-800">
-                Suspend
-              </button>
-            `
-                : `
-              <button onclick="adminActions.approveVendor('${v.id}')"
-                class="text-green-600 hover:text-green-800">
-                Reactivate
-              </button>
-            `
-            }
-          </section>
+    <button onclick="adminActions.suspendVendor('${v.id}')"
+      class="admin-action-btn admin-reject-btn">
+      <i data-lucide="x" class="w-4 h-4"></i>
+      Reject
+    </button>
+  `
+      : v.status === "approved"
+      ? `
+    <button onclick="adminActions.suspendVendor('${v.id}')"
+      class="admin-action-btn admin-suspend-btn">
+      <i data-lucide="pause-circle" class="w-4 h-4"></i>
+      Suspend
+    </button>
+  `
+      : `
+    <button onclick="adminActions.approveVendor('${v.id}')"
+      class="admin-action-btn admin-approve-btn">
+      <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+      Reactivate
+    </button>
+  `
+  }
+</section>
         </td>
       </tr>
     `
       )
       .join("");
+      globalThis.lucide?.createIcons?.();
   } catch (error) {
     console.error("Error loading vendors:", error);
   }
@@ -222,6 +227,35 @@ export const adminActions = {
 // =====================
 // ADMIN ANALYTICS
 // =====================
+
+
+
+//======================
+//Payment gateway health check
+//======================
+export async function checkPaystackHealth() {
+  const card = document.getElementById("paystack-health");
+  if (!card) return;
+  const label = card.querySelector("span:last-child");
+  if (!label) return;
+  try {
+    const r = await fetch("/api/paystack/health");
+    const data = await r.json();
+    const ok = data.status === "operational";
+    card.className = `flex justify-between items-center p-3 rounded-lg ${
+      ok ? "bg-green-50" : "bg-red-50"
+    }`;
+    label.className = `text-sm font-medium ${ok ? "text-green-600" : "text-red-600"}`;
+    label.textContent = ok ? `Operational (${data.latencyMs}ms)` : "Down";
+  } catch {
+    label.textContent = "Unreachable";
+  }
+}
+
+if (document.getElementById("paystack-health")) {
+  checkPaystackHealth();
+  setInterval(checkPaystackHealth, 60_000); // re-check every minute
+}
 
 
 

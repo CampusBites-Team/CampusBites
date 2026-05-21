@@ -741,4 +741,59 @@ test("updateOrderStatus updates status and timestamp", async () => {
     updatedAt: "mock-timestamp"
   });
 });
+test("counts only today's orders when createdAt is provided", () => {
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  document.body.innerHTML = `
+    <section id="orders-list"></section>
+    <span id="pending-count"></span>
+    <span id="preparing-count"></span>
+    <span id="ready-count"></span>
+    <span id="collected-count"></span>
+  `;
+
+  renderOrders([
+    {
+      id: "today-pending",
+      status: "Pending",
+      total: 10,
+      createdAt: { toDate: () => today }
+    },
+    {
+      id: "old-ready",
+      status: "Ready",
+      total: 20,
+      createdAt: { toDate: () => yesterday }
+    }
+  ]);
+
+  expect(document.getElementById("pending-count").textContent).toBe("1");
+  expect(document.getElementById("ready-count").textContent).toBe("0");
+});
+
+test("uses Vendor as fallback dashboard title when shop name is missing", () => {
+  document.body.innerHTML = `
+    <h1 id="dashboardTitle"></h1>
+    <p id="dashboardSubtitle"></p>
+  `;
+
+  vendorDashboard.updateDashboardTitle({});
+
+  expect(document.getElementById("dashboardTitle").textContent)
+    .toBe("Vendor's Dashboard");
+
+  expect(document.getElementById("dashboardSubtitle").textContent)
+    .toBe("Welcome to your dashboard!");
+});
+
+test("does not crash when dashboard title elements are missing", () => {
+  document.body.innerHTML = "";
+
+  expect(() => {
+    vendorDashboard.updateDashboardTitle({ shopName: "Campus Café" });
+  }).not.toThrow();
+});
+
 });

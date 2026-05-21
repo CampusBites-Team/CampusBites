@@ -1,11 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+
+<style>
+  @keyframes floatSoft {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-14px) rotate(3deg); }
+  }
+
+  .float-soft {
+    animation: floatSoft 5s ease-in-out infinite;
+  }
+</style>
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CampusBites - Customer Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="icon" type="image/png" href="assets/icons/1-removebg-preview.png">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#4f46e5">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -146,9 +160,23 @@
     </section>
   </nav>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <main class="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50 to-white px-4 sm:px-6 lg:px-8 py-12">
+    <section class="absolute -left-28 top-28 w-96 h-80 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
+<section class="absolute -right-24 top-44 w-[430px] h-[340px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
+<section class="absolute left-20 bottom-20 w-80 h-56 bg-orange-100 rounded-[55%_45%_40%_60%] opacity-60 rotate-[-10deg]"></section>
+<section class="absolute right-32 bottom-12 w-96 h-64 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-60 rotate-[8deg]"></section>
 
-    <header class="mb-10">
+<span class="absolute left-20 top-36 text-indigo-500 text-6xl font-bold float-soft">+</span>
+<span class="absolute right-32 top-52 text-orange-500 text-5xl font-bold float-soft">✦</span>
+<span class="absolute left-[48%] bottom-24 text-indigo-400 text-4xl font-bold float-soft">↝</span>
+
+<i data-lucide="shopping-bag" class="absolute right-24 top-32 w-24 h-24 text-orange-500 float-soft"></i>
+<i data-lucide="store" class="absolute left-28 bottom-28 w-24 h-24 text-indigo-600 float-soft"></i>
+<i data-lucide="user-circle" class="absolute right-[40%] bottom-20 w-20 h-20 text-indigo-500 float-soft"></i>
+
+<section class="relative z-10 max-w-7xl mx-auto">
+
+    <header class="mb-10 bg-white/95 backdrop-blur rounded-[1.7rem] p-8 shadow-xl shadow-indigo-100 border border-indigo-100">
       <section class="flex items-center justify-between">
         <section>
           <h1 id="dashboardTitle" class="text-5xl md:text-7xl font-extrabold leading-[1.05] text-indigo-950 mb-8">
@@ -162,7 +190,7 @@
 
         <a
           href="browse.html"
-          class="bg-indigo-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition"
+          class="bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-indigo-700 transition shadow-xl shadow-indigo-200"
         >
           Place Order
         </a>
@@ -171,27 +199,27 @@
 
     <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
 
-      <article class="bg-white rounded-2xl shadow-md p-6">
+      <article class="bg-white/95 backdrop-blur rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100 p-6 hover:-translate-y-1 hover:shadow-2xl transition">
         <header class="flex items-center gap-3 mb-4">
           <i data-lucide="store" class="w-6 h-6 text-indigo-600"></i>
-          <h2 class="text-xl font-semibold text-gray-900">
+          <h2 class="text-xl font-extrabold text-indigo-950">
             Browse Vendors
           </h2>
         </header>
 
-        <p class="text-gray-600 mb-4">
+        <p class="text-slate-600 mb-4">
           Explore different campus food vendors and see what is available today.
         </p>
 
-        <a href="browse.html" class="inline-block text-indigo-600 font-semibold hover:underline">
+        <a href="browse.html" class="inline-block text-indigo-600 font-bold hover:text-orange-500 transition">
           View Vendors
         </a>
       </article>
 
-      <article class="bg-white rounded-2xl shadow-md p-6">
+      <article class="bg-white/95 backdrop-blur rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100 p-6 hover:-translate-y-1 hover:shadow-2xl transition">
         <header class="flex items-center gap-3 mb-4">
           <i data-lucide="shopping-bag" class="w-6 h-6 text-indigo-600"></i>
-          <h2 class="text-xl font-semibold text-gray-900">
+          <h2 class="text-xl font-extrabold text-indigo-950">
             My Orders
           </h2>
         </header>
@@ -200,48 +228,48 @@
           Check the status of your recent and active orders.
         </p>
 
-        <a href="customer-orders.html" class="inline-block text-indigo-600 font-semibold hover:underline">
+        <a href="customer-orders.html" class="inline-block text-indigo-600 font-bold hover:text-orange-500 transition">
           Track Orders
         </a>
       </article>
 
-      <article class="bg-white rounded-2xl shadow-md p-6">
+      <article class="bg-white/95 backdrop-blur rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100 p-6 hover:-translate-y-1 hover:shadow-2xl transition">
         <header class="flex items-center gap-3 mb-4">
           <i data-lucide="user-circle" class="w-6 h-6 text-indigo-600"></i>
-          <h2 class="text-xl font-semibold text-gray-900">
+          <h2 class="text-xl font-extrabold text-indigo-950">
             My Account
           </h2>
         </header>
 
-        <p class="text-gray-600 mb-4">
+        <p class="text-slate-600 mb-4">
           Update your details, phone number, and profile picture.
         </p>
 
-        <a href="customer-profile.html" class="inline-block text-indigo-600 font-semibold hover:underline">
+        <a href="customer-profile.html" class="inline-block text-indigo-600 font-bold hover:text-orange-500 transition">
           Manage Account
         </a>
       </article>
 
-      <article class="bg-white rounded-2xl shadow-md p-6">
+      <article class="bg-white/95 backdrop-blur rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100 p-6 hover:-translate-y-1 hover:shadow-2xl transition">
         <header class="flex items-center gap-3 mb-4">
           <i data-lucide="history" class="w-6 h-6 text-indigo-600"></i>
-          <h2 class="text-xl font-semibold text-gray-900">
+          <h2 class="text-xl font-extrabold text-indigo-950">
             Recent Order Activity
           </h2>
         </header>
 
-        <p class="text-gray-600 mb-4">
+        <p class="text-slate-600 mb-4">
           View recently ordered meals and order again.
         </p>
 
-        <a href="#" class="inline-block text-indigo-600 font-semibold hover:underline">
+        <a href="#" class="inline-block text-indigo-600 font-bold hover:text-orange-500 transition">
           Order History
         </a>
       </article>
 
     </section>
 
-  <section class="mt-10">
+  <section class="mt-10 bg-white/95 backdrop-blur rounded-[1.7rem] p-8 shadow-xl shadow-indigo-100 border border-indigo-100">
   <header class="mb-6">
     <h2 class="text-2xl font-extrabold text-indigo-950">Recommended Vendors</h2>
     <p class="font-bold text-orange-600">Spots around campus based on your previous orders.</p>
@@ -376,7 +404,7 @@
 
         container.innerHTML = recommendedVendors.map((vendor) => `
           <article
-            class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition cursor-pointer"
+            class="bg-white rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100 overflow-hidden hover:-translate-y-1 hover:shadow-2xl transition cursor-pointer"
             data-vendor-id="${vendor.id}"
           >
             <img
@@ -386,7 +414,7 @@
             >
 
             <section class="p-6">
-              <h3 class="text-xl font-bold text-gray-900 mb-2">
+              <h3 class="text-xl font-extrabold text-indigo-950 mb-2">
                 ${vendor.shopName || vendor.fullName || "Vendor"}
               </h3>
 
@@ -394,7 +422,7 @@
                 ${vendor.storeCategory || "Food"} • ${vendor.location || "Campus"}
               </p>
 
-              <p class="text-gray-700 mb-3">
+              <p class="text-slate-600 mb-3">
                 ${vendor.storeSlogan || "Recommended for you on CampusBites."}
               </p>
 
