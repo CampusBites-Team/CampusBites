@@ -462,4 +462,59 @@ describe('initLoginPage', () => {
       "error"
     );
 });
+test("reactivates deleted account after successful login", async () => {
+  const { reactivateAccount } = require("../scripts/account-deletion.js");
+
+  const fakeLocation = {
+    assign: jest.fn()
+  };
+
+  global.confirm = jest.fn(() => true);
+
+  document.body.innerHTML = `
+    <form id="loginForm">
+      <input id="loginEmail" value="" />
+      <input id="loginPassword" value="" />
+      <button type="submit">Login</button>
+    </form>
+  `;
+
+  signInWithEmailAndPassword.mockResolvedValue({
+    user: {
+      uid: "user123",
+      email: "test@example.com",
+      emailVerified: true,
+      reload: jest.fn().mockResolvedValue()
+    }
+  });
+
+  getDoc.mockResolvedValueOnce({
+    exists: () => true,
+    data: () => ({
+      role: "customer",
+      accountStatus: "pendingDeletion"
+    })
+  });
+
+  reactivateAccount.mockResolvedValue();
+
+  const loginModule = await import("../scripts/login.js");
+
+  loginModule.initLoginPage(fakeLocation);
+
+  document.getElementById("loginEmail").value = "test@example.com";
+  document.getElementById("loginPassword").value = "password123";
+
+  document.getElementById("loginForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(reactivateAccount).toHaveBeenCalledWith("user123");
+});
+
 });

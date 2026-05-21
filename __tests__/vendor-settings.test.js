@@ -809,4 +809,46 @@ describe("vendor-settings.js", () => {
 
     expect(mod.validateTimePair("", "", "weekday")).toBe(true);
   });
+  test("shows error when vendor details update fails", async () => {
+  mockApprovedVendor();
+  initVendorSettings({ href: "" });
+  await flush();
+
+  updateDoc.mockRejectedValueOnce(new Error("fail"));
+
+  document.getElementById("shopName").value = "Shop";
+  document.getElementById("location").value = "Matrix";
+  document.getElementById("storePhone").value = "0712345678";
+
+  document.getElementById("vendorDetailsForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  await flush();
+
+  expect(showToast).toHaveBeenCalledWith(
+    "Could not update vendor details.",
+    "error"
+  );
+});
+test("rejects invalid phone number", async () => {
+  mockApprovedVendor();
+  initVendorSettings({ href: "" });
+  await flush();
+
+  document.getElementById("shopName").value = "Shop";
+  document.getElementById("location").value = "Matrix";
+  document.getElementById("storePhone").value = "07123";
+
+  document.getElementById("vendorDetailsForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  await flush();
+
+  expect(showToast).toHaveBeenCalledWith(
+    "Phone number must be exactly 10 digits.",
+    "error"
+  );
+});
 });
