@@ -128,6 +128,15 @@ export function initRegisterUI() {
 
         await sendEmailVerification(user);
 
+        if (role === "vendor") {
+          showToast("Vendor account created. Please wait for admin approval.", "success");
+
+          await signOut(auth);
+
+          window.location.assign("pending-approval.html");
+          return;
+        }
+
         showToast("Account created successfully. Please verify your email before logging in.", "success");
 
         await signOut(auth);
@@ -257,10 +266,10 @@ async function handleSocialLogin(user) {
     }
   }
 
-  redirectUser(userData.role);
+  redirectUser(userData.role,userData.status);
 }
 
-function redirectUser(role) {
+function redirectUser(role, status) {
   if (role === "customer") {
     window.location.assign("customer-dashboard.html");
   } else if (role === "vendor") {
