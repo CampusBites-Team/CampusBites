@@ -1163,4 +1163,51 @@ test("does not crash when closed weekend controls are missing", async () => {
   expect(document.getElementById("savedOperatingHours").textContent)
     .toBe("Weekdays: 08:00 - 17:00 | Weekends: Closed");
 });
+test("keeps weekend hours visible when closedWeekends is false", async () => {
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved",
+      closedWeekends: false,
+      weekdayOpeningTime: "08:00",
+      weekdayClosingTime: "17:00"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(document.getElementById("closedWeekends").checked).toBe(false);
+  expect(document.getElementById("weekendHoursContainer").classList.contains("hidden")).toBe(false);
+});
+
+test("shows closed weekday and weekend text when no hours but weekends are closed", async () => {
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved",
+      closedWeekends: true
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(document.getElementById("savedOperatingHours").textContent)
+    .toBe("Weekdays: Closed | Weekends: Closed");
+});
 });
