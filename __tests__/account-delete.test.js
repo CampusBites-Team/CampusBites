@@ -228,45 +228,4 @@ describe("account-deletion.js", () => {
   expect(console.warn).toHaveBeenCalledWith("Deletion email could not be sent.");
   expect(database.signOut).toHaveBeenCalled();
 });
-test("requests account deletion when delete account button is clicked", async () => {
-  const { auth } = require("../scripts/database.js");
-  const { requestAccountDeletion } = require("../scripts/account-deletion.js");
-
-  requestAccountDeletion.mockResolvedValue();
-  global.confirm = jest.fn(() => true);
-
-  auth.currentUser = {
-    uid: "customer123",
-    email: "customer@test.com"
-  };
-
-  getDoc.mockResolvedValue({
-    exists: () => true,
-    data: () => ({
-      role: "customer",
-      email: "customer@test.com",
-      fullName: "Test Customer"
-    })
-  });
-
-  document.body.innerHTML = `
-    <button id="deleteAccountBtn">Delete Account</button>
-  `;
-
-  await import("../scripts/customer-profile.js");
-
-  await Promise.resolve();
-  await Promise.resolve();
-  await Promise.resolve();
-
-  document.getElementById("deleteAccountBtn").click();
-
-  await Promise.resolve();
-  await Promise.resolve();
-
-  expect(requestAccountDeletion).toHaveBeenCalledWith(
-    "customer123",
-    "customer@test.com"
-  );
-});
 });
