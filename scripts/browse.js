@@ -111,7 +111,7 @@ function updateCart() {
       }
 
       html += `
-        <article class="relative bg-white p-4 rounded-xl shadow-sm border border-gray-100 w-full max-w-xs">
+        <article class="relative bg-white p-4 rounded-xl shadow-sm border border-gray-100 w-full max-w-[280px]">
           <img 
             src="${cart[i].image || cart[i].imageUrl || "assets/default_vendor.jpg"}"
             alt="${cart[i].name || "Menu item"}"
@@ -134,10 +134,10 @@ function updateCart() {
           </p>
 
           <section class="flex gap-2">
-            <button 
-              data-cart-index="${i}" 
-              class="remove-cart-btn flex-1 bg-red-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-red-700"
-            >
+              <button 
+                data-cart-id="${cart[i].id}" 
+                class="remove-cart-btn flex-1 bg-red-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-red-700"
+              >
               <i data-lucide="minus" class="w-4 h-4"></i>
               Remove
             </button>
@@ -687,9 +687,10 @@ function attachEventListeners() {
     const btn = e.target.closest(".remove-cart-btn");
     if (!btn) return;
 
-    const index = Number(btn.dataset.cartIndex);
+    const itemId = btn.dataset.cartId;
+    const index = cart.findIndex(item => item.id === itemId);
 
-    if (!Number.isNaN(index)) {
+    if (index !== -1) {
       cart.splice(index, 1);
       saveCart();
       updateCart();
