@@ -1210,4 +1210,122 @@ test("shows closed weekday and weekend text when no hours but weekends are close
   expect(document.getElementById("savedOperatingHours").textContent)
     .toBe("Weekdays: Closed | Weekends: Closed");
 });
+test("uses custom category as blank when Other is selected without custom text", async () => {
+  doc.mockReturnValue({});
+  updateDoc.mockResolvedValue();
+
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.getElementById("shopName").value = "Other Shop";
+  document.getElementById("location").value = "Matrix";
+  document.getElementById("storeSlogan").value = "";
+  document.getElementById("storePhone").value = "0743892816";
+  document.getElementById("storeCategory").value = "Other";
+  document.getElementById("customCategory").value = "";
+
+  document.getElementById("vendorDetailsForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(updateDoc).toHaveBeenCalledWith(expect.anything(), {
+    shopName: "Other Shop",
+    location: "Matrix",
+    storeSlogan: "",
+    storePhone: "0743892816",
+    storeCategory: ""
+  });
+});
+
+test("stores weekend times when weekends are open", async () => {
+  doc.mockReturnValue({});
+  updateDoc.mockResolvedValue();
+
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved",
+      closedWeekends: false
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.getElementById("weekdayOpeningTime").value = "08:00";
+  document.getElementById("weekdayClosingTime").value = "17:00";
+  document.getElementById("closedWeekends").checked = false;
+  document.getElementById("weekendOpeningTime").value = "10:00";
+  document.getElementById("weekendClosingTime").value = "13:00";
+
+  document.getElementById("operatingHoursForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(updateDoc).toHaveBeenCalledWith(expect.anything(), {
+    weekdayOpeningTime: "08:00",
+    weekdayClosingTime: "17:00",
+    weekendOpeningTime: "10:00",
+    weekendClosingTime: "13:00",
+    closedWeekends: false,
+    openingTime: "08:00",
+    closingTime: "17:00"
+  });
+});
+
+test("shows unknown bank name when bank is not in labels", async () => {
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved",
+      bankDetails: {
+        bankName: "mystery_bank",
+        accountHolder: "Jane Doe",
+        accountNumber: "123456789",
+        branchCode: "632005",
+        accountType: "savings"
+      }
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(document.getElementById("savedBankingDetails").textContent)
+    .toBe("mystery_bank • •••••6789");
+});
 });
