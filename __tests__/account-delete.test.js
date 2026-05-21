@@ -17,7 +17,7 @@ jest.mock("../scripts/database.js", () => ({
   },
   signOut: jest.fn()
 }));
-
+const { auth } = require("../scripts/database.js");
 jest.mock("https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js", () => ({
   EmailAuthProvider: {
     credential: jest.fn((email, password) => ({

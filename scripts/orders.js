@@ -12,6 +12,7 @@ import {
   addDoc,
   serverTimestamp
 } from "./database.js";
+import { showToast } from "./toast.js";
 
 lucide.createIcons();
 
@@ -345,7 +346,7 @@ export function attachDragAndDropListeners() {
         paymentMethod === "cash" &&
         paymentStatus === "unpaid"
       ) {
-        alert("Mark this cash order as paid before marking it collected.");
+        showToast("Mark this cash order as paid before marking it collected.", "error");
         return;
       }
 
@@ -368,13 +369,13 @@ if (typeof document !== "undefined" && !document.body?.dataset.markPaidListenerA
     try {
       const snap = await getDoc(doc(db, "orders", orderId));
       if (!snap.exists()) {
-        alert("Order no longer exists.");
+        showToast("Order no longer exists.", "error");
         return;
       }
       await markCashOrderAsPaid({ id: orderId, ...snap.data() });
     } catch (err) {
       console.error("Failed to mark order as paid:", err);
-      alert("Failed to mark order as paid.");
+      showToast("Failed to mark order as paid.", "error");
       btn.disabled = false;
       btn.textContent = "Mark as Paid";
     }

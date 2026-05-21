@@ -12,6 +12,7 @@ import {
   where,
   serverTimestamp
 } from "./database.js";
+import { showToast } from "./toast.js";
 
 import {
   formatTimestamp,
@@ -358,7 +359,7 @@ export function attachOrderStatusListeners() {
       try {
         const snap = await getDoc(doc(db, "orders", orderId));
         if (!snap.exists()) {
-          alert("Order no longer exists.");
+          showToast("Order no longer exists.", "error");
           return;
         }
 
@@ -371,7 +372,7 @@ export function attachOrderStatusListeners() {
         }
       } catch (err) {
         console.error("Failed to mark order as paid:", err);
-        alert("Failed to mark order as paid.");
+        showToast("Failed to mark order as paid.", "error");
         markPaidBtn.disabled = false;
         markPaidBtn.textContent = "Mark as Paid";
       }

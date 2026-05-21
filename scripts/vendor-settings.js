@@ -10,6 +10,7 @@ import {
   uploadBytes,
   getDownloadURL
 } from "./database.js";
+import { showToast } from "./toast.js";
 
 import { requestAccountDeletion } from "./account-deletion.js";
 
@@ -196,7 +197,7 @@ function attachStoreLogoListener() {
     if (!file) return;
 
     if (!isValidImage(file)) {
-      alert("Store logo must be a PNG or JPG/JPEG image.");
+      showToast("Store logo must be a PNG or JPG/JPEG image.", "error");
       storeLogoInput.value = "";
       selectedStoreLogo = null;
       return;
@@ -241,17 +242,17 @@ function attachVendorDetailsForm(vendorId, userData) {
     const customCategory = document.getElementById("customCategory")?.value.trim() || "";
 
     if (!shopName) {
-      alert("Please enter your shop name.");
+      showToast("Please enter your shop name.", "error");
       return;
     }
 
     if (!location) {
-      alert("Please enter your shop location.");
+      showToast("Please enter your shop location.", "error");
       return;
     }
 
-    if (!isValidPhoneNumber(storePhone)) {
-      alert("Phone number must be exactly 10 digits.");
+    if (!storePhone || !isValidPhoneNumber(storePhone)) {
+      showToast("Phone number must be exactly 10 digits.", "error");
       return;
     }
 
@@ -291,10 +292,10 @@ function attachVendorDetailsForm(vendorId, userData) {
       }
 
       fillVendorDetails(userData);
-      alert("Vendor details updated successfully.");
+      showToast("Vendor details updated successfully.", "success");
     } catch (error) {
       console.error("Could not update vendor details:", error);
-      alert("Could not update vendor details.");
+      showToast("Could not update vendor details.", "error");
     }
   });
 }
@@ -305,12 +306,12 @@ function validateTimePair(openingTime, closingTime, label) {
   }
 
   if (!openingTime || !closingTime) {
-    alert(`Please enter both ${label} opening and closing times.`);
+    showToast(`Please enter both ${label} opening and closing times.`, "error");
     return false;
   }
 
   if (openingTime >= closingTime) {
-    alert(`${label} closing time must be after opening time.`);
+    showToast(`${label} closing time must be after opening time.`, "error");
     return false;
   }
 
@@ -376,10 +377,10 @@ function attachOperatingHoursForm(vendorId, userData) {
       userData.closingTime = weekdayClosingTime;
 
       fillOperatingHours(userData);
-      alert("Operating hours updated successfully.");
+      showToast("Operating hours updated successfully.", "success");
     } catch (error) {
       console.error("Could not update operating hours:", error);
-      alert("Could not update operating hours.");
+      showToast("Could not update operating hours.", "error");
     }
   });
 }
@@ -400,11 +401,11 @@ function attachBankingDetailsForm(vendorId, userData) {
     const branchCode = document.getElementById("settings-branch-code").value.trim();
     const accountType = document.getElementById("settings-account-type").value;
 
-    if (!bankName) return alert("Please select a bank.");
-    if (!accountHolder) return alert("Please enter the account holder name.");
-    if (!/^\d{6,12}$/.test(accountNumber)) return alert("Account number must be 6 to 12 digits.");
-    if (!/^\d{6}$/.test(branchCode)) return alert("Branch code must be exactly 6 digits.");
-    if (!accountType) return alert("Please select an account type.");
+    if (!bankName) return showToast("Please select a bank.", "error");
+    if (!accountHolder) return showToast("Please enter the account holder name.", "error");
+    if (!/^\d{6,12}$/.test(accountNumber)) return showToast("Account number must be 6 to 12 digits.", "error");
+    if (!/^\d{6}$/.test(branchCode)) return showToast("Branch code must be exactly 6 digits.", "error");
+    if (!accountType) return showToast("Please select an account type.", "error");
 
     try {
       const idToken = await auth.currentUser.getIdToken();
@@ -428,9 +429,9 @@ function attachBankingDetailsForm(vendorId, userData) {
       userData.bankDetails = { bankName, accountHolder, accountNumber, branchCode, accountType };
 
       fillBankingDetails(userData);
-      alert("Banking details updated successfully.");
+      showToast("Banking details updated successfully.", "success");
     } catch (err) {
-      alert("Could not update banking details: " + err.message);
+      showToast("Could not update banking details.", "error");
     }
   });
 }
@@ -493,7 +494,7 @@ export function initVendorSettings(locationObj = window.location) {
     }
 
     if (userData.status === "suspended") {
-      alert("Your account is suspended");
+      showToast("Your account is suspended", "error");
       locationObj.href = "login.html";
       return;
     }

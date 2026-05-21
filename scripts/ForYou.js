@@ -7,6 +7,7 @@ import {
   query,
   where
 } from "./database.js";
+import { showToast } from "./toast.js";
 
 lucide.createIcons();
 
@@ -270,7 +271,8 @@ function attachCartButtons(items) {
       localStorage.setItem("cart", JSON.stringify(cart));
 
       updateCartCount();
-      alert("Item added to cart.");
+
+      showToast("Item added to cart.", "success");
     });
   });
 }

@@ -7,6 +7,9 @@ const { initRegisterUI } = require("../scripts/register.js");
 global.lucide = {
   createIcons: jest.fn()
 };
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 describe("role select UI logic", () => {
   beforeEach(() => {

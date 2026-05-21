@@ -6,6 +6,7 @@ jest.mock("../scripts/database.js", () => ({
   getDoc: jest.fn()
 }));
 
+
 // Suppress jsdom navigation warnings
 const originalError = console.error;
 beforeAll(() => {

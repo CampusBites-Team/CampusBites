@@ -18,11 +18,15 @@ jest.mock("../scripts/database.js", () => ({
     }))
   }
 }));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 describe("adminAnalytics.js", () => {
   let database;
   let analytics;
   let setReportGenerated;
+  let showToast;
 
   beforeEach(async () => {
     jest.resetModules();
@@ -92,6 +96,7 @@ describe("adminAnalytics.js", () => {
       return el;
     });
 
+    showToast = require("../scripts/toast.js").showToast;
     database = require("../scripts/database.js");
 
     database.getDoc.mockResolvedValue({
@@ -296,7 +301,7 @@ describe("adminAnalytics.js", () => {
     await analytics.exportCSV();
 
     expect(global.URL.createObjectURL).toHaveBeenCalled();
-    expect(alert).toHaveBeenCalledWith("CSV exported successfully");
+    expect(showToast).toHaveBeenCalledWith("CSV exported successfully.", "success");
   });
 
   test("exportPDF runs successfully when jsPDF is loaded", async () => {
@@ -331,7 +336,7 @@ describe("adminAnalytics.js", () => {
     await analytics.exportPDF();
 
     expect(window.jspdf.jsPDF).toHaveBeenCalled();
-    expect(alert).toHaveBeenCalledWith("PDF exported successfully");
+    expect(showToast).toHaveBeenCalledWith("PDF exported successfully.", "success");
   });
 
   test("updateCustomView blocks logged out users", async () => {
@@ -339,8 +344,8 @@ describe("adminAnalytics.js", () => {
 
     await analytics.updateCustomView();
 
-    expect(alert).toHaveBeenCalledWith("You must be logged in.");
-  });
+  expect(showToast).toHaveBeenCalledWith("You must be logged in.", "warning");
+});
 
   test("updateCustomView blocks non-admin users", async () => {
     database.getDoc.mockResolvedValue({
@@ -350,8 +355,8 @@ describe("adminAnalytics.js", () => {
 
     await analytics.updateCustomView();
 
-    expect(alert).toHaveBeenCalledWith("Access denied.");
-  });
+  expect(showToast).toHaveBeenCalledWith("Access denied. Admins only.", "warning");
+});
 
   test("updateCustomView handles missing user profile", async () => {
     database.getDoc.mockResolvedValue({
@@ -360,8 +365,8 @@ describe("adminAnalytics.js", () => {
 
     await analytics.updateCustomView();
 
-    expect(alert).toHaveBeenCalledWith("User profile not found.");
-  });
+  expect(showToast).toHaveBeenCalledWith("User profile not found.","warning");
+});
 
   test("generateSampleData blocks when orders already exist", async () => {
     database.getDoc.mockResolvedValue({
@@ -376,9 +381,10 @@ describe("adminAnalytics.js", () => {
 
     await analytics.generateSampleData();
 
-    expect(alert).toHaveBeenCalledWith("Orders already exist. Sample data was not generated.");
-    expect(database.addDoc).not.toHaveBeenCalled();
-  });
+  expect(showToast).toHaveBeenCalledWith("Orders already exist. Sample data was not generated.","warning"
+  );
+  expect(database.addDoc).not.toHaveBeenCalled();
+});
 
   test("generateSampleData blocks when no approved vendors or items exist", async () => {
     database.getDoc.mockResolvedValue({
@@ -393,10 +399,10 @@ describe("adminAnalytics.js", () => {
 
     await analytics.generateSampleData();
 
-    expect(alert).toHaveBeenCalledWith(
-      "Need approved vendors and menu items before generating sample data."
-    );
-  });
+  expect(showToast).toHaveBeenCalledWith(
+    "Need approved vendors and menu items before generating sample data.","warning"
+  );
+});
 
   test("generateSampleData creates sample orders successfully", async () => {
     database.getDoc.mockResolvedValue({
@@ -437,14 +443,14 @@ describe("adminAnalytics.js", () => {
 
     await analytics.generateSampleData();
 
-    expect(database.addDoc).toHaveBeenCalled();
-    expect(alert).toHaveBeenCalledWith("Sample analytics data generated successfully.");
-  });
+  expect(database.addDoc).toHaveBeenCalled();
+  expect(showToast).toHaveBeenCalledWith("Sample analytics data generated successfully.", "success");
+});
 
   test("updateCustomView handles items metric", async () => {
     document.getElementById("report-metric").value = "items";
 
-    const recentDate = new Date();
+  const recentDate = new Date();
 
     database.getDocs
       .mockResolvedValueOnce({
@@ -491,8 +497,8 @@ describe("adminAnalytics.js", () => {
 
     await analytics.exportCSV();
 
-    expect(alert).toHaveBeenCalledWith("Access denied.");
-  });
+  expect(showToast).toHaveBeenCalledWith("Access denied. Admins only.", "warning");
+});
 
   test("exportPDF blocks when jsPDF is missing", async () => {
     database.getDoc.mockResolvedValue({
@@ -505,10 +511,11 @@ describe("adminAnalytics.js", () => {
 
     await analytics.exportPDF();
 
-    expect(alert).toHaveBeenCalledWith("jsPDF library is not loaded.");
-  });
-  test("populateVendorFilter adds approved vendors to dropdown", async () => {
-    const { populateVendorFilter } = await import("../scripts/adminAnalytics.js");
+  expect(showToast).toHaveBeenCalledWith("jsPDF library is not loaded.", "error");
+});
+
+test("populateVendorFilter adds approved vendors to dropdown", async () => {
+  const { populateVendorFilter } = await import("../scripts/adminAnalytics.js");
 
     database.getDocs.mockResolvedValue({
       docs: [

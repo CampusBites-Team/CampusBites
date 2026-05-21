@@ -107,6 +107,7 @@ for (const v of vendorBreakdown) {
   const orderSummary = v.items
     .map((item) => `${item.name} - R${Number(item.price || 0).toFixed(2)}`)
     .join(", ");
+console.log("Creating vendor notification for:", v.vendorId);
 
   batch.set(orderRef, {
     userId,
@@ -123,6 +124,7 @@ for (const v of vendorBreakdown) {
 
   batch.set(notificationRef, {
     userId: v.vendorId,
+    role: "vendor",
     title: "New Order Received",
     message: `${customerName} placed an order: ${orderSummary}`,
     type: "new-order",

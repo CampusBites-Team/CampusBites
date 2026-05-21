@@ -3,231 +3,264 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>CampusBites - Vendor Profile</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="icon" type="image/png" href="assets/icons/1-removebg-preview.png">
-  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4f46e5">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="CampusBites">
+
+  <link rel="icon" type="image/png" href="assets/icons/1-removebg-preview.png" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+  <link rel="manifest" href="manifest.json" />
+
+  <meta name="theme-color" content="#4f46e5" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="CampusBites" />
 
   <style>
-  @keyframes floatSoft {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-14px) rotate(3deg); }
-  }
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
 
-  .float-soft {
-    animation: floatSoft 5s ease-in-out infinite;
-  }
-</style>
+    .spinner {
+      width: 55px;
+      height: 55px;
+      border: 6px solid #ddd;
+      border-top: 6px solid #ff7a00;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
 
+    .blurred {
+      filter: blur(6px);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes floatSoft {
+      0%, 100% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-14px) rotate(3deg);
+      }
+    }
+
+    .float-soft {
+      animation: floatSoft 5s ease-in-out infinite;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
 </head>
 
-<body class="min-h-screen bg-gradient-to-br from-white via-indigo-50 to-white text-gray-900">
-
-<nav class="bg-white/95 backdrop-blur border-b border-indigo-100 shadow-sm sticky top-0 z-40">
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-    <a href="index.html" class="flex items-center gap-2">
-      <img
-        src="assets/icons/1-removebg-preview.png"
-        alt="CampusBites logo"
-        class="h-12 w-auto object-contain"
-        >
-
-        <span class="text-2xl font-extrabold tracking-tight">
-            <span class="text-indigo-600">Campus</span><span class="text-orange-500">Bites</span>
-        </span>
-    </a>
-
-    <section id="navLinks" class="flex items-center gap-6 mx-auto">
-      <!-- Populated by navbar.js -->
-    </section>
-    <section
-      id="profileMenuContainer"
-      class="hidden flex items-center gap-4"
-    >
-
-      <!-- Notifications -->
-      <section class="relative">
-
-        <button
-          id="notificationBtn"
-          class="relative p-2 rounded-full
-                hover:bg-gray-100 transition"
-        >
-          <i
-            data-lucide="bell"
-            class="w-5 h-5 text-gray-700"
-          ></i>
-
-          <span
-            id="notificationBadge"
-            class="hidden absolute -top-1 -right-1
-                  bg-red-500 text-white text-[10px]
-                  font-bold rounded-full
-                  min-w-[18px] h-[18px]
-                  flex items-center justify-center"
-          >
-            0
-          </span>
-        </button>
-
-        <section
-          id="notificationDropdown"
-          class="hidden absolute right-0 mt-3 w-80
-                bg-white rounded-2xl shadow-xl
-                border border-gray-100
-                max-h-96 overflow-y-auto
-                z-50"
-        >
-        </section>
-
-      </section>
-
-      <!-- Profile -->
-      <section class="relative">
-
-        <button
-          id="profileMenuBtn"
-          class="flex items-center gap-2"
-        >
-          <img
-            id="profileAvatar"
-            src="assets/default-icon.png"
-            alt="Profile"
-            class="w-10 h-10 rounded-full
-                  object-cover border-2
-                  border-indigo-500"
-          />
-        </button>
-
-        <section
-          id="profileDropdown"
-          class="hidden absolute right-0 mt-3 w-56
-                bg-white rounded-xl shadow-lg
-                border border-gray-100 py-2 z-50"
-        ></section>
-
-      </section>
-
-    </section>
+<body class="min-h-screen bg-gradient-to-br from-white via-indigo-50 to-white text-slate-900 overflow-x-hidden">
+  <section id="loading-screen" aria-live="polite">
+    <span class="spinner" aria-hidden="true"></span>
+    <p class="mt-4 font-medium text-gray-700">Loading...</p>
   </section>
-</nav>
 
-  <main class="relative overflow-hidden min-h-[calc(100vh-4rem)]">
-  <section class="absolute -left-28 top-32 w-96 h-80 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
-  <section class="absolute -right-20 bottom-6 w-[430px] h-[360px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
-  <section class="absolute right-56 top-24 w-60 h-48 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-80"></section>
+  <main id="site-content" class="blurred">
+    <nav class="bg-white/95 backdrop-blur border-b border-indigo-100 shadow-sm sticky top-0 z-40">
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap md:flex-nowrap justify-between items-center gap-3 min-h-16 py-3">
+        <a href="index.html" class="flex items-center gap-2">
+          <img
+            src="assets/icons/1-removebg-preview.png"
+            alt="CampusBites logo"
+            class="h-10 sm:h-12 w-auto object-contain"
+          />
 
-  <span class="absolute left-28 top-40 text-indigo-500 text-5xl font-bold float-soft">+</span>
-  <span class="absolute right-80 top-72 text-orange-500 text-4xl font-bold float-soft">✦</span>
-
-  <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-
-    <section class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50 p-6 mb-8">
-      <section class="flex flex-col md:flex-row gap-6 items-center md:items-start">
+          <span class="text-xl sm:text-2xl font-extrabold tracking-tight">
+            <span class="text-indigo-600">Campus</span><span class="text-orange-500">Bites</span>
+          </span>
+        </a>
 
         <section
-          id="vendorImageFallback"
-          class="w-32 h-32 rounded-full border-4 border-indigo-100 bg-indigo-50 flex items-center justify-center shadow-xl shadow-indigo-100"
+          id="navLinks"
+          class="w-full md:w-auto order-3 md:order-none flex flex-wrap items-center justify-center gap-3 md:gap-6 mx-auto text-sm md:text-base"
         >
-          <i data-lucide="store" class="w-14 h-14 text-gray-400"></i>
+          <!-- Populated by navbar.js -->
         </section>
 
-        <img
-          id="vendorImage"
-          src=""
-          alt="Vendor logo"
-          class="hidden w-32 h-32 rounded-full object-cover border-4 border-indigo-100 bg-gray-100 shadow-xl shadow-indigo-100"
-        />
-
-        <section class="flex-1 text-center md:text-left">
-          <section class="flex flex-wrap justify-center md:justify-start gap-2 mb-3">
-            <span
-              id="vendorCategory"
-              class="hidden px-3 py-1 rounded-full text-sm font-semibold bg-purple-50 text-purple-700"
+        <section id="profileMenuContainer" class="hidden flex items-center gap-4">
+          <section class="relative">
+            <button
+              id="notificationBtn"
+              type="button"
+              class="relative p-2 rounded-full hover:bg-gray-100 transition"
             >
-              Category
-            </span>
+              <i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
 
-            <span
-              id="vendorStatus"
-              class="px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-700"
-            >
-              Loading status
-            </span>
+              <span
+                id="notificationBadge"
+                class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center"
+              >
+                0
+              </span>
+            </button>
+
+            <section
+              id="notificationDropdown"
+              class="hidden fixed right-4 left-4 top-20 md:absolute md:left-auto md:right-0 md:top-auto md:mt-3 md:w-80 bg-white rounded-2xl shadow-xl border border-gray-100 max-h-96 overflow-y-auto z-50"
+            ></section>
           </section>
 
-          <h1 id="vendorName" class="text-4xl md:text-5xl font-extrabold text-indigo-950">
-            Vendor Name
-          </h1>
+          <section class="relative">
+            <button
+              id="profileMenuBtn"
+              type="button"
+              class="flex items-center gap-2"
+            >
+              <img
+                id="profileAvatar"
+                src="assets/default-icon.png"
+                alt="Profile"
+                class="w-10 h-10 rounded-full object-cover border-2 border-indigo-500"
+              />
+            </button>
 
-          <p id="vendorSlogan" class="hidden mt-2 text-lg text-indigo-600 font-medium">
-            Vendor slogan
-          </p>
+            <section
+              id="profileDropdown"
+              class="hidden fixed right-4 left-4 top-20 md:absolute md:left-auto md:right-0 md:top-auto md:mt-3 md:w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50"
+            ></section>
+          </section>
+        </section>
+      </section>
+    </nav>
 
-          <section class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-600">
-            <p id="vendorLocation" class="flex justify-center md:justify-start items-center gap-2">
-              <i data-lucide="map-pin" class="w-4 h-4 text-indigo-600"></i>
-              <span>Vendor location</span>
-            </p>
+    <section class="relative overflow-hidden min-h-[calc(100vh-4rem)]">
+      <section class="hidden md:block absolute -left-28 top-32 w-96 h-80 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
+      <section class="hidden md:block absolute -right-20 bottom-6 w-[430px] h-[360px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
+      <section class="hidden md:block absolute right-56 top-24 w-60 h-48 bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-80"></section>
 
-            <p id="vendorPhone" class="hidden flex justify-center md:justify-start items-center gap-2">
-              <i data-lucide="phone" class="w-4 h-4 text-indigo-600"></i>
-              <span>Vendor phone</span>
-            </p>
+      <span class="hidden md:block absolute left-28 top-40 text-indigo-500 text-5xl font-bold float-soft">+</span>
+      <span class="hidden md:block absolute right-80 top-72 text-orange-500 text-4xl font-bold float-soft">✦</span>
 
-            <p id="vendorHours" class="flex justify-center md:justify-start items-center gap-2 sm:col-span-2">
-              <i data-lucide="clock" class="w-4 h-4 text-indigo-600"></i>
-              <span>Loading hours</span>
-            </p>
+      <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        <section class="bg-white/95 backdrop-blur rounded-[1.5rem] sm:rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50 p-5 sm:p-6 mb-8">
+          <section class="flex flex-col md:flex-row gap-6 items-center md:items-start">
+            <section
+              id="vendorImageFallback"
+              class="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-indigo-100 bg-indigo-50 flex items-center justify-center shadow-xl shadow-indigo-100 shrink-0"
+            >
+              <i data-lucide="store" class="w-12 h-12 sm:w-14 sm:h-14 text-gray-400"></i>
+            </section>
+
+            <img
+              id="vendorImage"
+              src=""
+              alt="Vendor logo"
+              class="hidden w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-indigo-100 bg-gray-100 shadow-xl shadow-indigo-100 shrink-0"
+            />
+
+            <section class="flex-1 text-center md:text-left">
+              <section class="flex flex-wrap justify-center md:justify-start gap-2 mb-3">
+                <span
+                  id="vendorCategory"
+                  class="hidden px-3 py-1 rounded-full text-sm font-semibold bg-purple-50 text-purple-700"
+                >
+                  Category
+                </span>
+
+                <span
+                  id="vendorStatus"
+                  class="px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-700"
+                >
+                  Loading status
+                </span>
+              </section>
+
+              <h1 id="vendorName" class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-indigo-950">
+                Vendor Name
+              </h1>
+
+              <p id="vendorSlogan" class="hidden mt-2 text-base sm:text-lg text-indigo-600 font-medium">
+                Vendor slogan
+              </p>
+
+              <section class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-600">
+                <p id="vendorLocation" class="flex justify-center md:justify-start items-center gap-2">
+                  <i data-lucide="map-pin" class="w-4 h-4 text-indigo-600"></i>
+                  <span>Vendor location</span>
+                </p>
+
+                <p id="vendorPhone" class="hidden justify-center md:justify-start items-center gap-2">
+                  <i data-lucide="phone" class="w-4 h-4 text-indigo-600"></i>
+                  <span>Vendor phone</span>
+                </p>
+
+                <p id="vendorHours" class="flex justify-center md:justify-start items-center gap-2 sm:col-span-2">
+                  <i data-lucide="clock" class="w-4 h-4 text-indigo-600"></i>
+                  <span>Loading hours</span>
+                </p>
+              </section>
+            </section>
           </section>
         </section>
 
+        <section class="mb-8">
+          <header class="mb-6 bg-white/90 backdrop-blur rounded-[1.5rem] sm:rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-100 p-5 sm:p-6 max-w-4xl">
+            <p class="text-sm font-semibold text-orange-500 uppercase tracking-wide">
+              Browse food
+            </p>
+
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900">
+              Vendor Menu
+            </h2>
+
+            <p class="mt-2 text-gray-600 leading-relaxed">
+              View available items, prices, and details from this vendor.
+            </p>
+          </header>
+
+          <section id="vendorMenu" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <p class="text-gray-500">Loading menu items...</p>
+          </section>
+        </section>
+
+        <section class="mt-10 bg-white/95 backdrop-blur rounded-[1.5rem] sm:rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50 p-5 sm:p-6">
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
+            Reviews
+          </h2>
+
+          <section id="vendorReviews" class="space-y-4"></section>
+        </section>
       </section>
     </section>
+  </main>
 
-    <section class="mb-8">
-      <header class="mb-6 max-w-4xl">
-  <p class="text-sm font-semibold text-orange-500 uppercase tracking-wide">Browse food</p>
+  <script src="scripts/pwa.js"></script>
+  <script type="module" src="./scripts/navbar.js"></script>
+  <script type="module" src="./scripts/vendor-profile.js"></script>
 
-  <h2 class="text-3xl font-extrabold text-gray-900">
-    Vendor Menu
-  </h2>
-
-  <p class="mt-2 text-gray-600 leading-relaxed">
-    View available items, prices, and details from this vendor.
-  </p>
-</header>
-
-      <section id="vendorMenu" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <p class="text-gray-500">Loading menu items...</p>
-      </section>
-    </section>
-    <section class="mt-10 bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-50 p-6">
-  <h2 class="text-3xl font-extrabold text-gray-900 mb-4">Reviews</h2>
-  <section id="vendorReviews" class="space-y-4"></section>
-</section>
-
-    </section>
-</main>
-
-<script src="scripts/pwa.js"></script>
   <script type="module">
     import { initAuthUI, logout } from "./scripts/auth.js";
 
     initAuthUI();
-    lucide.createIcons();
+
+    if (window.lucide) {
+      lucide.createIcons();
+    }
 
     document.getElementById("logoutBtn")?.addEventListener("click", logout);
   </script>
-
-  <script type="module" src="./scripts/vendor-profile.js"></script>
-  <script type="module" src="./scripts/navbar.js"></script>
-
 </body>
 </html>

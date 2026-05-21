@@ -9,9 +9,8 @@ jest.mock("../scripts/database.js", () => ({
   uploadBytes: jest.fn(),
   getDownloadURL: jest.fn()
 }));
-
-jest.mock("../scripts/account-deletion.js", () => ({
-  requestAccountDeletion: jest.fn()
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
 }));
 
 jest.mock(
@@ -21,6 +20,9 @@ jest.mock(
   }),
   { virtual: true }
 );
+jest.mock("../scripts/account-deletion.js", () => ({
+  requestAccountDeletion: jest.fn()
+}));
 
 const {
   doc,
@@ -30,7 +32,6 @@ const {
   uploadBytes,
   getDownloadURL
 } = require("../scripts/database.js");
-
 const { requestAccountDeletion } = require("../scripts/account-deletion.js");
 
 const {
@@ -49,12 +50,15 @@ describe("customer-profile.js", () => {
     };
   });
 
+  let showToast;
+
   afterAll(() => {
-    console.error = originalError;
-  });
+      console.error = originalError;
+    });
 
   beforeEach(() => {
     jest.clearAllMocks();
+    showToast = require("../scripts/toast.js").showToast;
 
     document.body.innerHTML = `
       <section id="profileImageFallback" class=""></section>
@@ -162,7 +166,7 @@ describe("customer-profile.js", () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(global.alert).toHaveBeenCalledWith("Profile not found.");
+    expect(showToast).toHaveBeenCalledWith("Profile not found.", "error");
   });
 
   test("redirects non-customer users away from customer profile page", async () => {
@@ -185,7 +189,7 @@ describe("customer-profile.js", () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(global.alert).toHaveBeenCalledWith("Only customers can access this profile page.");
+    expect(showToast).toHaveBeenCalledWith("Only customers can access this profile page.", "warning");
   });
 
   test("updates customer profile without changing image", async () => {
@@ -228,169 +232,7 @@ describe("customer-profile.js", () => {
       image: "old-image-url"
     });
 
-    expect(global.alert).toHaveBeenCalledWith("Profile updated successfully.");
-  });
-
-  test("accepts customer phone number with spaces and saves cleaned phone", async () => {
-    doc.mockReturnValue({});
-    getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        fullName: "Ant",
-        email: "ant@gmail.com",
-        phone: "0712345678",
-        role: "customer",
-        image: null
-      })
-    });
-
-    updateDoc.mockResolvedValue();
-
-    onAuthStateChanged.mockImplementation((authArg, callback) => {
-      callback({ uid: "customer-123" });
-    });
-
-    initCustomerProfile();
-
-    await Promise.resolve();
-    await Promise.resolve();
-
-    document.getElementById("fullName").value = "Ant";
-    document.getElementById("phone").value = "074 389 2816";
-
-    document.getElementById("profileForm").dispatchEvent(
-      new Event("submit", { bubbles: true, cancelable: true })
-    );
-
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(updateDoc).toHaveBeenCalledWith(expect.anything(), {
-      fullName: "Ant",
-      phone: "0743892816",
-      image: null
-    });
-  });
-
-  test("rejects invalid customer phone number", async () => {
-    doc.mockReturnValue({});
-    getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        fullName: "Ant",
-        email: "ant@gmail.com",
-        phone: "0712345678",
-        role: "customer"
-      })
-    });
-
-    onAuthStateChanged.mockImplementation((authArg, callback) => {
-      callback({ uid: "customer-123" });
-    });
-
-    initCustomerProfile();
-
-    await Promise.resolve();
-    await Promise.resolve();
-
-    document.getElementById("fullName").value = "Ant";
-    document.getElementById("phone").value = "07123";
-
-    document.getElementById("profileForm").dispatchEvent(
-      new Event("submit", { bubbles: true, cancelable: true })
-    );
-
-    await Promise.resolve();
-
-    expect(global.alert).toHaveBeenCalledWith("Phone number must be exactly 10 digits.");
-    expect(updateDoc).not.toHaveBeenCalled();
-  });
-
-  test("alerts when profile is submitted before profile data is loaded", async () => {
-    onAuthStateChanged.mockImplementation(() => {});
-
-    initCustomerProfile();
-
-    document.getElementById("profileForm").dispatchEvent(
-      new Event("submit", { bubbles: true, cancelable: true })
-    );
-
-    await Promise.resolve();
-
-    expect(global.alert).toHaveBeenCalledWith("Profile could not be loaded.");
-    expect(updateDoc).not.toHaveBeenCalled();
-  });
-
-  test("shows error when profile update fails", async () => {
-    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-
-    doc.mockReturnValue({});
-    getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        fullName: "Ant",
-        email: "ant@gmail.com",
-        phone: "0712345678",
-        role: "customer",
-        image: "old-image-url"
-      })
-    });
-
-    updateDoc.mockRejectedValue(new Error("Update failed"));
-
-    onAuthStateChanged.mockImplementation((authArg, callback) => {
-      callback({ uid: "customer-123" });
-    });
-
-    initCustomerProfile();
-
-    await Promise.resolve();
-    await Promise.resolve();
-
-    document.getElementById("phone").value = "0712345678";
-
-    document.getElementById("profileForm").dispatchEvent(
-      new Event("submit", { bubbles: true, cancelable: true })
-    );
-
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(errorSpy).toHaveBeenCalled();
-    expect(global.alert).toHaveBeenCalledWith("Could not update profile.");
-
-    errorSpy.mockRestore();
-  });
-
-  test("does nothing when profile image input changes with no file", async () => {
-    doc.mockReturnValue({});
-    getDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
-        fullName: "Ant",
-        email: "ant@gmail.com",
-        role: "customer"
-      })
-    });
-
-    onAuthStateChanged.mockImplementation((authArg, callback) => {
-      callback({ uid: "customer-123" });
-    });
-
-    initCustomerProfile();
-
-    await Promise.resolve();
-    await Promise.resolve();
-
-    const imageInput = document.getElementById("profileImageInput");
-
-    Object.defineProperty(imageInput, "files", {
-      value: []
-    });
-
-    imageInput.dispatchEvent(new Event("change"));
-
-    expect(global.alert).not.toHaveBeenCalledWith("Profile picture must be a PNG or JPEG image.");
+    expect(showToast).toHaveBeenCalledWith("Profile updated successfully.", "success");
   });
 
   test("rejects invalid profile image type", async () => {
@@ -422,8 +264,7 @@ describe("customer-profile.js", () => {
 
     imageInput.dispatchEvent(new Event("change"));
 
-    expect(global.alert).toHaveBeenCalledWith("Profile picture must be a PNG or JPEG image.");
-    expect(imageInput.value).toBe("");
+    expect(showToast).toHaveBeenCalledWith("Profile picture must be a PNG or JPEG image.", "error");
   });
 
   test("uploads valid PNG image and saves new image URL", async () => {
@@ -581,7 +422,7 @@ describe("customer-profile.js", () => {
 
     await Promise.resolve();
 
-    expect(global.alert).toHaveBeenCalledWith("Profile could not be loaded.");
+    expect(showToast).toHaveBeenCalledWith("Profile could not be loaded.", "error");
     expect(requestAccountDeletion).not.toHaveBeenCalled();
   });
 

@@ -2,6 +2,7 @@ import {
   auth,
   sendPasswordResetEmail
 } from "./database.js";
+import { showToast } from "./toast.js";
 
 const form = document.getElementById("forgotPasswordForm");
 
@@ -12,10 +13,10 @@ form.addEventListener("submit", async (e) => {
 
   try {
     await sendPasswordResetEmail(auth, email);
-    alert("If an account exists for this email, a password reset link has been set.");
+    showToast("If an account exists for this email, a password reset link has been set.", "success");
     window.location.href = "login.html";
   } catch (error) {
     console.error("Password reset error:", error);
-    alert(error.message);
+    showToast("Could not send password reset email.", "error");
   }
 });

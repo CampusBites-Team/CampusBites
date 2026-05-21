@@ -6,6 +6,7 @@ import {
   updateDoc,
   doc
 } from './database.js';
+import { showToast } from "./toast.js";
 
 // Navigation buttons
 const viewAnalyticsBtn = document.getElementById("viewAnalyticsBtn");
@@ -180,7 +181,7 @@ export const adminActions = {
     try {
       const caller = auth.currentUser;
       if (!caller) {
-        alert("You must be signed in as admin to approve vendors.");
+        showToast("You must be signed in as admin to approve vendors.", "warning");
         return;
       }
       const idToken = await caller.getIdToken();
@@ -206,7 +207,7 @@ export const adminActions = {
       loadVendors();
     } catch (error) {
       console.error("Error approving vendor:", error);
-      alert("Could not approve vendor: " + error.message);
+      showToast("Could not approve vendor: " + error.message, "error");
     }
   },
 

@@ -8,7 +8,8 @@ import {
   query,
   where,
   onSnapshot,
-  orderBy
+  orderBy,
+  updateDoc
 } from "./database.js";
 
 import { formatTimestamp } from "./orders.js";
@@ -287,6 +288,18 @@ async function getUserData(user) {
     return { role: "guest", userData: null };
   }
 }
+//Spinner code for loading screen
+window.addEventListener("load", () => {
+  const loader = document.getElementById("loading-screen");
+  const siteContent = document.getElementById("site-content");
+
+  if (loader && siteContent) {
+    loader.style.display = "none";
+    siteContent.classList.remove("blurred");
+  }
+});
+
+//Notification code for navbar
 
 let currentNotifications = [];
 let firstNotificationLoad = true;
@@ -317,7 +330,7 @@ function listenToNotifications(userId) {
       firstNotificationLoad = false;
       currentNotifications = notifications;
 
-      renderNotifications(notifications);
+      renderNotifications(notifications.filter((n) => !n.read));
     },
     /* istanbul ignore next */
     (error) => {
@@ -359,10 +372,18 @@ function renderNotifications(notifications) {
 
     return `
       <article class="
-        p-4 border-b hover:bg-gray-50
+        relative p-4 pr-10 border-b hover:bg-gray-50
         ${notification.read ? "" : "bg-indigo-50"}
         ${typeStyle}
       ">
+        <button
+          class="mark-notification-read absolute top-3 right-3 text-gray-400 hover:text-red-500 text-lg"
+          data-id="${notification.id}"
+          aria-label="Mark notification as read"
+        >
+          ×
+        </button>
+
         <h4 class="font-semibold text-sm">
           ${notification.title}
         </h4>
@@ -377,6 +398,22 @@ function renderNotifications(notifications) {
       </article>
     `;
   }).join("");
+
+  document.querySelectorAll(".mark-notification-read").forEach((button) => {
+    button.addEventListener("click", async (event) => {
+      event.stopPropagation();
+
+      const notificationId = button.dataset.id;
+
+      try {
+        await updateDoc(doc(db, "notifications", notificationId), {
+          read: true
+        });
+      } catch (error) {
+        console.error("Failed to mark notification as read:", error);
+      }
+    });
+  });
 }
 
 document.addEventListener("DOMContentLoaded", initNavbar);

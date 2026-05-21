@@ -1,305 +1,329 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<style>
-  @keyframes floatSoft {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-14px) rotate(3deg); }
-  }
-
-  .float-soft {
-    animation: floatSoft 5s ease-in-out infinite;
-  }
-</style>
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>CampusBites - My Account</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="icon" type="image/png" href="assets/icons/1-removebg-preview.png">
-  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4f46e5">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="CampusBites">
+
+  <link rel="icon" type="image/png" href="assets/icons/1-removebg-preview.png" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+  <link rel="manifest" href="manifest.json" />
+
+  <meta name="theme-color" content="#4f46e5" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="CampusBites" />
+
+  <style>
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .spinner {
+      width: 55px;
+      height: 55px;
+      border: 6px solid #ddd;
+      border-top: 6px solid #ff7a00;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .blurred {
+      filter: blur(6px);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes floatSoft {
+      0%, 100% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-14px) rotate(3deg);
+      }
+    }
+
+    .float-soft {
+      animation: floatSoft 5s ease-in-out infinite;
+    }
+  </style>
 </head>
 
 <body class="min-h-screen bg-white text-slate-900 overflow-x-hidden">
-
-<nav class="bg-white border-b border-gray-200 shadow-sm">
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-    <a href="index.html" class="flex items-center gap-2">
-      <img
-        src="assets/icons/1-removebg-preview.png"
-        alt="CampusBites logo"
-        class="h-12 w-auto object-contain"
-        >
-
-        <span class="text-2xl font-extrabold tracking-tight">
-            <span class="text-indigo-600">Campus</span><span class="text-orange-500">Bites</span>
-        </span>
-    </a>
-
-    <section id="navLinks" class="flex items-center gap-6 mx-auto">
-      <!-- Populated by navbar.js -->
-    </section>
-    <section
-      id="profileMenuContainer"
-      class="hidden flex items-center gap-4"
-    >
-
-      <!-- Notifications -->
-      <section class="relative">
-
-        <button
-          id="notificationBtn"
-          class="relative p-2 rounded-full
-                hover:bg-gray-100 transition"
-        >
-          <i
-            data-lucide="bell"
-            class="w-5 h-5 text-gray-700"
-          ></i>
-
-          <span
-            id="notificationBadge"
-            class="hidden absolute -top-1 -right-1
-                  bg-red-500 text-white text-[10px]
-                  font-bold rounded-full
-                  min-w-[18px] h-[18px]
-                  flex items-center justify-center"
-          >
-            0
-          </span>
-        </button>
-
-        <section
-          id="notificationDropdown"
-          class="hidden absolute right-0 mt-3 w-80
-                bg-white rounded-2xl shadow-xl
-                border border-gray-100
-                max-h-96 overflow-y-auto
-                z-50"
-        >
-        </section>
-
-      </section>
-
-      <!-- Profile -->
-      <section class="relative">
-
-        <button
-          id="profileMenuBtn"
-          class="flex items-center gap-2"
-        >
-          <img
-            id="profileAvatar"
-            src="assets/default-icon.png"
-            alt="Profile"
-            class="w-10 h-10 rounded-full
-                  object-cover border-2
-                  border-indigo-500"
-          />
-        </button>
-
-        <section
-          id="profileDropdown"
-          class="hidden absolute right-0 mt-3 w-56
-                bg-white rounded-xl shadow-lg
-                border border-gray-100 py-2 z-50"
-        ></section>
-
-      </section>
-
-    </section>
+  <section id="loading-screen" aria-live="polite">
+    <span class="spinner" aria-hidden="true"></span>
+    <p>Loading...</p>
   </section>
-</nav>
-  <main class="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50 to-white px-4 sm:px-6 lg:px-8 py-12">
 
-    <section class="absolute -left-28 top-28 w-96 h-80 bg-indigo-100 rounded-full opacity-60"></section>
-<section class="absolute -right-24 top-40 w-[430px] h-[340px] bg-orange-100 rounded-full opacity-60"></section>
-<section class="absolute left-16 bottom-20 w-80 h-56 bg-orange-100 rounded-full opacity-50"></section>
-<section class="absolute right-28 bottom-12 w-96 h-64 bg-indigo-100 rounded-full opacity-50"></section>
-
-<span class="absolute left-20 top-36 text-indigo-500 text-6xl font-bold float-soft">+</span>
-<span class="absolute right-32 top-52 text-orange-500 text-5xl font-bold float-soft">✦</span>
-<span class="absolute left-[48%] bottom-24 text-indigo-400 text-4xl font-bold float-soft">↝</span>
-
-<i data-lucide="user-circle" class="absolute right-24 top-32 w-24 h-24 text-orange-500 float-soft"></i>
-<i data-lucide="camera" class="absolute left-28 bottom-28 w-24 h-24 text-indigo-600 float-soft"></i>
-<i data-lucide="settings" class="absolute right-[40%] bottom-20 w-20 h-20 text-indigo-500 float-soft"></i>
-
-<section class="relative z-10 max-w-5xl mx-auto">
-
-    <header class="mb-10 bg-white/95 backdrop-blur rounded-[1.7rem] p-8 shadow-xl shadow-indigo-100 border border-indigo-100">
-      <h1 class="text-5xl md:text-6xl font-extrabold text-indigo-950">
-        My Account
-      </h1>
-      <p class="mt-3 text-lg font-semibold text-slate-600">
-        View your account details and update your customer information.
-      </p>
-    </header>
-
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-      <article class="bg-white/95 backdrop-blur rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100 p-6">
-        <header class="mb-6">
-          <h2 class="text-2xl font-extrabold text-indigo-950">
-            Account Preview
-          </h2>
-          <p class="text-slate-600">
-            This is your saved customer account information.
-          </p>
-        </header>
-
-        <section class="text-center">
-
-          <section
-            id="profileImageFallback"
-            class="w-32 h-32 mx-auto rounded-full border-4 border-indigo-100 bg-indigo-50 flex items-center justify-center shadow-lg"
-          >
-            <i data-lucide="user" class="w-14 h-14 text-indigo-400"></i>
-          </section>
-
+  <main id="site-content" class="blurred">
+    <nav class="bg-white border-b border-gray-200 shadow-sm">
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap md:flex-nowrap justify-between items-center gap-3 min-h-16 py-3">
+        <a href="index.html" class="flex items-center gap-2">
           <img
-            id="profileImage"
-            src=""
-            alt="Customer profile picture"
-            class="hidden w-32 h-32 mx-auto rounded-full object-cover border-4 border-indigo-100 bg-indigo-50 shadow-lg"
+            src="assets/icons/1-removebg-preview.png"
+            alt="CampusBites logo"
+            class="h-10 sm:h-12 w-auto object-contain"
           />
 
-          <h2 id="profileName" class="mt-4 text-xl font-extrabold text-indigo-950">
-            Customer Name
-          </h2>
+          <span class="text-xl sm:text-2xl font-extrabold tracking-tight">
+            <span class="text-indigo-600">Campus</span><span class="text-orange-500">Bites</span>
+          </span>
+        </a>
 
-          <p id="profileEmail" class="text-slate-600">
-            customer@email.com
-          </p>
+        <section
+          id="navLinks"
+          class="w-full md:w-auto order-3 md:order-none flex flex-wrap items-center justify-center gap-3 md:gap-6 mx-auto text-sm md:text-base"
+        >
+          <!-- Populated by navbar.js -->
         </section>
-      </article>
 
-      <article class="lg:col-span-2 bg-white/95 backdrop-blur rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100 p-6">
-        <header class="mb-6">
-          <h2 class="text-2xl font-extrabold text-indigo-950">
-            Edit Account
-          </h2>
-          <p class="text-gray-600">
-            Update your saved customer details.
+        <section id="profileMenuContainer" class="hidden flex items-center gap-4">
+          <section class="relative">
+            <button
+              id="notificationBtn"
+              type="button"
+              class="relative p-2 rounded-full hover:bg-gray-100 transition"
+            >
+              <i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
+
+              <span
+                id="notificationBadge"
+                class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center"
+              >
+                0
+              </span>
+            </button>
+
+            <section
+              id="notificationDropdown"
+              class="hidden fixed right-4 left-4 top-20 md:absolute md:left-auto md:right-0 md:top-auto md:mt-3 md:w-80 bg-white rounded-2xl shadow-xl border border-gray-100 max-h-96 overflow-y-auto z-50"
+            ></section>
+          </section>
+
+          <section class="relative">
+            <button id="profileMenuBtn" type="button" class="flex items-center gap-2">
+              <img
+                id="profileAvatar"
+                src="assets/default-icon.png"
+                alt="Profile"
+                class="w-10 h-10 rounded-full object-cover border-2 border-indigo-500"
+              />
+            </button>
+
+            <section
+              id="profileDropdown"
+              class="hidden fixed right-4 left-4 top-20 md:absolute md:left-auto md:right-0 md:top-auto md:mt-3 md:w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50"
+            ></section>
+          </section>
+        </section>
+      </section>
+    </nav>
+
+    <section class="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50 to-white px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <section class="hidden md:block absolute -left-28 top-28 w-96 h-80 bg-indigo-100 rounded-full opacity-60"></section>
+      <section class="hidden md:block absolute -right-24 top-40 w-[430px] h-[340px] bg-orange-100 rounded-full opacity-60"></section>
+      <section class="hidden md:block absolute left-16 bottom-20 w-80 h-56 bg-orange-100 rounded-full opacity-50"></section>
+      <section class="hidden md:block absolute right-28 bottom-12 w-96 h-64 bg-indigo-100 rounded-full opacity-50"></section>
+
+      <span class="hidden md:block absolute left-20 top-36 text-indigo-500 text-6xl font-bold float-soft">+</span>
+      <span class="hidden md:block absolute right-32 top-52 text-orange-500 text-5xl font-bold float-soft">✦</span>
+      <span class="hidden md:block absolute left-[48%] bottom-24 text-indigo-400 text-4xl font-bold float-soft">↝</span>
+
+      <i data-lucide="user-circle" class="hidden md:block absolute right-24 top-32 w-24 h-24 text-orange-500 float-soft"></i>
+      <i data-lucide="camera" class="hidden md:block absolute left-28 bottom-28 w-24 h-24 text-indigo-600 float-soft"></i>
+      <i data-lucide="settings" class="hidden md:block absolute right-[40%] bottom-20 w-20 h-20 text-indigo-500 float-soft"></i>
+
+      <section class="relative z-10 max-w-5xl mx-auto">
+        <header class="mb-6 sm:mb-10 bg-white/95 backdrop-blur rounded-[1.3rem] sm:rounded-[1.7rem] p-5 sm:p-8 shadow-xl shadow-indigo-100 border border-indigo-100">
+          <h1 class="text-3xl sm:text-4xl md:text-6xl font-extrabold text-indigo-950">
+            My Account
+          </h1>
+
+          <p class="mt-3 text-base sm:text-lg font-semibold text-slate-600">
+            View your account details and update your customer information.
           </p>
         </header>
 
-        <form id="profileForm" class="space-y-5">
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
+          <article class="bg-white/95 backdrop-blur rounded-[1.3rem] sm:rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100 p-5 sm:p-6">
+            <header class="mb-6">
+              <h2 class="text-xl sm:text-2xl font-extrabold text-indigo-950">
+                Account Preview
+              </h2>
 
-          <section>
-            <label for="fullName" class="block text-sm font-semibold text-indigo-950 mb-2">
-              Full Name
-            </label>
-            <input
-              type="text"
-              id="fullName"
-              class="w-full px-4 py-3 border border-indigo-100 rounded-2xl bg-indigo-50/40 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm"
-              placeholder="Enter your full name"
-            />
-          </section>
+              <p class="text-sm sm:text-base text-slate-600">
+                This is your saved customer account information.
+              </p>
+            </header>
 
-          <section>
-            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              class="w-full px-4 py-3 border border-indigo-100 rounded-2xl bg-slate-100 text-slate-600 shadow-sm"
-              readonly
-            />
-          </section>
+            <section class="text-center">
+              <section
+                id="profileImageFallback"
+                class="w-28 h-28 sm:w-32 sm:h-32 mx-auto rounded-full border-4 border-indigo-100 bg-indigo-50 flex items-center justify-center shadow-lg"
+              >
+                <i data-lucide="user" class="w-12 h-12 sm:w-14 sm:h-14 text-indigo-400"></i>
+              </section>
 
-          <section>
-            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number
-            </label>
-            <input
-              type="tel"
-              id="phone"
-              class="w-full px-4 py-3 border border-indigo-100 rounded-2xl bg-indigo-50/40 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm"
-              placeholder="Optional"
-            />
-          </section>
+              <img
+                id="profileImage"
+                src=""
+                alt="Customer profile picture"
+                class="hidden w-28 h-28 sm:w-32 sm:h-32 mx-auto rounded-full object-cover border-4 border-indigo-100 bg-indigo-50 shadow-lg"
+              />
 
-          <section>
-            <label for="role" class="block text-sm font-medium text-gray-700 mb-1">
-              Role
-            </label>
-            <input
-              type="text"
-              id="role"
-              class="w-full px-4 py-3 border border-indigo-100 rounded-2xl bg-slate-100 text-slate-600 shadow-sm"
-              readonly
-            />
-          </section>
+              <h2 id="profileName" class="mt-4 text-lg sm:text-xl font-extrabold text-indigo-950 break-words">
+                Customer Name
+              </h2>
 
-          <section>
-            <label for="profileImageInput" class="block text-sm font-semibold text-indigo-950 mb-2">
-              Profile Picture
-            </label>
+              <p id="profileEmail" class="text-sm sm:text-base text-slate-600 break-words">
+                customer@email.com
+              </p>
+            </section>
+          </article>
 
-            <input
-              type="file"
-              id="profileImageInput"
-              accept="image/png, image/jpeg"
-              class="block w-full text-sm text-slate-700 border border-indigo-100 rounded-2xl cursor-pointer bg-indigo-50/40 focus:outline-none shadow-sm file:mr-4 file:py-3 file:px-4 file:rounded-l-2xl file:border-0 file:bg-indigo-600 file:text-white file:font-bold hover:file:bg-indigo-700"
-            />
+          <article class="lg:col-span-2 bg-white/95 backdrop-blur rounded-[1.3rem] sm:rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100 p-5 sm:p-6">
+            <header class="mb-6">
+              <h2 class="text-xl sm:text-2xl font-extrabold text-indigo-950">
+                Edit Account
+              </h2>
 
-            <p class="mt-2 text-sm text-slate-500">
-              Only PNG or JPG images are allowed.
-            </p>
-          </section>
+              <p class="text-sm sm:text-base text-gray-600">
+                Update your saved customer details.
+              </p>
+            </header>
 
-<section class="bg-red-50 border border-red-200 rounded-2xl p-6 mt-8">
-  <header class="mb-3">
-    <h2 class="text-xl font-bold text-red-700">Delete Account</h2>
-    <p class="text-sm text-red-600">
-      Your account will be deactivated immediately and permanently deleted after 30 days.
-    </p>
-  </header>
+            <form id="profileForm" class="space-y-5">
+              <section>
+                <label for="fullName" class="block text-sm font-semibold text-indigo-950 mb-2">
+                  Full Name
+                </label>
 
-  <button
-    type="button"
-    id="deleteAccountBtn"
-    class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
-  >
-    Delete My Account
-  </button>
+                <input
+                  type="text"
+                  id="fullName"
+                  class="w-full px-4 py-3 border border-indigo-100 rounded-2xl bg-indigo-50/40 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm"
+                  placeholder="Enter your full name"
+                />
+              </section>
 
- 
-</section>
+              <section>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
 
+                <input
+                  type="email"
+                  id="email"
+                  class="w-full px-4 py-3 border border-indigo-100 rounded-2xl bg-slate-100 text-slate-600 shadow-sm"
+                  readonly
+                />
+              </section>
 
-          <footer class="flex justify-end">
-            <button
-              type="submit"
-              class="bg-indigo-600 text-white px-7 py-3 rounded-2xl font-bold hover:bg-indigo-700 transition shadow-xl shadow-indigo-200"
-            >
-              Save Changes
-            </button>
-          </footer>
+              <section>
+                <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
+                  Phone Number
+                </label>
 
-        </form>
-      </article>
+                <input
+                  type="tel"
+                  id="phone"
+                  class="w-full px-4 py-3 border border-indigo-100 rounded-2xl bg-indigo-50/40 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm"
+                  placeholder="Optional"
+                />
+              </section>
 
-    </section>
+              <section>
+                <label for="role" class="block text-sm font-medium text-gray-700 mb-1">
+                  Role
+                </label>
+
+                <input
+                  type="text"
+                  id="role"
+                  class="w-full px-4 py-3 border border-indigo-100 rounded-2xl bg-slate-100 text-slate-600 shadow-sm"
+                  readonly
+                />
+              </section>
+
+              <section>
+                <label for="profileImageInput" class="block text-sm font-semibold text-indigo-950 mb-2">
+                  Profile Picture
+                </label>
+
+                <input
+                  type="file"
+                  id="profileImageInput"
+                  accept="image/png, image/jpeg"
+                  class="block w-full text-sm text-slate-700 border border-indigo-100 rounded-2xl cursor-pointer bg-indigo-50/40 focus:outline-none shadow-sm file:mr-4 file:py-3 file:px-4 file:rounded-l-2xl file:border-0 file:bg-indigo-600 file:text-white file:font-bold hover:file:bg-indigo-700"
+                />
+
+                <p class="mt-2 text-sm text-slate-500">
+                  Only PNG or JPG images are allowed.
+                </p>
+              </section>
+
+              <section class="bg-red-50 border border-red-200 rounded-2xl p-5 sm:p-6 mt-8">
+                <header class="mb-3">
+                  <h2 class="text-lg sm:text-xl font-bold text-red-700">
+                    Delete Account
+                  </h2>
+
+                  <p class="text-sm text-red-600">
+                    Your account will be deactivated immediately and permanently deleted after 30 days.
+                  </p>
+                </header>
+
+                <button
+                  type="button"
+                  id="deleteAccountBtn"
+                  class="w-full sm:w-auto bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+                >
+                  Delete My Account
+                </button>
+              </section>
+
+              <footer class="flex justify-stretch sm:justify-end">
+                <button
+                  type="submit"
+                  class="w-full sm:w-auto bg-indigo-600 text-white px-7 py-3 rounded-2xl font-bold hover:bg-indigo-700 transition shadow-xl shadow-indigo-200"
+                >
+                  Save Changes
+                </button>
+              </footer>
+            </form>
+          </article>
+        </section>
+      </section>
     </section>
   </main>
-  <script src="scripts/pwa.js"></script>
+
+  <script src="./scripts/pwa.js"></script>
   <script type="module" src="./scripts/navbar.js"></script>
-
   <script type="module" src="./scripts/customer-profile.js"></script>
-  <script type="module">
-    lucide.createIcons();
-  </script>
 
+  <script type="module">
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+  </script>
 </body>
 </html>

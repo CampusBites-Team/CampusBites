@@ -11,12 +11,16 @@ jest.mock("../scripts/database.js", () => ({
   query: jest.fn(),
   where: jest.fn()
 }));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 describe("ForYou.js", () => {
   let onAuthStateChanged;
   let getDocs;
   let collection;
   let query;
+  let showToast;
   let where;
 
   const flushPromises = async () => {
@@ -29,7 +33,6 @@ describe("ForYou.js", () => {
     await import("../scripts/ForYou.js");
     await flushPromises();
   }
-
   beforeEach(async () => {
     jest.resetModules();
 
@@ -44,13 +47,13 @@ describe("ForYou.js", () => {
       createIcons: jest.fn()
     };
 
-    global.alert = jest.fn();
 
     jest.spyOn(console, "error").mockImplementation(() => {});
 
     localStorage.clear();
 
     const dbModule = await import("../scripts/database.js");
+    showToast = (await import("../scripts/toast.js")).showToast;
 
     onAuthStateChanged = dbModule.onAuthStateChanged;
     getDocs = dbModule.getDocs;
@@ -296,7 +299,7 @@ describe("ForYou.js", () => {
     expect(cart).toHaveLength(1);
     expect(cart[0].name).toBe("Burger");
     expect(document.getElementById("cartCount").textContent).toBe("1");
-    expect(global.alert).toHaveBeenCalledWith("Item added to cart.");
+    expect(showToast).toHaveBeenCalledWith("Item added to cart.", "success");
   });
 
   test("shows fallback message when no menu items and no orders are available", async () => {

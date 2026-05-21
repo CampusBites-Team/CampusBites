@@ -20,6 +20,9 @@ jest.mock("../scripts/database.js", () => ({
   uploadBytes: jest.fn(),
   getDownloadURL: jest.fn()
 }));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 global.lucide = { createIcons: jest.fn() };
 global.alert = jest.fn();
@@ -34,6 +37,7 @@ const {
   uploadBytes,
   getDownloadURL
 } = require("../scripts/database.js");
+const { showToast } = require("../scripts/toast.js");
 
 const flush = async () => {
   for (let i = 0; i < 6; i++) await Promise.resolve();
@@ -132,7 +136,7 @@ describe("register coverage gaps", () => {
       submit();
       await flush();
 
-      expect(alert).toHaveBeenCalledWith("Bank required");
+      expect(showToast).toHaveBeenCalledWith("Bank required", "error");
       expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
     });
 
@@ -142,7 +146,7 @@ describe("register coverage gaps", () => {
       submit();
       await flush();
 
-      expect(alert).toHaveBeenCalledWith("Account holder name required");
+      expect(showToast).toHaveBeenCalledWith("Account holder name required", "error");
       expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
     });
 
@@ -154,7 +158,7 @@ describe("register coverage gaps", () => {
       submit();
       await flush();
 
-      expect(alert).toHaveBeenCalledWith("Account number must be 6 to 12 digits.");
+      expect(showToast).toHaveBeenCalledWith("Account number must be 6 to 12 digits.", "error");
       expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
     });
 
@@ -166,7 +170,7 @@ describe("register coverage gaps", () => {
       submit();
       await flush();
 
-      expect(alert).toHaveBeenCalledWith("Account number must be 6 to 12 digits.");
+      expect(showToast).toHaveBeenCalledWith("Account number must be 6 to 12 digits.", "error");
     });
 
     test("rejects when branch code is not exactly 6 digits", async () => {
@@ -178,7 +182,7 @@ describe("register coverage gaps", () => {
       submit();
       await flush();
 
-      expect(alert).toHaveBeenCalledWith("Branch code must be exactly 6 digits.");
+      expect(showToast).toHaveBeenCalledWith("Branch code must be exactly 6 digits.", "error");
       expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
     });
 
@@ -192,7 +196,7 @@ describe("register coverage gaps", () => {
       submit();
       await flush();
 
-      expect(alert).toHaveBeenCalledWith("Account type required");
+      expect(showToast).toHaveBeenCalledWith("Account type required", "error");
       expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
     });
 
@@ -233,12 +237,12 @@ describe("register coverage gaps", () => {
       roleSelect.value = "vendor";
       roleSelect.dispatchEvent(new Event("change", { bubbles: true }));
 
-      const bankName = document.getElementById("bank-name");
-      const accountHolder = document.getElementById("account-holder");
-      const accountNumber = document.getElementById("account-number");
-      const branchCode = document.getElementById("branch-code");
-      const accountType = document.getElementById("account-type");
-
+expect(showToast).not.toHaveBeenCalled();
+const bankName = document.getElementById("bank-name");
+const accountHolder = document.getElementById("account-holder");
+const accountNumber = document.getElementById("account-number");
+const branchCode = document.getElementById("branch-code");
+const accountType = document.getElementById("account-type");
       bankName.value = "FNB";
       accountHolder.value = "Jane";
       accountNumber.value = "12345678";
@@ -266,7 +270,7 @@ describe("register coverage gaps", () => {
       document.getElementById("googleRegister").click();
       await flush();
 
-      expect(alert).toHaveBeenCalledWith("popup closed");
+      expect(showToast).toHaveBeenCalledWith("popup closed", "error");
     });
 
     test("existing pending vendor is handled by handleSocialLogin", async () => {
@@ -282,7 +286,7 @@ describe("register coverage gaps", () => {
       expect(signInWithPopup).toHaveBeenCalled();
       expect(getDoc).toHaveBeenCalled();
       // No alert: pending vendor silently navigates to pending-approval
-      expect(alert).not.toHaveBeenCalled();
+      expect(showToast).not.toHaveBeenCalled();
     });
 
     test("existing approved customer flows through redirectUser without alert", async () => {
@@ -297,7 +301,7 @@ describe("register coverage gaps", () => {
 
       expect(signInWithPopup).toHaveBeenCalled();
       expect(getDoc).toHaveBeenCalled();
-      expect(alert).not.toHaveBeenCalled();
+      expect(showToast).not.toHaveBeenCalled();
     });
 
     test("existing approved vendor flows through redirectUser without alert", async () => {
@@ -312,7 +316,7 @@ describe("register coverage gaps", () => {
 
       expect(signInWithPopup).toHaveBeenCalled();
       expect(getDoc).toHaveBeenCalled();
-      expect(alert).not.toHaveBeenCalled();
+      expect(showToast).not.toHaveBeenCalled();
     });
 
     test("existing admin flows through redirectUser without alert", async () => {
@@ -327,7 +331,7 @@ describe("register coverage gaps", () => {
 
       expect(signInWithPopup).toHaveBeenCalled();
       expect(getDoc).toHaveBeenCalled();
-      expect(alert).not.toHaveBeenCalled();
+      expect(showToast).not.toHaveBeenCalled();
     });
   });
 
@@ -352,7 +356,7 @@ describe("register coverage gaps", () => {
 
       expect(setDoc).toHaveBeenCalled();
       // No error alert: the vendor branch ran the href assignment cleanly
-      expect(alert).not.toHaveBeenCalledWith(expect.stringMatching(/error|fail/i));
+      expect(showToast).not.toHaveBeenCalledWith(expect.stringMatching(/error|fail/i));
     });
   });
 });

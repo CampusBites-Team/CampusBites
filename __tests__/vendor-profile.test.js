@@ -24,6 +24,9 @@ jest.mock("../scripts/database.js", () => ({
     conditions
   }))
 }));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 const flush = async () => {
   await Promise.resolve();
@@ -33,6 +36,7 @@ const flush = async () => {
 
 describe("vendor-profile.js", () => {
   let database;
+  let showToast;
 
   function setupDom() {
     document.body.innerHTML = `
@@ -209,6 +213,7 @@ describe("vendor-profile.js", () => {
     window.history.pushState({}, "", "/vendor-profile.html?vendorId=vendor-1");
 
     database = await import("../scripts/database.js");
+    showToast = require("../scripts/toast.js").showToast;
 
     mockVendorData();
     mockSnapshots();
@@ -429,7 +434,7 @@ describe("vendor-profile.js", () => {
 
     await loadVendorProfile();
 
-    expect(window.alert).toHaveBeenCalledWith("Vendor profile could not be loaded.");
+    expect(showToast).toHaveBeenCalledWith("Vendor profile could not be loaded.", "error");
   });
 
   test("redirects when vendor is not found", async () => {
@@ -440,7 +445,7 @@ describe("vendor-profile.js", () => {
 
     await loadVendorProfile();
 
-    expect(window.alert).toHaveBeenCalledWith("Vendor not found.");
+    expect(showToast).toHaveBeenCalledWith("Vendor not found.", "error");
   });
 
   test("redirects when vendor is not approved", async () => {
@@ -450,7 +455,7 @@ describe("vendor-profile.js", () => {
 
     await loadVendorProfile();
 
-    expect(window.alert).toHaveBeenCalledWith("This vendor profile is not available.");
+    expect(showToast).toHaveBeenCalledWith("This vendor profile is not available.", "error");
   });
   
   test("shows weekends as closed when vendor is closed on weekends", async () => {

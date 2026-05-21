@@ -8,6 +8,7 @@ import {
   doc,
   collection
 } from "./database.js";
+import { showToast } from "./toast.js";
 globalThis.lucide?.createIcons?.();
 let loadedMenuItems = [];
 const tbody = document.getElementById("vendor-table-body");
@@ -52,11 +53,11 @@ async function approveMenuItem(itemId) {
       reviewReason: ""
     });
 
-    alert("Menu item approved successfully.");
+    showToast("Menu item approved successfully.","success");
     loadMenuItems();
   } catch (error) {
     console.error("Error approving menu item:", error);
-    alert("Failed to approve menu item.");
+    showToast("Failed to approve menu item.", "error");
   }
 }
 
@@ -64,7 +65,7 @@ async function suspendMenuItem(itemId) {
   const reason = prompt("Enter the reason for suspending/rejecting this menu item:");
 
   if (!reason || reason.trim() === "") {
-    alert("Suspension reason is required.");
+    showToast("Suspension reason is required.", "warning");
     return;
   }
 
@@ -74,11 +75,11 @@ async function suspendMenuItem(itemId) {
       reviewReason: reason.trim()
     });
 
-    alert("Menu item suspended successfully.");
+    showToast("Menu item suspended successfully.", "success");
     loadMenuItems();
   } catch (error) {
     console.error("Error suspending menu item:", error);
-    alert("Failed to suspend menu item.");
+    showToast("Failed to suspend menu item.", "error");
   }
 }
 function showItemDetails(item) {
@@ -357,7 +358,7 @@ onAuthStateChanged(auth, async (user) => {
     const currentUser = userSnap.data();
 
     if (currentUser.role !== "admin") {
-      alert("Access denied. Admins only.");
+      showToast("Access denied. Admins only.", "warning");
       window.location.assign("index.html");
       return;
     }

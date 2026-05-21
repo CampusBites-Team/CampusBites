@@ -20,11 +20,13 @@ jest.mock('../scripts/database.js', () => ({
   sendEmailVerification: jest.fn(),
   signOut: jest.fn()
 }));
-
-jest.mock("../scripts/account-deletion.js", () => ({
-  reactivateAccount: jest.fn()
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
 }));
-
+jest.mock("../scripts/account-deletion.js", () => ({
+  reactivateAccount: jest.fn(),
+  requestAccountDeletion: jest.fn()
+}));
 import {
   navigateTo,
   redirectUser,
@@ -33,8 +35,8 @@ import {
   initSocialLogins,
   initLoginPage
 } from '../scripts/login.js';
-import { reactivateAccount } from "../scripts/account-deletion.js";
-import {
+import { showToast } from "../scripts/toast.js";
+import{
   signInWithEmailAndPassword,
   getDoc,
   doc,
@@ -46,7 +48,7 @@ import {
   sendEmailVerification,
   signOut
 } from '../scripts/database.js';
-
+const { reactivateAccount } = require("../scripts/account-deletion.js");
 describe('navigateTo', () => {
   test('calls location.assign with the given page', () => {
     const mockAssign = jest.fn();
@@ -300,7 +302,7 @@ test('submits login and reads user profile', async () => {
 
   expect(doc).toHaveBeenCalled();
   expect(getDoc).toHaveBeenCalled();
-  expect(global.alert).not.toHaveBeenCalled();
+  expect(showToast).not.toHaveBeenCalled();
 });
 
 test('alerts if user profile does not exist', async () => {
@@ -326,10 +328,7 @@ test('alerts if user profile does not exist', async () => {
 
   await new Promise(resolve => setTimeout(resolve,0));
 
-  expect(global.alert)
-    .toHaveBeenCalledWith(
-      'User profile not found.'
-    );
+  expect(showToast).toHaveBeenCalledWith('User profile not found.', "error");
 });
 
   test('alerts when login fails', async () => {
@@ -343,7 +342,7 @@ test('alerts if user profile does not exist', async () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(global.alert).toHaveBeenCalledWith('Invalid credentials');
+    expect(showToast).toHaveBeenCalledWith('Invalid email or password.', "error");
   });
 });
 
@@ -388,9 +387,7 @@ describe('initSocialLogins', () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(global.alert).toHaveBeenCalledWith(
-      expect.stringContaining('googleLogin sign-in failed: Popup blocked')
-    );
+    expect(showToast).toHaveBeenCalledWith(expect.stringContaining('googleLogin sign-in failed: Popup blocked'), "error");
   });
 });
 
@@ -460,9 +457,10 @@ describe('initLoginPage', () => {
   expect(signOut)
     .toHaveBeenCalled();
 
-  expect(window.alert)
-    .toHaveBeenCalledWith(
-      "Please verify your email before logging in. A new verification email has been sent."
+  expect(showToast).toHaveBeenCalledWith(
+      "Please verify your email before logging in. A new verification email has been sent.",
+      "error"
     );
 });
+
 });

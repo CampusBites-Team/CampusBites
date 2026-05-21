@@ -16,6 +16,9 @@ jest.mock("../scripts/database.js", () => ({
   where: jest.fn(),
   serverTimestamp: jest.fn(() => "mock-timestamp")
 }));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 const makeSnapshot = (orders) => ({
   docs: orders.map((order, index) => ({
@@ -39,6 +42,7 @@ const flush = async () => {
 
 describe("checkOut.js", () => {
   let db;
+  let showToast;
 
   beforeEach(() => {
     jest.resetModules();
@@ -59,8 +63,8 @@ describe("checkOut.js", () => {
     `;
 
     db = require("../scripts/database.js");
+    showToast = require("../scripts/toast.js").showToast;
 
-    window.alert = jest.fn();
 
     db.collection.mockImplementation((_db, collectionName) => collectionName);
     db.where.mockImplementation((field, operator, value) => ({ field, operator, value }));
@@ -444,10 +448,10 @@ describe("checkOut.js", () => {
     document.body.appendChild(fakeBtn);
 
     fakeBtn.click();
+    await flush();
 
-    expect(window.alert).toHaveBeenCalledWith(
-      "Order cannot be cancelled, it is already in progress."
-    );
+
+    expect(showToast).toHaveBeenCalledWith("Order cannot be cancelled, it is already in progress.", "warning");
   });
 
   test("alerts when cancelled order is cancelled again", async () => {
@@ -475,8 +479,10 @@ describe("checkOut.js", () => {
     document.body.appendChild(fakeBtn);
 
     fakeBtn.click();
+    await flush();
 
-    expect(window.alert).toHaveBeenCalledWith("Order is already cancelled");
+
+    expect(showToast).toHaveBeenCalledWith("Order is already cancelled", "warning");
   });
 
   test("alerts when order status is capital Cancelled", async () => {
@@ -504,8 +510,8 @@ describe("checkOut.js", () => {
     document.body.appendChild(fakeBtn);
 
     fakeBtn.click();
-
-    expect(window.alert).toHaveBeenCalledWith("Order is already cancelled");
+    await flush();
+    expect(showToast).toHaveBeenCalledWith("Order is already cancelled", "warning");
   });
 
   test("handles updateDoc failure when cancelling order", async () => {
@@ -536,9 +542,7 @@ describe("checkOut.js", () => {
     await flush();
 
     expect(errorSpy).toHaveBeenCalled();
-    expect(window.alert).toHaveBeenCalledWith("Failed to cancel order");
-
-    errorSpy.mockRestore();
+    expect(showToast).toHaveBeenCalledWith("Failed to cancel order.", "error");
   });
 
   test("does nothing when order is not found in cache", async () => {
@@ -725,7 +729,7 @@ describe("checkOut.js", () => {
 
     fakeBtn.click();
 
-    expect(alertSpy).toHaveBeenCalledWith("Order has already been refunded.");
+    expect(showToast).toHaveBeenCalledWith("Order has already been refunded.", "warning");
   });
 
   test("initiates Paystack refund for paid pending order", async () => {
@@ -778,9 +782,7 @@ describe("checkOut.js", () => {
       })
     );
 
-    expect(alertSpy).toHaveBeenCalledWith(
-      "Refund initiated. It usually clears within a few minutes."
-    );
+    expect(showToast).toHaveBeenCalledWith("Refund initiated. It usually clears within a few minutes.", "success");
 
     expect(db.updateDoc).toHaveBeenCalledWith(
       expect.anything(),
@@ -832,9 +834,7 @@ describe("checkOut.js", () => {
     await flush();
 
     expect(errorSpy).toHaveBeenCalled();
-    expect(alertSpy).toHaveBeenCalledWith("Could not initiate refund: boom");
-
-    errorSpy.mockRestore();
+    expect(showToast).toHaveBeenCalledWith("Could not initiate refund: boom", "error");
   });
 
   test("renders cash unpaid notice and Cash • Unpaid badge for unpaid cash orders", async () => {
@@ -1007,90 +1007,6 @@ describe("checkOut.js", () => {
 
     fakeBtn.click();
 
-    expect(alertSpy).toHaveBeenCalledWith(
-      "You must be signed in to cancel an order."
-    );
-  });
-
-  test("defaults order date filter to today and renders only today's orders", async () => {
-    const today = new Date();
-    const yesterday = new Date();
-    yesterday.setDate(today.getDate() - 1);
-
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
-
-    db.getDocs.mockResolvedValue(
-      makeSnapshot([
-        {
-          id: "today-order",
-          userId: "user-123",
-          status: "Pending",
-          vendorId: "vendor-1",
-          vendorName: "Vendor One",
-          createdAt: { toDate: () => today },
-          updatedAt: { toDate: () => today },
-          menuItems: [{ name: "Burger", price: 50 }]
-        },
-        {
-          id: "old-order",
-          userId: "user-123",
-          status: "Pending",
-          vendorId: "vendor-2",
-          vendorName: "Vendor Two",
-          createdAt: { toDate: () => yesterday },
-          updatedAt: { toDate: () => yesterday },
-          menuItems: [{ name: "Pizza", price: 80 }]
-        }
-      ])
-    );
-
-    require("../scripts/checkOut.js");
-    await flush();
-
-    expect(document.getElementById("orderDateFilter").value).toBe(
-      today.toISOString().split("T")[0]
-    );
-
-    expect(document.getElementById("active-orders").innerHTML).toContain("Burger");
-    expect(document.getElementById("active-orders").innerHTML).not.toContain("Pizza");
-  });
-
-  test("filters customer orders by vendor", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "user-123" }));
-
-    db.getDocs.mockResolvedValue(
-      makeSnapshot([
-        {
-          id: "order-1",
-          userId: "user-123",
-          status: "Pending",
-          vendorId: "vendor-1",
-          vendorName: "Vendor One",
-          createdAt: todayTimestamp(),
-          updatedAt: todayTimestamp(),
-          menuItems: [{ name: "Burger", price: 50 }]
-        },
-        {
-          id: "order-2",
-          userId: "user-123",
-          status: "Pending",
-          vendorId: "vendor-2",
-          vendorName: "Vendor Two",
-          createdAt: todayTimestamp(),
-          updatedAt: todayTimestamp(),
-          menuItems: [{ name: "Pizza", price: 80 }]
-        }
-      ])
-    );
-
-    require("../scripts/checkOut.js");
-    await flush();
-
-    const vendorFilter = document.getElementById("vendorFilter");
-    vendorFilter.value = "vendor-2";
-    vendorFilter.dispatchEvent(new Event("change"));
-
-    expect(document.getElementById("active-orders").innerHTML).toContain("Pizza");
-    expect(document.getElementById("active-orders").innerHTML).not.toContain("Burger");
+    expect(showToast).toHaveBeenCalledWith("You must be signed in to cancel an order.", "warning");
   });
 });

@@ -7,6 +7,7 @@ import {
   query,
   where
 } from "./database.js";
+import { showToast } from "./toast.js";
 
 function getVendorIdFromURL() {
   const params = new URLSearchParams(window.location.search);
@@ -359,7 +360,7 @@ export async function initVendorProfile() {
   const vendorId = getVendorIdFromURL();
 
   if (!vendorId) {
-    alert("Vendor profile could not be loaded.");
+    showToast("Vendor profile could not be loaded.", "error");
     window.location.href = "browse.html";
     return;
   }
@@ -368,7 +369,7 @@ export async function initVendorProfile() {
   const vendorSnap = await getDoc(vendorRef);
 
   if (!vendorSnap.exists()) {
-    alert("Vendor not found.");
+    showToast("Vendor not found.", "error");
     window.location.href = "browse.html";
     return;
   }
@@ -376,7 +377,7 @@ export async function initVendorProfile() {
   const vendorData = vendorSnap.data();
 
   if (vendorData.role !== "vendor" || vendorData.status !== "approved") {
-    alert("This vendor profile is not available.");
+    showToast("This vendor profile is not available.", "error");
     window.location.href = "browse.html";
     return;
   }

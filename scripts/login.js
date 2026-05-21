@@ -3,6 +3,7 @@ import {
   signInWithPopup, GoogleAuthProvider, FacebookAuthProvider,
   TwitterAuthProvider, OAuthProvider, sendEmailVerification, signOut
 } from "./database.js";
+import { showToast } from "./toast.js";
 
 // ---------------- NAVIGATION ----------------
 export function navigateTo(page, locationObj = window.location) {
@@ -63,7 +64,7 @@ export function initLoginForm() {
       const profileExists = userDocSnap.exists();
 
       if (!profileExists) {
-        window.alert("User profile not found.");
+        showToast("User profile not found.", "error");
         return;
       }
       const userData = userDocSnap.data();
@@ -97,8 +98,9 @@ redirectUser(userData.role);
         await sendEmailVerification(user);
         await signOut(auth);
 
-        window.alert(
-          "Please verify your email before logging in. A new verification email has been sent."
+        showToast(
+          "Please verify your email before logging in. A new verification email has been sent.",
+          "error"
         );
         return;
       }
@@ -106,7 +108,7 @@ redirectUser(userData.role);
       redirectUser(userData.role);
 
     } catch (error) {
-      window.alert(error.message);
+      showToast("Invalid email or password.", "error");
     }
   });
 }
@@ -122,7 +124,7 @@ export function initSocialLogins() {
         const result = await signInWithPopup(auth, provider);
         await handleSocialLogin(result.user);
       } catch (error) {
-        window.alert(`${id} sign-in failed: ` + error.message);
+        showToast(`${id} sign-in failed: ` + error.message, "error");
       }
     });
   };

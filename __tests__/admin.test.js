@@ -5,7 +5,9 @@ jest.mock('../scripts/database.js', () => ({
   updateDoc: jest.fn(),
   doc: jest.fn(),
 }));
-
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 document.body.innerHTML = `
   <button id="viewAnalyticsBtn"></button>
   <button id="manageVendorsBtn"></button>

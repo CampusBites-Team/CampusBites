@@ -6,6 +6,9 @@ jest.mock('../scripts/database.js', () => ({
   updateDoc: jest.fn(),
   doc: jest.fn((...args) => args),
 }));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 let calculateVendorStats;
 let initAdminDashboard;
@@ -45,10 +48,10 @@ beforeEach(() => {
       <tbody id="vendor-table-body"></tbody>
     </table>
   `;
-
   document.addEventListener = jest.fn();
 
   ({ getDocs, updateDoc } = require('../scripts/database.js'));
+  showToast = require("../scripts/toast.js").showToast;
 
   ({
     calculateVendorStats,
@@ -150,7 +153,7 @@ test('approveVendor aborts when subaccount creation fails', async () => {
   await adminActions.approveVendor('abc');
 
   expect(updateDoc).not.toHaveBeenCalled();
-  expect(window.alert).toHaveBeenCalledWith(expect.stringContaining('Bank details incomplete'));
+  expect(showToast).toHaveBeenCalledWith(expect.stringContaining('Bank details incomplete'), 'error');
 
   delete global.fetch;
 });

@@ -24,6 +24,9 @@ jest.mock("../scripts/database.js", () => ({
   uploadBytes: jest.fn(),
   getDownloadURL: jest.fn()
 }));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 50));
 
@@ -36,6 +39,7 @@ describe("menuManagement.js", () => {
   let deleteDoc;
   let uploadBytes;
   let getDownloadURL;
+  let showToast;
 
   const loadModule = async () => {
     await import("../scripts/menuManagement.js");
@@ -83,6 +87,7 @@ describe("menuManagement.js", () => {
       uploadBytes,
       getDownloadURL
     } = require("../scripts/database.js"));
+    showToast = require("../scripts/toast.js").showToast;
 
     auth.onAuthStateChanged.mockImplementation((callback) => {
       callback({ uid: "user123" });
@@ -314,7 +319,7 @@ describe("menuManagement.js", () => {
       preventDefault: jest.fn()
     });
 
-    expect(alert).toHaveBeenCalledWith("Price must be a positive amount greater than 0.");
+    expect(showToast).toHaveBeenCalledWith("Price must be a positive amount greater than 0.", "error");
     expect(addDoc).not.toHaveBeenCalled();
   });
 
@@ -330,7 +335,7 @@ describe("menuManagement.js", () => {
       preventDefault: jest.fn()
     });
 
-    expect(alert).toHaveBeenCalledWith("Price must be a positive amount greater than 0.");
+    expect(showToast).toHaveBeenCalledWith("Price must be a positive amount greater than 0.", "error");
     expect(addDoc).not.toHaveBeenCalled();
   });
 
@@ -353,7 +358,7 @@ describe("menuManagement.js", () => {
       preventDefault: jest.fn()
     });
 
-    expect(alert).toHaveBeenCalledWith("Only PNG and JPEG images are allowed.");
+    expect(showToast).toHaveBeenCalledWith("Only PNG and JPEG images are allowed.", "error");
     expect(addDoc).not.toHaveBeenCalled();
   });
 
@@ -381,7 +386,7 @@ describe("menuManagement.js", () => {
       preventDefault: jest.fn()
     });
 
-    expect(alert).toHaveBeenCalledWith("Image must be smaller than 5MB.");
+    expect(showToast).toHaveBeenCalledWith("Image must be smaller than 5MB.", "error");
     expect(addDoc).not.toHaveBeenCalled();
   });
 
@@ -483,8 +488,7 @@ describe("menuManagement.js", () => {
       preventDefault: jest.fn()
     });
 
-    expect(global.alert)
-      .toHaveBeenCalledWith("Price cannot exceed R1000");
+    expect(showToast).toHaveBeenCalledWith("Price cannot exceed R1000", "error");
 
     expect(addDoc).not.toHaveBeenCalled();
   });

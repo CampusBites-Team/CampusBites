@@ -1,331 +1,419 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>CampusBites - Browse</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="icon" type="image/png" href="assets/icons/1-removebg-preview.png">
-  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4f46e5">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="CampusBites">
+
+  <link rel="icon" type="image/png" href="assets/icons/1-removebg-preview.png" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+  <link rel="manifest" href="manifest.json" />
+
+  <meta name="theme-color" content="#4f46e5" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="CampusBites" />
+
+  <style>
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .spinner {
+      width: 55px;
+      height: 55px;
+      border: 6px solid #ddd;
+      border-top: 6px solid #ff7a00;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .blurred {
+      filter: blur(6px);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    #toast-container article {
+      animation: toast-slide-in 0.25s ease;
+    }
+
+    @keyframes toast-slide-in {
+      from {
+        opacity: 0;
+        transform: translateX(40px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .animate-slide-in {
+      animation: slide-in 0.3s ease;
+    }
+
+    @keyframes slide-in {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes floatSoft {
+      0%, 100% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-14px) rotate(3deg);
+      }
+    }
+
+    .float-soft {
+      animation: floatSoft 5s ease-in-out infinite;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
 </head>
-<style>
-  #toast-container article {
-  animation: toast-slide-in 0.25s ease;
-}
-  @keyframes toast-slide-in {
-  from {
-    opacity: 0;
-    transform: translateX(40px);
-  }
 
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
+<body class="min-h-screen bg-gradient-to-br from-white via-indigo-50 to-white text-slate-900 overflow-x-hidden">
+  <section id="loading-screen" aria-live="polite">
+    <span class="spinner" aria-hidden="true"></span>
+    <p>Loading...</p>
+  </section>
 
-.animate-slide-in {
-  animation: slide-in 0.3s ease;
-}
+  <main id="site-content" class="blurred">
+    <nav class="bg-white/95 backdrop-blur border-b border-indigo-100 shadow-sm sticky top-0 z-40">
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap md:flex-nowrap justify-between items-center gap-3 min-h-16 py-3">
+        <a href="index.html" class="flex items-center gap-2">
+          <img
+            src="assets/icons/1-removebg-preview.png"
+            alt="CampusBites logo"
+            class="h-10 sm:h-12 w-auto object-contain"
+          />
 
-@keyframes floatSoft {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-14px) rotate(3deg); }
-}
-
-.float-soft {
-  animation: floatSoft 5s ease-in-out infinite;
-}
-</style>
-
-<body class="bg-white text-slate-900">
-
-<nav class="bg-white border-b border-gray-200 shadow-sm">
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-    <a href="index.html" class="flex items-center gap-2">
-      <img
-        src="assets/icons/1-removebg-preview.png"
-        alt="CampusBites logo"
-        class="h-12 w-auto object-contain"
-        >
-
-        <span class="text-2xl font-extrabold tracking-tight">
+          <span class="text-xl sm:text-2xl font-extrabold tracking-tight">
             <span class="text-indigo-600">Campus</span><span class="text-orange-500">Bites</span>
-        </span>
-    </a>
-
-    <section id="navLinks" class="flex items-center gap-6 mx-auto">
-      <!-- Populated by navbar.js -->
-    </section>
-    <section
-      id="profileMenuContainer"
-      class="hidden flex items-center gap-4"
-    >
-
-      <!-- Notifications -->
-      <section class="relative">
-
-        <button
-          id="notificationBtn"
-          class="relative p-2 rounded-full
-                hover:bg-gray-100 transition"
-        >
-          <i
-            data-lucide="bell"
-            class="w-5 h-5 text-gray-700"
-          ></i>
-
-          <span
-            id="notificationBadge"
-            class="hidden absolute -top-1 -right-1
-                  bg-red-500 text-white text-[10px]
-                  font-bold rounded-full
-                  min-w-[18px] h-[18px]
-                  flex items-center justify-center"
-          >
-            0
           </span>
-        </button>
+        </a>
 
         <section
-          id="notificationDropdown"
-          class="hidden absolute right-0 mt-3 w-80
-                bg-white rounded-2xl shadow-xl
-                border border-gray-100
-                max-h-96 overflow-y-auto
-                z-50"
+          id="navLinks"
+          class="w-full md:w-auto order-3 md:order-none flex flex-wrap items-center justify-center gap-3 md:gap-6 mx-auto text-sm md:text-base"
         >
+          <!-- Populated by navbar.js -->
         </section>
 
+        <section id="profileMenuContainer" class="hidden flex items-center gap-4">
+          <section class="relative">
+            <button
+              id="notificationBtn"
+              type="button"
+              class="relative p-2 rounded-full hover:bg-gray-100 transition"
+            >
+              <i data-lucide="bell" class="w-5 h-5 text-gray-700"></i>
+
+              <span
+                id="notificationBadge"
+                class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center"
+              >
+                0
+              </span>
+            </button>
+
+            <section
+              id="notificationDropdown"
+              class="hidden fixed right-4 left-4 top-20 md:absolute md:left-auto md:right-0 md:top-auto md:mt-3 md:w-80 bg-white rounded-2xl shadow-xl border border-gray-100 max-h-96 overflow-y-auto z-50"
+            ></section>
+          </section>
+
+          <section class="relative">
+            <button
+              id="profileMenuBtn"
+              type="button"
+              class="flex items-center gap-2"
+            >
+              <img
+                id="profileAvatar"
+                src="assets/default-icon.png"
+                alt="Profile"
+                class="w-10 h-10 rounded-full object-cover border-2 border-indigo-500"
+              />
+            </button>
+
+            <section
+              id="profileDropdown"
+              class="hidden fixed right-4 left-4 top-20 md:absolute md:left-auto md:right-0 md:top-auto md:mt-3 md:w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50"
+            ></section>
+          </section>
+        </section>
       </section>
+    </nav>
 
-      <!-- Profile -->
-      <section class="relative">
+    <section class="relative overflow-hidden px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+      <section class="hidden md:block absolute -left-28 top-24 w-[420px] h-[340px] bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
+      <section class="hidden md:block absolute -right-24 top-40 w-[360px] h-[300px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
+      <section class="hidden md:block absolute left-24 bottom-10 w-[360px] h-[260px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-60 rotate-[-10deg]"></section>
+      <section class="hidden md:block absolute right-36 bottom-20 w-[460px] h-[300px] bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-60 rotate-[8deg]"></section>
+      <section class="hidden md:block absolute left-[38%] top-32 w-52 h-40 bg-white/70 rounded-[45%_55%_60%_40%] opacity-80 border border-indigo-100"></section>
 
-        <button
-          id="profileMenuBtn"
-          class="flex items-center gap-2"
-        >
-          <img
-            id="profileAvatar"
-            src="assets/default-icon.png"
-            alt="Profile"
-            class="w-10 h-10 rounded-full
-                  object-cover border-2
-                  border-indigo-500"
-          />
-        </button>
+      <span class="hidden md:block absolute left-20 top-36 text-indigo-500 text-6xl font-bold float-soft">+</span>
+      <span class="hidden md:block absolute left-72 bottom-36 text-orange-500 text-5xl font-bold float-soft">✦</span>
+      <span class="hidden md:block absolute right-72 top-28 text-orange-500 text-5xl font-bold float-soft">✦</span>
+      <span class="hidden md:block absolute right-20 bottom-44 text-indigo-500 text-6xl font-bold float-soft">+</span>
+      <span class="hidden md:block absolute left-[48%] bottom-28 text-indigo-400 text-4xl font-bold float-soft">↝</span>
 
-        <section
-          id="profileDropdown"
-          class="hidden absolute right-0 mt-3 w-56
-                bg-white rounded-xl shadow-lg
-                border border-gray-100 py-2 z-50"
-        ></section>
+      <i data-lucide="hamburger" class="hidden md:block absolute right-64 top-36 w-20 h-20 text-indigo-600 float-soft"></i>
+      <i data-lucide="coffee" class="hidden md:block absolute right-16 bottom-56 w-24 h-24 text-orange-500 float-soft"></i>
+      <i data-lucide="pizza" class="hidden md:block absolute left-28 bottom-28 w-24 h-24 text-indigo-600 float-soft"></i>
+      <i data-lucide="shopping-bag" class="hidden md:block absolute left-[42%] top-20 w-16 h-16 text-orange-500 float-soft"></i>
+      <i data-lucide="utensils-crossed" class="hidden md:block absolute right-[38%] bottom-20 w-20 h-20 text-indigo-500 float-soft"></i>
 
-      </section>
+      <section class="relative z-10 max-w-7xl mx-auto flex flex-col lg:flex-row gap-6">
+        <aside class="w-full lg:w-72 space-y-6">
+          <section class="bg-white/95 backdrop-blur p-5 rounded-[1.5rem] sm:rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100">
+            <h3 class="font-extrabold text-indigo-950 mb-5 flex items-center gap-2">
+              <i data-lucide="filter" class="w-5 h-5 text-indigo-600"></i>
+              Filters
+            </h3>
 
-    </section>
-  </section>
-</nav>
+            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+              <section>
+                <label for="Vendors" class="text-sm font-medium text-gray-700 mb-2 block">Vendor</label>
+                <select id="Vendors" class="w-full border border-indigo-100 rounded-xl px-3 py-2 bg-indigo-50/40 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-700">
+                  <option value="AllVendors" selected>All Vendors</option>
+                </select>
+              </section>
 
- <main class="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50 to-white px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+              <section>
+                <label for="VendorLocations" class="text-sm font-medium text-gray-700 mb-2 block">Vendor's Location</label>
+                <select id="VendorLocations" class="w-full border border-indigo-100 rounded-xl px-3 py-2 bg-indigo-50/40 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-700">
+                  <option value="AllLocations" selected>All Locations</option>
+                </select>
+              </section>
 
-<section class="absolute -left-28 top-24 w-[420px] h-[340px] bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-70"></section>
-<section class="absolute -right-24 top-40 w-[360px] h-[300px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-70"></section>
-<section class="absolute left-24 bottom-10 w-[360px] h-[260px] bg-orange-100 rounded-[55%_45%_40%_60%] opacity-60 rotate-[-10deg]"></section>
-<section class="absolute right-36 bottom-20 w-[460px] h-[300px] bg-indigo-100 rounded-[45%_55%_60%_40%] opacity-60 rotate-[8deg]"></section>
-<section class="absolute left-[38%] top-32 w-52 h-40 bg-white/70 rounded-[45%_55%_60%_40%] opacity-80 border border-indigo-100"></section>
+              <section>
+                <label for="SortBy" class="text-sm font-medium text-gray-700 mb-2 block">Sort by</label>
+                <select id="SortBy" class="w-full border border-indigo-100 rounded-xl px-3 py-2 bg-indigo-50/40 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-700">
+                  <option value="Default" selected>Default</option>
+                  <option value="PriceLowToHigh">Price: Low to High</option>
+                  <option value="PriceHighToLow">Price: High to Low</option>
+                  <option value="VendorNameAtoZ">Vendor Name: A to Z</option>
+                  <option value="VendorNameZtoA">Vendor Name: Z to A</option>
+                  <option value="Rating">Rating</option>
+                </select>
+              </section>
 
-<span class="absolute left-20 top-36 text-indigo-500 text-6xl font-bold float-soft">+</span>
-<span class="absolute left-72 bottom-36 text-orange-500 text-5xl font-bold float-soft">✦</span>
-<span class="absolute right-72 top-28 text-orange-500 text-5xl font-bold float-soft">✦</span>
-<span class="absolute right-20 bottom-44 text-indigo-500 text-6xl font-bold float-soft">+</span>
-<span class="absolute left-[48%] bottom-28 text-indigo-400 text-4xl font-bold float-soft">↝</span>
+              <section>
+                <label for="Categories" class="text-sm font-medium text-gray-700 mb-2 block">Category</label>
+                <select id="Categories" class="w-full border border-indigo-100 rounded-xl px-3 py-2 bg-indigo-50/40 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-700">
+                  <option value="AllCategories" selected>All Categories</option>
+                  <option value="Light Meals">Light Meals</option>
+                  <option value="Main Course">Main Course</option>
+                  <option value="Beverages">Beverages</option>
+                  <option value="Healthy">Healthy</option>
+                  <option value="Desserts">Desserts</option>
+                </select>
+              </section>
+            </section>
 
-<i data-lucide="hamburger" class="absolute right-64 top-36 w-20 h-20 text-indigo-600 float-soft"></i>
-<i data-lucide="coffee" class="absolute right-16 bottom-56 w-24 h-24 text-orange-500 float-soft"></i>
-<i data-lucide="pizza" class="absolute left-28 bottom-28 w-24 h-24 text-indigo-600 float-soft"></i>
-<i data-lucide="shopping-bag" class="absolute left-[42%] top-20 w-16 h-16 text-orange-500 float-soft"></i>
-<i data-lucide="utensils-crossed" class="absolute right-[38%] bottom-20 w-20 h-20 text-indigo-500 float-soft"></i>
-    <section class="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row gap-6">
+            <section class="mt-4">
+              <label class="text-sm font-medium text-gray-700 mb-2 block">Dietary</label>
 
-      <aside class="w-full md:w-64 space-y-6">
+              <section class="grid grid-cols-2 lg:grid-cols-1 gap-2">
+                <label class="flex items-center gap-2 text-sm">
+                  <input id="Vegan" type="checkbox" class="rounded text-indigo-600 focus:ring-indigo-500" />
+                  Vegan
+                </label>
 
-        <section class="bg-white p-5 rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100">
+                <label class="flex items-center gap-2 text-sm">
+                  <input id="Vegetarian" type="checkbox" class="rounded text-indigo-600 focus:ring-indigo-500" />
+                  Vegetarian
+                </label>
 
-          <h3 class="font-extrabold text-indigo-950 mb-5 flex items-center gap-2">
-            <i data-lucide="filter" class="w-5 h-5 text-indigo-600"></i>
-            Filters
-          </h3>
+                <label class="flex items-center gap-2 text-sm">
+                  <input id="Gluten-Free" type="checkbox" class="rounded text-indigo-600 focus:ring-indigo-500" />
+                  Gluten-Free
+                </label>
 
-          <section class="mb-4">
-            <label class="text-sm font-medium text-gray-700 mb-2 block">Vendor</label>
-            <select id="Vendors" class="w-full border border-indigo-100 rounded-xl px-3 py-2 bg-indigo-50/40 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-700">
-              <option value="AllVendors" selected>All Vendors</option>
-            </select>
-          </section>
-          <section class="mb-4">
-            <label class="text-sm font-medium text-gray-700 mb-2 block">Vendor's Location</label>
-            <select id="VendorLocations" class="w-full border border-indigo-100 rounded-xl px-3 py-2 bg-indigo-50/40 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-700">
-              <option value="AllLocations" selected>All Locations</option>
-            </select>
-          </section>
-          <section class="mb-4">
-            <label class="text-sm font-medium text-gray-700 mb-2 block">Sort by</label>
-            <select id="SortBy" class="w-full border border-indigo-100 rounded-xl px-3 py-2 bg-indigo-50/40 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-700">
-              <option value="Default" selected>Default</option>
-              <option value="PriceLowToHigh">Price: Low to High</option>
-              <option value="PriceHighToLow">Price: High to Low</option>
-              <option value="VendorNameAtoZ">Vendor Name: A to Z</option>
-              <option value="VendorNameZtoA">Vendor Name: Z to A</option>
-              <option value="Rating">Rating</option>
-            </select>
-          </section>
+                <label class="flex items-center gap-2 text-sm">
+                  <input id="Halal" type="checkbox" class="rounded text-indigo-600 focus:ring-indigo-500" />
+                  Halal
+                </label>
+              </section>
+            </section>
 
-          <section class="mb-4">
-            <label class="text-sm font-medium text-gray-700 mb-2 block">Category</label>
-            <select id="Categories" class="w-full border border-indigo-100 rounded-xl px-3 py-2 bg-indigo-50/40 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-700">
-              <option value="AllCategories" selected>All Categories</option>
-              <option value="Light Meals">Light Meals</option>
-              <option value="Main Course">Main Course</option>
-              <option value="Beverages">Beverages</option>
-              <option value="Healthy">Healthy</option>
-              <option value="Desserts">Desserts</option>
-            </select>
-          </section>
-
-          <section class="mb-4">
-            <label class="text-sm font-medium text-gray-700 mb-2 block">Dietary</label>
-
-            <section class="space-y-2">
-              <label class="flex items-center gap-2 text-sm">
-                <input id="Vegan" type="checkbox" class="rounded text-indigo-600 focus:ring-indigo-500">
-                Vegan
+            <section id="PriceFilter" class="mt-4">
+              <label id="PriceLabel" for="PriceSlider" class="text-sm font-medium text-gray-700 mb-2 block">
+                Max Price: R200
               </label>
 
-              <label class="flex items-center gap-2 text-sm">
-                <input id="Vegetarian" type="checkbox" class="rounded text-indigo-600 focus:ring-indigo-500">
-                Vegetarian
-              </label>
+              <input
+                id="PriceSlider"
+                type="range"
+                min="0"
+                max="200"
+                value="200"
+                class="w-full accent-indigo-600"
+              />
+            </section>
 
-              <label class="flex items-center gap-2 text-sm">
-                <input id="Gluten-Free" type="checkbox" class="rounded text-indigo-600 focus:ring-indigo-500">
-                Gluten-Free
-              </label>
-
-              <label class="flex items-center gap-2 text-sm">
-                <input id="Halal" type="checkbox" class="rounded text-indigo-600 focus:ring-indigo-500">
-                Halal
-              </label>
+            <section class="bg-orange-50 p-4 rounded-2xl mt-5 border border-orange-100">
+              <h4 class="text-sm font-bold text-indigo-950 mb-2">Allergen Information</h4>
+              <p class="text-xs text-slate-600">
+                All menu items comply with SA Regulation R.146 of 2010 regarding allergen declaration.
+              </p>
             </section>
           </section>
-          <!-- Price Filter-->
-                     <section id = "PriceFilter">
-                        <label id = "PriceLabel" class="text-sm font-medium text-gray-700 mb-2 block">
-                            Max Price: R200
-                        </label>
-                        <input id = "PriceSlider" type="range" min="0" max="200" value="200" >
-                     </section>
-          <section class="bg-orange-50 p-4 rounded-2xl mt-5 border border-orange-100">
-            <h4 class="text-sm font-bold text-indigo-950 mb-2">Allergen Information</h4>
-            <p class="text-xs text-slate-600">
-              All menu items comply with SA Regulation R.146 of 2010 regarding allergen declaration.
-            </p>
-          </section>
 
-        </section>
-
-        <section class="bg-white p-5 rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100">
-          <section class="flex items-center gap-3">
-            <button id="cart" class="relative bg-indigo-600 text-white px-5 py-3 rounded-2xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 flex items-center gap-2">
+          <section class="bg-white/95 backdrop-blur p-5 rounded-[1.5rem] sm:rounded-[1.7rem] shadow-xl shadow-indigo-100 border border-indigo-100">
+            <button
+              id="cart"
+              type="button"
+              class="relative w-full bg-indigo-600 text-white px-5 py-3 rounded-2xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 flex items-center justify-center gap-2"
+            >
               <i data-lucide="shopping-cart" class="w-5 h-5"></i>
               View Cart
 
-              <span id="cartCount" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+              <span
+                id="cartCount"
+                class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center"
+              >
                 0
               </span>
             </button>
           </section>
+        </aside>
+
+        <section class="flex-1 min-w-0">
+          <header class="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-white/95 backdrop-blur rounded-[1.5rem] sm:rounded-[1.7rem] p-5 sm:p-6 shadow-xl shadow-indigo-100 border border-indigo-100">
+            <section>
+              <p class="text-sm font-semibold text-orange-500 uppercase tracking-wide">
+                Campus meals
+              </p>
+
+              <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-indigo-950">
+                Browse Menu
+              </h1>
+            </section>
+
+            <p id="numItems" class="text-sm font-semibold text-orange-500">
+              0 items found
+            </p>
+          </header>
+
+          <section id="menu" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6"></section>
         </section>
-
-      </aside>
-
-      <section class="flex-1">
-        <header class="mb-8 flex justify-between items-center bg-white rounded-[1.7rem] p-6 shadow-xl shadow-indigo-100 border border-indigo-100">
-          <h2 class="text-4xl font-bold text-indigo-950">Browse Menu</h2>
-          <p id="numItems" class="text-sm font-semibold text-orange-500">0 items found</p>
-        </header>
-
-        <section id="menu" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></section>
       </section>
 
+      <section
+        id="item-edit-modal"
+        class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4"
+      >
+        <article class="bg-white rounded-[1.5rem] sm:rounded-[1.7rem] max-w-5xl w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl border border-indigo-100">
+          <header class="flex justify-center">
+            <h3 class="text-xl font-bold mb-4">Items in Cart</h3>
+          </header>
+
+          <section id="cartList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6"></section>
+
+          <p id="cartWarning" class="hidden text-sm text-red-500 mt-3">
+            Your cart is empty.
+          </p>
+
+          <p id="numItemsCart" class="text-sm text-gray-500 mt-3">
+            0 items in cart
+          </p>
+
+          <fieldset id="paymentMethodSelect" class="mt-4 border border-gray-200 rounded-lg p-3">
+            <legend class="text-sm font-semibold text-gray-700 px-1">Payment method</legend>
+
+            <label class="flex items-center gap-2 text-sm py-1">
+              <input type="radio" name="paymentMethod" value="card" checked />
+              Pay with card (Paystack)
+            </label>
+
+            <label class="flex items-center gap-2 text-sm py-1">
+              <input type="radio" name="paymentMethod" value="cash" />
+              Pay with cash on collection
+            </label>
+          </fieldset>
+
+          <section class="flex flex-col sm:flex-row gap-3 mt-6">
+            <button
+              type="button"
+              id="closeCartModal"
+              class="flex-1 border-2 border-orange-400 text-indigo-700 py-3 rounded-2xl font-bold hover:bg-orange-50 transition"
+            >
+              Close
+            </button>
+
+            <button
+              type="button"
+              id="empty"
+              class="flex-1 border-2 border-orange-400 text-indigo-700 py-3 rounded-2xl font-bold hover:bg-orange-50 transition"
+            >
+              Empty Cart
+            </button>
+
+            <button
+              id="checkOut"
+              type="button"
+              class="flex-1 bg-indigo-600 text-white px-4 py-3 rounded-2xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200"
+            >
+              Check Out
+            </button>
+          </section>
+        </article>
+      </section>
+
+      <section id="details-modal" class="hidden"></section>
     </section>
-
-    <section id="item-edit-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-      <article class="bg-white rounded-[1.7rem] max-w-5xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl border border-indigo-100">
-
-        <header class="flex justify-center">
-          <h3 class="text-xl font-bold mb-4">Items in Cart</h3>
-        </header>
-
-        <section id="cartList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></section>
-
-        <p id="cartWarning" class="hidden text-sm text-red-500 mt-3">
-          Your cart is empty.
-        </p>
-
-        <p id="numItemsCart" class="text-sm text-gray-500 mt-3">
-          0 items in cart
-        </p>
-
-        <fieldset id="paymentMethodSelect" class="mt-4 border border-gray-200 rounded-lg p-3">
-          <legend class="text-sm font-semibold text-gray-700 px-1">Payment method</legend>
-          <label class="flex items-center gap-2 text-sm py-1">
-            <input type="radio" name="paymentMethod" value="card" checked />
-            Pay with card (Paystack)
-          </label>
-          <label class="flex items-center gap-2 text-sm py-1">
-            <input type="radio" name="paymentMethod" value="cash" />
-            Pay with cash on collection
-          </label>
-        </fieldset>
-
-        <section class="flex gap-3 mt-6">
-          <button type="button" id="closeCartModal" class="flex-1 border-2 border-orange-400 text-indigo-700 py-3 rounded-2xl font-bold hover:bg-orange-50 transition">
-            Close
-          </button>
-          <button type="button" id="empty" class="flex-1 border-2 border-orange-400 text-indigo-700 py-3 rounded-2xl font-bold hover:bg-orange-50 transition">
-            Empty Cart
-          </button>
-          <button id="checkOut" class="flex-1 bg-indigo-600 text-white px-4 py-3 rounded-2xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">
-            Check Out
-          </button>
-        </section>
-
-      </article>
-    </section>
-
   </main>
-    <section id="details-modal" class="hidden"></section>
 
-    <script src="scripts/pwa.js"></script>
-    <script type="module" src="./scripts/navbar.js"></script>
+  <script src="scripts/pwa.js"></script>
+  <script type="module" src="./scripts/navbar.js"></script>
 
   <script type="module">
     import { initAuthUI, logout } from "./scripts/auth.js";
 
     initAuthUI();
-    lucide.createIcons();
+
+    if (window.lucide) {
+      lucide.createIcons();
+    }
 
     document.getElementById("logoutBtn")?.addEventListener("click", logout);
   </script>
 
   <script type="module" src="./scripts/browse.js"></script>
-
 </body>
 </html>

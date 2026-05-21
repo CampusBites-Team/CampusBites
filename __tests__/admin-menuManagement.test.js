@@ -20,9 +20,13 @@ jest.mock("../scripts/database.js", () => ({
   })),
   collection: jest.fn((db, collectionName) => collectionName)
 }));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 describe("admin-menuManagement.js", () => {
   let database;
+  let showToast;
 
   beforeEach(async () => {
     jest.resetModules();
@@ -42,11 +46,11 @@ describe("admin-menuManagement.js", () => {
       createIcons: jest.fn()
     };
 
-    global.alert = jest.fn();
     global.prompt = jest.fn();
 
     jest.spyOn(console, "error").mockImplementation(() => {});
 
+    showToast = require("../scripts/toast.js").showToast;
     database = await import("../scripts/database.js");
 
     database.auth.signOut.mockResolvedValue();
@@ -152,7 +156,7 @@ describe("admin-menuManagement.js", () => {
       }
     );
 
-    expect(alert).toHaveBeenCalledWith("Menu item approved successfully.");
+    expect(showToast).toHaveBeenCalledWith("Menu item approved successfully.","success");
   });
 
   test("suspends a menu item with review reason", async () => {
@@ -181,7 +185,7 @@ describe("admin-menuManagement.js", () => {
       }
     );
 
-    expect(alert).toHaveBeenCalledWith("Menu item suspended successfully.");
+    expect(showToast).toHaveBeenCalledWith("Menu item suspended successfully.","success");
   });
 
   test("does not suspend item without review reason", async () => {
@@ -200,7 +204,7 @@ describe("admin-menuManagement.js", () => {
     await flush();
 
     expect(database.updateDoc).not.toHaveBeenCalled();
-    expect(alert).toHaveBeenCalledWith("Suspension reason is required.");
+    expect(showToast).toHaveBeenCalledWith("Suspension reason is required.", "warning");
   });
 
   test("opens item details modal when item name is clicked", async () => {
@@ -289,7 +293,7 @@ describe("admin-menuManagement.js", () => {
     await flush();
     await flush();
 
-    expect(alert).toHaveBeenCalledWith("Access denied. Admins only.");
+    expect(showToast).toHaveBeenCalledWith("Access denied. Admins only.", "warning");
   });
 
   test("does not load menu items when user is not logged in", async () => {
@@ -375,7 +379,7 @@ test("handles approve failure", async () => {
 
   await flush();
 
-  expect(alert).toHaveBeenCalledWith("Failed to approve menu item.");
+  expect(showToast).toHaveBeenCalledWith("Failed to approve menu item.", "error");
 });
 test("handles vendor fetch error gracefully", async () => {
   database.getDoc.mockImplementation(async (ref) => {
@@ -429,6 +433,6 @@ test("rejects suspend when reason is only spaces", async () => {
 
   await flush();
 
-  expect(alert).toHaveBeenCalledWith("Suspension reason is required.");
+  expect(showToast).toHaveBeenCalledWith("Suspension reason is required.", "warning");
 });
 });

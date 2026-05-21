@@ -7,10 +7,14 @@ jest.mock("../scripts/database.js", () => ({
   getDocs: jest.fn(),
   collection: jest.fn()
 }));
+jest.mock("../scripts/toast.js", () => ({
+  showToast: jest.fn()
+}));
 
 describe("index.js", () => {
   let getDocs;
   let collection;
+  let showToast;
 
   const flushPromises = async () => {
     await Promise.resolve();
@@ -41,13 +45,13 @@ describe("index.js", () => {
       createIcons: jest.fn()
     };
 
-    global.alert = jest.fn();
 
     jest.spyOn(console, "error").mockImplementation(() => {});
     jest.spyOn(global, "setInterval").mockImplementation(() => 1);
     jest.spyOn(Math, "random").mockReturnValue(0.6);
 
     const dbModule = await import("../scripts/database.js");
+    showToast = (await import("../scripts/toast.js")).showToast;
 
     getDocs = dbModule.getDocs;
     collection = dbModule.collection;
