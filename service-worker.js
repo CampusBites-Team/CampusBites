@@ -1,4 +1,4 @@
-const CACHE_NAME = "campusbites-v1";
+const CACHE_NAME = "campusbites-v2";
 
 const STATIC_ASSETS = [
   "./",
@@ -6,7 +6,6 @@ const STATIC_ASSETS = [
   "./browse.html",
   "./login.html",
   "./register.html",
-  "./assets/default.jpg",
   "./assets/default_vendor.jpg",
   "./manifest.json"
 ];

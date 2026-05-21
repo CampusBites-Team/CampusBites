@@ -278,19 +278,20 @@ export const analytics = {
       orders.forEach((o) => {
         const createdAt = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
         const date = createdAt.toLocaleDateString("en-ZA");
+        const key = `${date}_${o.vendorId}`;
 
-        if (!byDate[date]) {
-          byDate[date] = {
+        if (!byDate[key]) {
+          byDate[key] = {
+            date,
             orders: 0,
             revenue: 0,
             items: 0,
             vendor: o.vendorId
           };
         }
-
-        byDate[date].orders += 1;
-        byDate[date].revenue += Number(o.total) || 0;
-        byDate[date].items += (o.menuItems || []).reduce(
+        byDate[key].orders += 1;
+        byDate[key].revenue += Number(o.total) || 0;
+        byDate[key].items += (o.menuItems || []).reduce(
           (sum, item) => sum + (Number(item.quantity) || 1),
           0
         );
@@ -310,7 +311,7 @@ export const analytics = {
       if (!tbody) return;
 
       tbody.innerHTML = Object.entries(byDate)
-        .map(([date, data]) => {
+        .map(([, data]) => {
           const vendor = vendors.find((v) => v.id === data.vendor);
 
           let metricValue = "";
@@ -324,7 +325,7 @@ export const analytics = {
 
           return `
             <tr>
-              <td class="px-4 py-2">${date}</td>
+              <td class="px-4 py-2">${data.date}</td>
               <td class="px-4 py-2">${vendor?.shopName || vendor?.fullName || "Unknown"}</td>
               <td class="px-4 py-2 text-right">${data.orders}</td>
               <td class="px-4 py-2 text-right">R${Number(data.revenue).toFixed(2)}</td>

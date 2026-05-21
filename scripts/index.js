@@ -34,6 +34,28 @@ function assignCategory(vendorName = "") {
   const index = safeName.length % vendorCategories.length;
   return vendorCategories[index];
 }
+
+const vendorSlogans = [
+  "Fresh meals, made for campus life.",
+  "Good food, fast service.",
+  "Serving flavour between lectures.",
+  "Your campus cravings, sorted.",
+  "Quick bites for busy students.",
+  "Taste that keeps you going.",
+  "Fuel for your study day.",
+  "Made fresh, served with care.",
+  "Where campus meets flavour.",
+  "Delicious meals, student-friendly prices.",
+  "Grab a bite, power your day.",
+  "Food that fits your schedule."
+];
+
+function assignSlogan(vendorName = "") {
+  const safeName = vendorName || "CampusBites Vendor";
+  const index = safeName.length % vendorSlogans.length;
+  return vendorSlogans[index];
+}
+
 orderNow?.addEventListener("click", () => {
   window.location.href = "browse.html";
 });
@@ -82,15 +104,24 @@ export function renderVendors() {
         alt="${vendor.shopName || vendor.fullName || "Vendor"}"
         class="w-full h-52 object-cover object-center"
       >
-
       <figure class="p-6">
         <h3 class="text-xl font-semibold mb-2">
-          ${vendor.shopName || vendor.fullName || "Unnamed Vendor"}
+          ${vendor.shopName || vendor.fullName || "eVendor"}
         </h3>
 
-        <p class="text-gray-600 text-sm mb-2">
-          ${vendor.category || assignCategory(vendor.shopName || vendor.fullName || vendor.email)} • ${vendor.location || "Campus"}
+        <p class="text-sm text-gray-500 italic mb-3 line-clamp-2">
+          "${vendor.slogan || assignSlogan(vendor.shopName || vendor.fullName || vendor.email)}"
         </p>
+
+        <section class="flex flex-wrap gap-2 mb-3">
+          <span class="text-xs bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 rounded-full">
+            ${vendor.category || assignCategory(vendor.shopName || vendor.fullName || vendor.email)}
+          </span>
+
+          <span class="text-xs bg-orange-50 text-orange-700 border border-orange-100 px-3 py-1 rounded-full">
+            ${vendor.location || "Campus"}
+          </span>
+        </section>
 
         <p class="flex items-center gap-1 mb-2">
           ${renderStars(rating)}

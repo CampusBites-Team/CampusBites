@@ -599,7 +599,7 @@ async function loadMenuItems() {
           vendorData?.shopName ||
           vendorData?.fullName ||
           "Vendor",
-        location: vendorData?.location || "Unknown location",
+        location: vendorData?.location || "Main Campus",
         rating: Number(rating)
       };
     });

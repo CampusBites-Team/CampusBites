@@ -325,7 +325,7 @@
   document.getElementById("report-range")?.addEventListener("change", analytics.updateCustomView);
   document.getElementById("report-vendor")?.addEventListener("change", analytics.updateCustomView);
   document.getElementById("report-metric")?.addEventListener("change", analytics.updateCustomView);
-  document.getElementById("generateReportBtn")?.addEventListener("click", analytics.updateCustomView);
+  document.getElementById("generateReportBtn")?.addEventListener("click", analytics.generateReport);
   document.getElementById("exportCsvBtn")?.addEventListener("click", analytics.exportCSV);
   document.getElementById("exportPdfBtn")?.addEventListener("click", analytics.exportPDF);
 
