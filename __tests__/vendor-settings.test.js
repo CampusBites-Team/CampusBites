@@ -1328,4 +1328,180 @@ test("shows unknown bank name when bank is not in labels", async () => {
   expect(document.getElementById("savedBankingDetails").textContent)
     .toBe("mystery_bank • •••••6789");
 });
+test("rejects invalid store logo and clears selected logo", async () => {
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  const logoInput = document.getElementById("storeLogoInput");
+  const invalidFile = new File(["bad"], "bad.gif", { type: "image/gif" });
+
+  Object.defineProperty(logoInput, "files", {
+    value: [invalidFile],
+    configurable: true
+  });
+
+  logoInput.dispatchEvent(new Event("change"));
+
+  expect(global.alert).toHaveBeenCalledWith(
+    "Store logo must be a PNG or JPG/JPEG image."
+  );
+  expect(logoInput.value).toBe("");
+});
+
+test("directly covers validateTimePair success and invalid order branches", async () => {
+  const mod = await import("../scripts/vendor-settings.js");
+
+  expect(mod.validateTimePair("", "", "weekday")).toBe(true);
+  expect(mod.validateTimePair("18:00", "17:00", "weekday")).toBe(false);
+
+  expect(global.alert).toHaveBeenCalledWith(
+    "weekday closing time must be after opening time."
+  );
+});
+
+test("handles operating hours update failure branch", async () => {
+  const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+  doc.mockReturnValue({});
+  updateDoc.mockRejectedValueOnce(new Error("Hours failed"));
+
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.getElementById("weekdayOpeningTime").value = "08:00";
+  document.getElementById("weekdayClosingTime").value = "17:00";
+  document.getElementById("closedWeekends").checked = true;
+
+  document.getElementById("operatingHoursForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(errorSpy).toHaveBeenCalled();
+  expect(global.alert).toHaveBeenCalledWith("Could not update operating hours.");
+
+  errorSpy.mockRestore();
+});
+
+test("redirects unauthenticated, missing, non-vendor, pending and suspended users", async () => {
+  const locationOne = { href: "" };
+
+  onAuthStateChanged.mockImplementationOnce((authArg, callback) => {
+    callback(null);
+  });
+
+  initVendorSettings(locationOne);
+
+  expect(locationOne.href).toBe("login.html");
+
+  const locationTwo = { href: "" };
+
+  getDoc.mockResolvedValueOnce({
+    exists: () => false
+  });
+
+  onAuthStateChanged.mockImplementationOnce((authArg, callback) => {
+    callback({ uid: "missing-user" });
+  });
+
+  initVendorSettings(locationTwo);
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(locationTwo.href).toBe("login.html");
+
+  const locationThree = { href: "" };
+
+  getDoc.mockResolvedValueOnce({
+    exists: () => true,
+    data: () => ({
+      role: "customer"
+    })
+  });
+
+  onAuthStateChanged.mockImplementationOnce((authArg, callback) => {
+    callback({ uid: "customer-123" });
+  });
+
+  initVendorSettings(locationThree);
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(locationThree.href).toBe("index.html");
+
+  const locationFour = { href: "" };
+
+  getDoc.mockResolvedValueOnce({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "pending"
+    })
+  });
+
+  onAuthStateChanged.mockImplementationOnce((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings(locationFour);
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(locationFour.href).toBe("pending-approval.html");
+
+  const locationFive = { href: "" };
+
+  getDoc.mockResolvedValueOnce({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "suspended"
+    })
+  });
+
+  onAuthStateChanged.mockImplementationOnce((authArg, callback) => {
+    callback({ uid: "vendor-456" });
+  });
+
+  initVendorSettings(locationFive);
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(global.alert).toHaveBeenCalledWith("Your account is suspended");
+  expect(locationFive.href).toBe("login.html");
+});
 });
