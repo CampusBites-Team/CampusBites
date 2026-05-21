@@ -9,7 +9,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <link rel="icon" type="image/png" href="assets/icons/1-removebg-preview.png" />
   <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
   <link rel="manifest" href="manifest.json" />
@@ -159,19 +159,41 @@
       <i data-lucide="trending-up" class="hidden md:block absolute right-72 top-36 w-20 h-20 text-indigo-600 float-soft opacity-60 pointer-events-none"></i>
 
       <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
-        <header class="mb-8 bg-white/90 backdrop-blur rounded-[1.5rem] sm:rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-100 p-5 sm:p-8 max-w-4xl">
-          <p class="text-sm font-semibold text-orange-500 uppercase tracking-wide">
-            Vendor insights
-          </p>
+        <header class="mb-8 bg-white/90 backdrop-blur rounded-[1.5rem] sm:rounded-[2rem] shadow-xl shadow-indigo-100 border border-indigo-100 p-5 sm:p-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+  <section class="max-w-4xl">
+    <p class="text-sm font-semibold text-orange-500 uppercase tracking-wide">
+      Vendor insights
+    </p>
 
-          <h1 class="text-3xl sm:text-5xl md:text-6xl font-extrabold text-indigo-950 leading-tight mt-1">
-            Vendor Analytics
-          </h1>
+    <h1 class="text-3xl sm:text-5xl md:text-6xl font-extrabold text-indigo-950 leading-tight mt-1">
+      Vendor Analytics
+    </h1>
 
-          <p class="mt-4 text-gray-600 leading-relaxed">
-            Monitor total orders, collected revenue, and business performance across selected dates.
-          </p>
-        </header>
+    <p class="mt-4 text-gray-600 leading-relaxed">
+      Monitor total orders, collected revenue, and business performance across selected dates.
+    </p>
+  </section>
+
+  <section class="flex flex-col sm:flex-row gap-3">
+    <button
+      type="button"
+      id="exportCsvBtn"
+      class="bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-indigo-700 transition shadow-xl shadow-indigo-200 flex items-center justify-center gap-2"
+    >
+      <i data-lucide="download" class="w-5 h-5"></i>
+      Export CSV
+    </button>
+
+    <button
+      type="button"
+      id="exportPdfBtn"
+      class="border-2 border-orange-400 text-indigo-700 px-6 py-3 rounded-2xl font-bold hover:bg-orange-50 transition flex items-center justify-center gap-2"
+    >
+      <i data-lucide="file-text" class="w-5 h-5"></i>
+      Export PDF
+    </button>
+  </section>
+</header>
 
         <section class="bg-white/95 backdrop-blur rounded-[1.5rem] sm:rounded-[2rem] shadow-xl shadow-indigo-100 p-5 sm:p-6 border border-indigo-50 mb-8">
           <header class="mb-6">
@@ -257,43 +279,53 @@
           </article>
         </section>
 
-        <section class="bg-white/95 backdrop-blur rounded-[1.5rem] sm:rounded-[2rem] shadow-xl shadow-indigo-100 p-5 sm:p-6 border border-indigo-50 mb-8">
-          <header class="mb-6">
-            <h2 class="text-2xl font-extrabold text-gray-900">Performance Graph</h2>
-            <p class="text-gray-600 mt-1">
-              Visual summary of total orders, collected orders, and revenue.
-            </p>
-          </header>
+        <section class="grid md:grid-cols-3 gap-6 mb-10">
+  <article class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50">
+    <h3 class="text-gray-500 text-sm mb-4">Revenue Over Time</h3>
 
-          <section class="relative w-full min-h-[280px]">
-            <canvas id="analyticsChart"></canvas>
-          </section>
-        </section>
+    <section class="h-64">
+      <canvas id="analyticsChart"></canvas>
+    </section>
+  </article>
 
-        <section class="bg-white/95 backdrop-blur rounded-[1.5rem] sm:rounded-[2rem] shadow-xl shadow-indigo-100 p-5 sm:p-6 border border-indigo-50 mb-8">
-          <header class="mb-6">
-            <h2 class="text-2xl font-extrabold text-gray-900">Custom Report</h2>
-            <p class="text-gray-600 mt-1">
-              Detailed daily breakdown for the selected date range.
-            </p>
-          </header>
+  <article class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50">
+    <h3 class="text-gray-500 text-sm mb-4">Peak Ordering Hours</h3>
 
-          <section class="overflow-x-auto">
-            <table class="w-full min-w-[720px] text-sm">
-              <thead class="bg-indigo-50">
-                <tr>
-                  <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wide">Date</th>
-                  <th class="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wide">Orders</th>
-                  <th class="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wide">Collected</th>
-                  <th class="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wide">Revenue</th>
-                  <th class="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wide">Avg Order Value</th>
-                </tr>
-              </thead>
+    <section class="h-64">
+      <canvas id="peakChart"></canvas>
+    </section>
+  </article>
 
-              <tbody id="customReportBody" class="divide-y divide-gray-200"></tbody>
-            </table>
-          </section>
-        </section>
+  <article class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50">
+    <h3 class="text-gray-500 text-sm mb-4">Top Selling Items</h3>
+
+    <section class="h-64">
+      <canvas id="itemsChart"></canvas>
+    </section>
+  </article>
+</section>
+
+<section class="bg-white/95 backdrop-blur rounded-[2rem] shadow-xl shadow-indigo-100 p-6 border border-indigo-50 mb-10">
+  <header class="mb-6">
+    <h2 class="text-2xl font-extrabold text-gray-900">Custom Report</h2>
+    <p class="text-gray-600 mt-1">Detailed report for the selected vendor order data.</p>
+  </header>
+
+  <section class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-2 text-left">Date</th>
+          <th class="px-4 py-2 text-right">Orders</th>
+          <th class="px-4 py-2 text-right">Collected</th>
+          <th class="px-4 py-2 text-right">Revenue</th>
+          <th class="px-4 py-2 text-right">Avg Order Value</th>
+        </tr>
+      </thead>
+      <tbody id="customReportBody" class="divide-y divide-gray-200"></tbody>
+    </table>
+  </section>
+</section>
 
         <section class="bg-white/95 backdrop-blur rounded-[1.5rem] sm:rounded-[2rem] shadow-xl shadow-indigo-100 p-5 sm:p-6 border border-indigo-50">
           <header class="mb-6">
@@ -322,6 +354,9 @@
     }
 
     document.getElementById("logoutBtn")?.addEventListener("click", logout);
+
+    document.getElementById("loading-screen")?.remove();
+    document.getElementById("site-content")?.classList.remove("blurred");
   </script>
 </body>
 </html>

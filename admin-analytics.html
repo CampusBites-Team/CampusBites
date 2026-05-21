@@ -309,13 +309,26 @@
   <script type="module" src="./scripts/navbar.js"></script>
 
   <script type="module">
-    import { initAuthUI, logout } from "./scripts/auth.js";
-    import { analytics, initAnalyticsPage } from "./scripts/adminAnalytics.js";
+  import { initAuthUI, logout } from "./scripts/auth.js";
+  import { analytics, initAnalyticsPage } from "./scripts/adminAnalytics.js";
 
-    initAuthUI();
+  initAuthUI();
 
-    if (window.lucide) {
-      lucide.createIcons();
-    }
+  if (window.lucide) {
+    lucide.createIcons();
+  }
 
-    document.getElement
+  document.getElementById("logoutBtn")?.addEventListener("click", logout);
+
+  initAnalyticsPage();
+
+  document.getElementById("report-range")?.addEventListener("change", analytics.updateCustomView);
+  document.getElementById("report-vendor")?.addEventListener("change", analytics.updateCustomView);
+  document.getElementById("report-metric")?.addEventListener("change", analytics.updateCustomView);
+  document.getElementById("generateReportBtn")?.addEventListener("click", analytics.updateCustomView);
+  document.getElementById("exportCsvBtn")?.addEventListener("click", analytics.exportCSV);
+  document.getElementById("exportPdfBtn")?.addEventListener("click", analytics.exportPDF);
+
+  document.getElementById("loading-screen")?.remove();
+  document.getElementById("site-content")?.classList.remove("blurred");
+</script>
