@@ -417,4 +417,498 @@ test("calls requestAccountDeletion when vendor clicks delete account", async () 
     "vendor@test.com"
   );
 });
+test("shows custom category input when Other is selected", async () => {
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  const storeCategory = document.getElementById("storeCategory");
+  const customCategorySection = document.getElementById("customCategorySection");
+
+  storeCategory.value = "Other";
+  storeCategory.dispatchEvent(new Event("change"));
+
+  expect(customCategorySection.classList.contains("hidden")).toBe(false);
+
+  storeCategory.value = "Fast Food";
+  storeCategory.dispatchEvent(new Event("change"));
+
+  expect(customCategorySection.classList.contains("hidden")).toBe(true);
+});
+
+test("saves custom category when Other is selected", async () => {
+  doc.mockReturnValue({});
+  updateDoc.mockResolvedValue();
+
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.getElementById("shopName").value = "Custom Shop";
+  document.getElementById("location").value = "Matrix";
+  document.getElementById("storeSlogan").value = "Fresh";
+  document.getElementById("storePhone").value = "074 389 2816";
+  document.getElementById("storeCategory").value = "Other";
+  document.getElementById("customCategory").value = "Korean Street Food";
+
+  document.getElementById("vendorDetailsForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(updateDoc).toHaveBeenCalledWith(expect.anything(), {
+    shopName: "Custom Shop",
+    location: "Matrix",
+    storeSlogan: "Fresh",
+    storePhone: "0743892816",
+    storeCategory: "Korean Street Food"
+  });
+});
+
+test("shows operating hours as closed when no hours are set but closedWeekends is true", async () => {
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved",
+      closedWeekends: true
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(document.getElementById("savedOperatingHours").textContent)
+    .toBe("Weekdays: Closed | Weekends: Closed");
+});
+
+test("does not validate weekend times when weekends are closed", async () => {
+  doc.mockReturnValue({});
+  updateDoc.mockResolvedValue();
+
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.getElementById("weekdayOpeningTime").value = "08:00";
+  document.getElementById("weekdayClosingTime").value = "17:00";
+  document.getElementById("weekendOpeningTime").value = "18:00";
+  document.getElementById("weekendClosingTime").value = "14:00";
+  document.getElementById("closedWeekends").checked = true;
+
+  document.getElementById("operatingHoursForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(updateDoc).toHaveBeenCalledWith(expect.anything(), {
+    weekdayOpeningTime: "08:00",
+    weekdayClosingTime: "17:00",
+    weekendOpeningTime: "",
+    weekendClosingTime: "",
+    closedWeekends: true,
+    openingTime: "08:00",
+    closingTime: "17:00"
+  });
+});
+
+test("stores blank optional vendor fields when submitted", async () => {
+  doc.mockReturnValue({});
+  updateDoc.mockResolvedValue();
+
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.getElementById("shopName").value = "Basic Shop";
+  document.getElementById("location").value = "Matrix";
+  document.getElementById("storeSlogan").value = "";
+  document.getElementById("storePhone").value = "0743892816";
+  document.getElementById("storeCategory").value = "";
+
+  document.getElementById("vendorDetailsForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(updateDoc).toHaveBeenCalledWith(expect.anything(), {
+    shopName: "Basic Shop",
+    location: "Matrix",
+    storeSlogan: "",
+    storePhone: "0743892816",
+    storeCategory: ""
+  });
+});
+
+test("uses old vendor fallback fields when loading settings", async () => {
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved",
+      slogan: "Old slogan",
+      phone: "0711111111",
+      category: "Bakery",
+      logo: "old-logo-url",
+      openingTime: "07:00",
+      closingTime: "15:00"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(document.getElementById("storeSlogan").value).toBe("Old slogan");
+  expect(document.getElementById("storePhone").value).toBe("0711111111");
+  expect(document.getElementById("storeCategory").value).toBe("Bakery");
+  expect(document.getElementById("weekdayOpeningTime").value).toBe("07:00");
+  expect(document.getElementById("weekdayClosingTime").value).toBe("15:00");
+  expect(document.getElementById("storeLogoPreview").src).toContain("old-logo-url");
+});
+
+
+test("uses request status when banking API returns non-json error", async () => {
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  global.fetch.mockResolvedValue({
+    ok: false,
+    status: 500,
+    json: jest.fn().mockRejectedValue(new Error("bad json"))
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.getElementById("settings-bank-name").value = "absa";
+  document.getElementById("settings-account-holder").value = "Jane Doe";
+  document.getElementById("settings-account-number").value = "123456789";
+  document.getElementById("settings-branch-code").value = "632005";
+  document.getElementById("settings-account-type").value = "savings";
+
+  document.getElementById("bankingDetailsForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(global.alert).toHaveBeenCalledWith(
+    "Could not update banking details: Request failed (500)"
+  );
+});
+
+test("does not attach duplicate listeners when init runs twice", async () => {
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(document.getElementById("vendorDetailsForm").dataset.listenerAttached)
+    .toBe("true");
+  expect(document.getElementById("operatingHoursForm").dataset.listenerAttached)
+    .toBe("true");
+  expect(document.getElementById("bankingDetailsForm").dataset.listenerAttached)
+    .toBe("true");
+  expect(document.getElementById("storeLogoInput").dataset.listenerAttached)
+    .toBe("true");
+});
+
+test("shows no vendor details message when no vendor details are saved", async () => {
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(document.getElementById("savedVendorDetails").textContent)
+    .toBe("No vendor details set yet.");
+});
+
+test("shows no operating hours message when no hours and weekends are not marked closed", async () => {
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved",
+      closedWeekends: false
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(document.getElementById("savedOperatingHours").textContent)
+    .toBe("No operating hours set yet.");
+});
+
+test("shows unmasked short bank account number", async () => {
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved",
+      bankDetails: {
+        bankName: "unknown_bank",
+        accountHolder: "Bob Smith",
+        accountNumber: "1234",
+        branchCode: "250655",
+        accountType: "cheque"
+      }
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(document.getElementById("savedBankingDetails").textContent)
+    .toBe("unknown_bank • 1234");
+});
+
+test("rejects missing weekend opening time when weekends are open", async () => {
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.getElementById("weekdayOpeningTime").value = "08:00";
+  document.getElementById("weekdayClosingTime").value = "17:00";
+  document.getElementById("closedWeekends").checked = false;
+  document.getElementById("weekendOpeningTime").value = "";
+  document.getElementById("weekendClosingTime").value = "14:00";
+
+  document.getElementById("operatingHoursForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  expect(global.alert).toHaveBeenCalledWith(
+    "Please enter both weekend opening and closing times."
+  );
+});
+
+test("rejects missing weekend closing time when weekends are open", async () => {
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved"
+    })
+  });
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  document.getElementById("weekdayOpeningTime").value = "08:00";
+  document.getElementById("weekdayClosingTime").value = "17:00";
+  document.getElementById("closedWeekends").checked = false;
+  document.getElementById("weekendOpeningTime").value = "09:00";
+  document.getElementById("weekendClosingTime").value = "";
+
+  document.getElementById("operatingHoursForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  expect(global.alert).toHaveBeenCalledWith(
+    "Please enter both weekend opening and closing times."
+  );
+});
+
+test("does not save logo when vendor details update fails before logo upload", async () => {
+  const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+  doc.mockReturnValue({});
+  updateDoc.mockRejectedValueOnce(new Error("Vendor update failed"));
+
+  getDoc.mockResolvedValue({
+    exists: () => true,
+    data: () => ({
+      role: "vendor",
+      status: "approved",
+      shopName: "Shop",
+      location: "Matrix"
+    })
+  });
+
+  global.FileReader = class {
+    readAsDataURL() {
+      this.result = "data:image/png;base64,test";
+      this.onload();
+    }
+  };
+
+  onAuthStateChanged.mockImplementation((authArg, callback) => {
+    callback({ uid: "vendor-123" });
+  });
+
+  initVendorSettings({ href: "" });
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  const logoInput = document.getElementById("storeLogoInput");
+  const validFile = new File(["image"], "logo.png", { type: "image/png" });
+
+  Object.defineProperty(logoInput, "files", {
+    value: [validFile]
+  });
+
+  logoInput.dispatchEvent(new Event("change"));
+
+  document.getElementById("shopName").value = "Logo Shop";
+  document.getElementById("location").value = "Matrix";
+  document.getElementById("storeSlogan").value = "Fresh daily";
+  document.getElementById("storePhone").value = "0711111111";
+  document.getElementById("storeCategory").value = "Fast Food";
+
+  document.getElementById("vendorDetailsForm").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true })
+  );
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(errorSpy).toHaveBeenCalled();
+  expect(uploadBytes).not.toHaveBeenCalled();
+  expect(getDownloadURL).not.toHaveBeenCalled();
+
+  errorSpy.mockRestore();
+});
+
 });
