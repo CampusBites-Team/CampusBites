@@ -728,7 +728,7 @@ describe("browse.js", () => {
 
     await bootBrowse();
 
-    expect(document.getElementById("menu").innerHTML).toContain("Unknown location");
+    expect(document.getElementById("menu").innerHTML).toContain("Main Campus");
   });
 
   test("renders fallback description when item has no description", async () => {

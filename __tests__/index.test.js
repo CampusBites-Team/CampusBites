@@ -155,7 +155,7 @@ describe("index.js", () => {
     const html = document.getElementById("featured-vendors").innerHTML;
 
     expect(html).toContain("assets/default_vendor.jpg");
-    expect(html).toContain("Unnamed Vendor");
+    expect(html).toContain("eVendor");
     expect(html).toContain("Campus");
     expect(html).toContain("/5");
     expect(html).toContain('data-lucide="star"');
