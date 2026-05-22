@@ -1013,4 +1013,64 @@ test("mark-paid click does nothing when button has no order id", async () => {
   expect(db.updateDoc).not.toHaveBeenCalled();
   expect(db.addDoc).not.toHaveBeenCalled();
 });
+test("shouldShowTodayOrder returns true when order has no Firestore timestamp", () => {
+  jest.isolateModules(() => {
+    const { shouldShowTodayOrder } = require("../scripts/orders.js");
+
+    expect(shouldShowTodayOrder({})).toBe(true);
+    expect(shouldShowTodayOrder({ createdAt: null })).toBe(true);
+    expect(shouldShowTodayOrder({ createdAt: {} })).toBe(true);
+  });
+});
+test("shouldShowTodayOrder returns true when order has no createdAt timestamp", () => {
+  jest.isolateModules(() => {
+    const { shouldShowTodayOrder } = require("../scripts/orders.js");
+
+    expect(shouldShowTodayOrder({})).toBe(true);
+    expect(shouldShowTodayOrder({ createdAt: null })).toBe(true);
+    expect(shouldShowTodayOrder({ createdAt: {} })).toBe(true);
+  });
+});
+test("dragstart stores order data in dataTransfer", () => {
+  jest.isolateModules(() => {
+    const { attachDragAndDropListeners } = require("../scripts/orders.js");
+
+    document.body.innerHTML = `
+      <section id="newOrders">
+        <article
+          draggable="true"
+          data-order-id="order-1"
+          data-order-status="Pending"
+          data-payment-method="cash"
+          data-payment-status="paid"
+        >
+          Order 1
+        </article>
+      </section>
+      <section id="preparingOrders"></section>
+      <section id="readyOrders"></section>
+      <section id="completedOrders"></section>
+    `;
+
+    attachDragAndDropListeners();
+
+    const article = document.querySelector("article");
+
+    const event = new Event("dragstart", {
+      bubbles: true
+    });
+
+    event.dataTransfer = {
+      setData: jest.fn()
+    };
+
+    article.dispatchEvent(event);
+
+    expect(event.dataTransfer.setData).toHaveBeenCalledWith("orderId", "order-1");
+    expect(event.dataTransfer.setData).toHaveBeenCalledWith("orderStatus", "Pending");
+    expect(event.dataTransfer.setData).toHaveBeenCalledWith("paymentMethod", "cash");
+    expect(event.dataTransfer.setData).toHaveBeenCalledWith("paymentStatus", "paid");
+  });
+});
+
 });
