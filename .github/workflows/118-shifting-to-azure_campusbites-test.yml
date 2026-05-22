@@ -4,9 +4,6 @@
 name: Build and deploy Node.js app to Azure Web App - campusbites-test
 
 on:
-  push:
-    branches:
-      - 118-shifting-to-azure
   workflow_dispatch:
 
 jobs:
