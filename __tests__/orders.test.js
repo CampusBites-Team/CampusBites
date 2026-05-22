@@ -227,49 +227,56 @@ describe("orders.js", () => {
   });
 
   test("renders collected orders into completedOrders", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "vendor-1" }));
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "vendor-1" }));
 
-    const fakeDate = new Date("2026-05-08T10:00:00");
+  const today = new Date();
 
-    // Call 1: vendor profile
-    // Call 2: customer name → David King
-    db.getDoc
-      .mockResolvedValueOnce({
-        exists: () => true,
-        data: () => ({ role: "vendor" })
-      })
-      .mockResolvedValueOnce({
-        exists: () => true,
-        data: () => ({ fullName: "David King" })
-      });
-
-    db.onSnapshot.mockImplementation((_q, cb) => {
-      cb({
-        docs: [
-          {
-            id: "order-1",
-            data: () => ({
-              vendorId: "vendor-1",
-              userId: "customer-1",
-              status: "Collected",
-              createdAt: { seconds: 1, toDate: () => fakeDate },
-              menuItems: [{ name: "Wrap", quantity: 1 }]
-            })
-          }
-        ]
-      });
-      return jest.fn();
+  // Call 1: vendor profile
+  // Call 2: customer name → David King
+  db.getDoc
+    .mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({ role: "vendor" })
+    })
+    .mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({ fullName: "David King" })
     });
 
-    jest.isolateModules(() => {
-      require("../scripts/orders.js");
+  db.onSnapshot.mockImplementation((_q, cb) => {
+    cb({
+      docs: [
+        {
+          id: "order-1",
+          data: () => ({
+            vendorId: "vendor-1",
+            userId: "customer-1",
+            status: "Collected",
+            createdAt: {
+              seconds: Math.floor(today.getTime() / 1000),
+              toDate: () => today
+            },
+            updatedAt: {
+              toDate: () => today
+            },
+            menuItems: [{ name: "Wrap", quantity: 1 }]
+          })
+        }
+      ]
     });
 
-    await flush();
-
-    expect(document.getElementById("completedOrders").innerHTML).toContain("David King");
-    expect(document.getElementById("completedOrders").innerHTML).toContain("Collected");
+    return jest.fn();
   });
+
+  jest.isolateModules(() => {
+    require("../scripts/orders.js");
+  });
+
+  await flush();
+
+  expect(document.getElementById("completedOrders").innerHTML).toContain("David King");
+  expect(document.getElementById("completedOrders").innerHTML).toContain("Collected");
+});
 
   test("shows fallback text when there are no orders", async () => {
     db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "vendor-1" }));
@@ -1006,4 +1013,64 @@ test("mark-paid click does nothing when button has no order id", async () => {
   expect(db.updateDoc).not.toHaveBeenCalled();
   expect(db.addDoc).not.toHaveBeenCalled();
 });
+test("shouldShowTodayOrder returns true when order has no Firestore timestamp", () => {
+  jest.isolateModules(() => {
+    const { shouldShowTodayOrder } = require("../scripts/orders.js");
+
+    expect(shouldShowTodayOrder({})).toBe(true);
+    expect(shouldShowTodayOrder({ createdAt: null })).toBe(true);
+    expect(shouldShowTodayOrder({ createdAt: {} })).toBe(true);
+  });
+});
+test("shouldShowTodayOrder returns true when order has no createdAt timestamp", () => {
+  jest.isolateModules(() => {
+    const { shouldShowTodayOrder } = require("../scripts/orders.js");
+
+    expect(shouldShowTodayOrder({})).toBe(true);
+    expect(shouldShowTodayOrder({ createdAt: null })).toBe(true);
+    expect(shouldShowTodayOrder({ createdAt: {} })).toBe(true);
+  });
+});
+test("dragstart stores order data in dataTransfer", () => {
+  jest.isolateModules(() => {
+    const { attachDragAndDropListeners } = require("../scripts/orders.js");
+
+    document.body.innerHTML = `
+      <section id="newOrders">
+        <article
+          draggable="true"
+          data-order-id="order-1"
+          data-order-status="Pending"
+          data-payment-method="cash"
+          data-payment-status="paid"
+        >
+          Order 1
+        </article>
+      </section>
+      <section id="preparingOrders"></section>
+      <section id="readyOrders"></section>
+      <section id="completedOrders"></section>
+    `;
+
+    attachDragAndDropListeners();
+
+    const article = document.querySelector("article");
+
+    const event = new Event("dragstart", {
+      bubbles: true
+    });
+
+    event.dataTransfer = {
+      setData: jest.fn()
+    };
+
+    article.dispatchEvent(event);
+
+    expect(event.dataTransfer.setData).toHaveBeenCalledWith("orderId", "order-1");
+    expect(event.dataTransfer.setData).toHaveBeenCalledWith("orderStatus", "Pending");
+    expect(event.dataTransfer.setData).toHaveBeenCalledWith("paymentMethod", "cash");
+    expect(event.dataTransfer.setData).toHaveBeenCalledWith("paymentStatus", "paid");
+  });
+});
+
 });

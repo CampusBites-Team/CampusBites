@@ -50,6 +50,15 @@ export function isOrderFromToday(order) {
   );
 }
 
+
+export function shouldShowTodayOrder(order) {
+  if (!order.createdAt?.toDate) {
+    return true;
+  }
+
+  return isOrderFromToday(order);
+}
+
 export function getDateKey(timestamp) {
   if (!timestamp?.toDate) return "unknown-date";
 
@@ -243,9 +252,12 @@ export async function renderOrdersByStatus(orders) {
   const numberedOrders = addDailyOrderNumbers(enrichedOrders);
 
   const pendingOrders = numberedOrders.filter((order) => formatStatus(order.status) === "Pending");
-  const preparingOrders = numberedOrders.filter((order) => formatStatus(order.status) === "Preparing");
-  const readyOrders = numberedOrders.filter((order) => formatStatus(order.status) === "Ready");
-  const collectedOrders = numberedOrders.filter((order) => formatStatus(order.status) === "Collected");
+const preparingOrders = numberedOrders.filter((order) => formatStatus(order.status) === "Preparing");
+const readyOrders = numberedOrders.filter((order) => formatStatus(order.status) === "Ready");
+
+const collectedOrders = numberedOrders.filter((order) => {
+  return formatStatus(order.status) === "Collected" && shouldShowTodayOrder(order);
+});
 
   pendingContainer.innerHTML = pendingOrders.length
     ? pendingOrders.map((order) => buildOrderHTML(order)).join("")
