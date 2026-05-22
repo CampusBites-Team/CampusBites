@@ -140,6 +140,14 @@ export function isOrderFromToday(order) {
   );
 }
 
+export function shouldShowTodayOrder(order) {
+  if (!order.createdAt?.toDate) {
+    return true;
+  }
+
+  return isOrderFromToday(order);
+}
+
 export function renderQuickStats(orders) {
   const pendingCount = document.getElementById("pending-count");
   const preparingCount = document.getElementById("preparing-count");
@@ -150,13 +158,7 @@ export function renderQuickStats(orders) {
     return;
   }
 
-const todaysOrders = orders.filter((order) => {
-  if (!order.createdAt) {
-    return true;
-  }
-
-  return isOrderFromToday(order);
-});
+const todaysOrders = orders.filter(shouldShowTodayOrder);
 
   pendingCount.textContent = todaysOrders.filter(
     (order) => formatStatus(order.status) === "Pending"
@@ -227,8 +229,8 @@ export function renderOrders(orders) {
   if (!ordersList) return;
 
   const currentOrders = orders.filter((order) => {
-    return formatStatus(order.status) !== "Collected";
-  });
+  return formatStatus(order.status) !== "Collected" && shouldShowTodayOrder(order);
+});
 
   if (!currentOrders.length) {
     ordersList.innerHTML = `<p class="text-gray-500">No current orders available.</p>`;

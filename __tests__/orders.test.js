@@ -227,49 +227,56 @@ describe("orders.js", () => {
   });
 
   test("renders collected orders into completedOrders", async () => {
-    db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "vendor-1" }));
+  db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "vendor-1" }));
 
-    const fakeDate = new Date("2026-05-08T10:00:00");
+  const today = new Date();
 
-    // Call 1: vendor profile
-    // Call 2: customer name → David King
-    db.getDoc
-      .mockResolvedValueOnce({
-        exists: () => true,
-        data: () => ({ role: "vendor" })
-      })
-      .mockResolvedValueOnce({
-        exists: () => true,
-        data: () => ({ fullName: "David King" })
-      });
-
-    db.onSnapshot.mockImplementation((_q, cb) => {
-      cb({
-        docs: [
-          {
-            id: "order-1",
-            data: () => ({
-              vendorId: "vendor-1",
-              userId: "customer-1",
-              status: "Collected",
-              createdAt: { seconds: 1, toDate: () => fakeDate },
-              menuItems: [{ name: "Wrap", quantity: 1 }]
-            })
-          }
-        ]
-      });
-      return jest.fn();
+  // Call 1: vendor profile
+  // Call 2: customer name → David King
+  db.getDoc
+    .mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({ role: "vendor" })
+    })
+    .mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({ fullName: "David King" })
     });
 
-    jest.isolateModules(() => {
-      require("../scripts/orders.js");
+  db.onSnapshot.mockImplementation((_q, cb) => {
+    cb({
+      docs: [
+        {
+          id: "order-1",
+          data: () => ({
+            vendorId: "vendor-1",
+            userId: "customer-1",
+            status: "Collected",
+            createdAt: {
+              seconds: Math.floor(today.getTime() / 1000),
+              toDate: () => today
+            },
+            updatedAt: {
+              toDate: () => today
+            },
+            menuItems: [{ name: "Wrap", quantity: 1 }]
+          })
+        }
+      ]
     });
 
-    await flush();
-
-    expect(document.getElementById("completedOrders").innerHTML).toContain("David King");
-    expect(document.getElementById("completedOrders").innerHTML).toContain("Collected");
+    return jest.fn();
   });
+
+  jest.isolateModules(() => {
+    require("../scripts/orders.js");
+  });
+
+  await flush();
+
+  expect(document.getElementById("completedOrders").innerHTML).toContain("David King");
+  expect(document.getElementById("completedOrders").innerHTML).toContain("Collected");
+});
 
   test("shows fallback text when there are no orders", async () => {
     db.onAuthStateChanged.mockImplementation((_auth, cb) => cb({ uid: "vendor-1" }));
